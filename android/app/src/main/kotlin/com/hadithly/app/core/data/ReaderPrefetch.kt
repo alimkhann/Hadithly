@@ -4,19 +4,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * R6 round 3 quiet prefetch. Entry screens (Library/Home/Saved) ensure the
- * outline plus the continue-reading target volume's first page are cached;
- * the reader background-caches adjacent volumes so switches never wait.
+ * Entry screens (Library/Home/Saved) warm only the most recent reading target's
+ * outline and first page. The reader also warms adjacent volumes.
  *
- * Bounded (at most [MAX_ENTRY_FETCHES] entry fetches, at most two adjacent
+ * Bounded (at most two entry fetches, at most two adjacent
  * volumes), silent (every fetch is individually guarded), offline-tolerant
  * (failures return normally), and UI-free (callers launch on
  * Dispatchers.IO; nothing here touches composition).
  */
 object ReaderPrefetch {
-
-    /** Seven outlines plus one continue-reading page at most. */
-    const val MAX_ENTRY_COLLECTIONS = 7
 
     /** One entry fetch: an outline, or one volume's first page. */
     sealed interface EntryFetch {
@@ -24,22 +20,16 @@ object ReaderPrefetch {
         data class FirstPage(val collectionSlug: String, val volumeId: String) : EntryFetch
     }
 
-    /**
-     * Bounded entry plan: outlines for at most the first
-     * [MAX_ENTRY_COLLECTIONS] distinct slugs, plus the most-recent
-     * continue-reading target's volume first page when it names a volume.
-     */
-    fun entryPlan(slugs: List<String>, progress: List<ProgressEntry>): List<EntryFetch> {
-        val plan = mutableListOf<EntryFetch>()
-        for (slug in slugs.distinct().take(MAX_ENTRY_COLLECTIONS)) {
-            plan.add(EntryFetch.Outline(slug))
-        }
+    /** Unopened collections stay cold; only a real resume target justifies warming. */
+    fun entryPlan(progress: List<ProgressEntry>): List<EntryFetch> {
         val target = progress.filter { it.hadith != null }.maxByOrNull { it.updatedAt }
-        val volumeId = target?.hadith?.volumeId?.takeIf { it.isNotBlank() }
-        if (target != null && volumeId != null) {
-            plan.add(EntryFetch.FirstPage(target.collectionSlug, volumeId))
+            ?: return emptyList()
+        return buildList {
+            add(EntryFetch.Outline(target.collectionSlug))
+            target.hadith?.volumeId?.takeIf { it.isNotBlank() }?.let { volumeId ->
+                add(EntryFetch.FirstPage(target.collectionSlug, volumeId))
+            }
         }
-        return plan
     }
 
     /**
@@ -64,11 +54,10 @@ object ReaderPrefetch {
      */
     suspend fun warmEntryCache(
         repository: ConvexRepository,
-        slugs: List<String>,
         progress: List<ProgressEntry>,
     ) = withContext(Dispatchers.IO) {
         executePlan(
-            plan = entryPlan(slugs, progress),
+            plan = entryPlan(progress),
             fetchOutline = { slug -> repository.getCollectionOutline(slug) },
             fetchPage = { slug, volumeId -> repository.getReaderPage(slug, volumeId, 0) },
         )

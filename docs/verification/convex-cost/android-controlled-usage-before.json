@@ -1,0 +1,216 @@
+{
+  "deployment": "festive-cobra-664",
+  "scope": "live deployment aggregate, not a reader journey or team allowance",
+  "startedAtUtc": "2026-11-01T08:46:01.890989+00:00",
+  "completedAtUtc": "2026-11-01T08:46:03.340483+00:00",
+  "seedStatus": "complete",
+  "metrics": {
+    "functionCalls": {
+      "unit": "calls",
+      "usage": {
+        "current_day": 3260,
+        "current_month": 3260
+      }
+    },
+    "databaseIoGb": {
+      "unit": "GB",
+      "usage": {
+        "current_day": 0.006927662529051304,
+        "current_month": 0.006927662529051304
+      }
+    },
+    "dataEgressGb": {
+      "unit": "GB",
+      "usage": {
+        "current_day": 0.0013029957190155983,
+        "current_month": 0.0013029957190155983
+      }
+    },
+    "searchQueryGb": {
+      "unit": "Query-GB",
+      "usage": {
+        "current_day": 0,
+        "current_month": 0
+      }
+    },
+    "actionComputeConvexGbHours": {
+      "unit": "GB-hours",
+      "usage": {
+        "current_day": 0.00032880208333333324,
+        "current_month": 0.00032880208333333416
+      }
+    },
+    "actionComputeNodeJsGbHours": {
+      "unit": "GB-hours",
+      "usage": {
+        "current_day": 0.012029722222222214,
+        "current_month": 0.012029722222222233
+      }
+    },
+    "actionComputeCpuGbHours": {
+      "unit": "GB-hours",
+      "usage": {
+        "current_day": 0.00029345486111111103,
+        "current_month": 0.0002934548611111119
+      }
+    },
+    "queryMutationComputeGbHours": {
+      "unit": "GB-hours",
+      "usage": {
+        "current_day": 0.0004247395833333324,
+        "current_month": 0.00042473958333333334
+      }
+    },
+    "aiGatewayCostDollars": {
+      "unit": "dollars",
+      "usage": {
+        "current_day": 0,
+        "current_month": 0
+      }
+    }
+  },
+  "sampledExecutionLogs": {
+    "scope": "execution completions within requested UTC window; attribution needs workload evidence",
+    "requestedWindow": {
+      "sinceUtc": "2026-11-01T08:31:12.696Z",
+      "untilUtc": "2026-11-01T08:31:23.169775Z"
+    },
+    "historyReachesWindowStart": true,
+    "captureSeconds": 5,
+    "requestedHistoryEvents": 2000,
+    "firstEventUtc": "2026-11-01T08:31:16.837279+00:00",
+    "lastEventUtc": "2026-11-01T08:31:23.126974+00:00",
+    "functions": {
+      "library:listCollectionProgressSummaries": {
+        "completionEvents": 1,
+        "cachedResultEvents": 1,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0,
+        "executionSeconds": 2.6552e-05,
+        "failedEvents": 0,
+        "databaseReadDocuments": 0,
+        "databaseWriteDocuments": 0,
+        "databaseWriteIndexRows": 0,
+        "actionMemoryGbHours": null
+      },
+      "collections:getOutline": {
+        "completionEvents": 32,
+        "cachedResultEvents": 26,
+        "databaseIoReadBytes": 47095,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0,
+        "executionSeconds": 0.046649659,
+        "failedEvents": 0,
+        "databaseReadDocuments": 6,
+        "databaseWriteDocuments": 0,
+        "databaseWriteIndexRows": 0,
+        "actionMemoryGbHours": null
+      },
+      "dailySelections:getHadithId": {
+        "completionEvents": 3,
+        "cachedResultEvents": 3,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0,
+        "executionSeconds": 7.744800000000001e-05,
+        "failedEvents": 0,
+        "databaseReadDocuments": 0,
+        "databaseWriteDocuments": 0,
+        "databaseWriteIndexRows": 0,
+        "actionMemoryGbHours": null
+      },
+      "hadiths:getById": {
+        "completionEvents": 3,
+        "cachedResultEvents": 3,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0,
+        "executionSeconds": 8.155099999999999e-05,
+        "failedEvents": 0,
+        "databaseReadDocuments": 0,
+        "databaseWriteDocuments": 0,
+        "databaseWriteIndexRows": 0,
+        "actionMemoryGbHours": null
+      },
+      "actions/daily:getDailyWidgetPayload": {
+        "completionEvents": 2,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 7583,
+        "executionSeconds": 0.27489377400000004,
+        "failedEvents": 0,
+        "databaseReadDocuments": 0,
+        "databaseWriteDocuments": 0,
+        "databaseWriteIndexRows": 0,
+        "actionMemoryGbHours": 3.817969083333333e-05
+      },
+      "actions/hadithData:getCollectionOutline": {
+        "completionEvents": 9,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 20489,
+        "executionSeconds": 2.7916781000000004,
+        "failedEvents": 0,
+        "databaseReadDocuments": 0,
+        "databaseWriteDocuments": 0,
+        "databaseWriteIndexRows": 0,
+        "actionMemoryGbHours": 0.00038773306944444447
+      },
+      "actions/daily:getDailyHadith": {
+        "completionEvents": 1,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 3344,
+        "executionSeconds": 0.857957582,
+        "failedEvents": 0,
+        "databaseReadDocuments": 0,
+        "databaseWriteDocuments": 0,
+        "databaseWriteIndexRows": 0,
+        "actionMemoryGbHours": 0.00011916077527777778
+      },
+      "hadiths:listByVolume": {
+        "completionEvents": 21,
+        "cachedResultEvents": 21,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0,
+        "executionSeconds": 0.0006424100000000002,
+        "failedEvents": 0,
+        "databaseReadDocuments": 0,
+        "databaseWriteDocuments": 0,
+        "databaseWriteIndexRows": 0,
+        "actionMemoryGbHours": null
+      },
+      "actions/hadithData:getReaderPage": {
+        "completionEvents": 21,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 103940,
+        "executionSeconds": 4.592466149000001,
+        "failedEvents": 0,
+        "databaseReadDocuments": 0,
+        "databaseWriteDocuments": 0,
+        "databaseWriteIndexRows": 0,
+        "actionMemoryGbHours": 0.0006378425206944444
+      },
+      "translations:getReaderDefaults": {
+        "completionEvents": 9,
+        "cachedResultEvents": 9,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0,
+        "executionSeconds": 0.000284418,
+        "failedEvents": 0,
+        "databaseReadDocuments": 0,
+        "databaseWriteDocuments": 0,
+        "databaseWriteIndexRows": 0,
+        "actionMemoryGbHours": null
+      }
+    }
+  }
+}

@@ -16,7 +16,19 @@ def main():
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--log-sample-seconds", type=int, default=0)
     parser.add_argument("--log-history", type=int, default=0)
+    parser.add_argument("--since", help="Inclusive UTC execution-window start")
+    parser.add_argument("--until", help="Exclusive UTC execution-window end")
     args = parser.parse_args()
+    window = None
+    if args.since or args.until:
+        try:
+            first = datetime.fromisoformat(args.since.replace("Z", "+00:00"))
+            last = datetime.fromisoformat(args.until.replace("Z", "+00:00"))
+            if first.utcoffset() is None or last.utcoffset() is None or first >= last or not args.log_sample_seconds:
+                raise ValueError()
+            window = (first.timestamp(), last.timestamp())
+        except (AttributeError, ValueError):
+            parser.error("Execution window needs ordered timezone-aware --since/--until and a log sample")
     if not 0 <= args.log_sample_seconds <= 45 or not 0 <= args.log_history <= 2000:
         parser.error("Log sample must be 0-45 seconds and history 0-2000 events")
     backend = Path(__file__).resolve().parents[1] / "backend"
@@ -83,6 +95,7 @@ def main():
             parser.exit(1, "Could not sample execution logs; no output written.\n")
         summaries = {}
         timestamps = []
+        available_timestamps = []
         for line in stdout.splitlines():
             try:
                 event = json.loads(line)
@@ -92,14 +105,36 @@ def main():
                 timestamp = event["timestamp"]
                 if type(timestamp) not in (int, float) or not math.isfinite(timestamp):
                     continue
+                available_timestamps.append(timestamp)
+                if window and not window[0] <= timestamp < window[1]:
+                    continue
                 usage_stats = event.get("usageStats")
                 if not isinstance(usage_stats, dict):
                     usage_stats = {}
                 row = summaries.setdefault(name, {"completionEvents": 0, "cachedResultEvents": 0,
-                    "databaseIoReadBytes": 0, "databaseIoWriteBytes": 0, "networkEgressBytes": 0})
+                    "databaseIoReadBytes": 0, "databaseIoWriteBytes": 0, "networkEgressBytes": 0,
+                    "executionSeconds": 0, "failedEvents": 0, "databaseReadDocuments": 0,
+                    "databaseWriteDocuments": 0, "databaseWriteIndexRows": 0,
+                    "actionMemoryGbHours": 0 if event.get("udfType") == "Action" else None})
                 row["completionEvents"] += 1
                 row["cachedResultEvents"] += event.get("cachedResult") is True
-                for key in ("databaseIoReadBytes", "databaseIoWriteBytes", "networkEgressBytes"):
+                row["failedEvents"] += bool(event.get("error"))
+                execution = event.get("executionTime")
+                if type(execution) in (int, float) and math.isfinite(execution) and execution >= 0:
+                    if row["executionSeconds"] is not None:
+                        row["executionSeconds"] += execution
+                else:
+                    row["executionSeconds"] = None
+                if event.get("udfType") == "Action":
+                    memory = usage_stats.get("memoryUsedMb")
+                    if (type(memory) in (int, float) and math.isfinite(memory) and memory >= 0
+                            and type(execution) in (int, float) and math.isfinite(execution) and execution >= 0):
+                        if row["actionMemoryGbHours"] is not None:
+                            row["actionMemoryGbHours"] += memory * execution / (1024 * 3600)
+                    else:
+                        row["actionMemoryGbHours"] = None
+                for key in ("databaseIoReadBytes", "databaseIoWriteBytes", "networkEgressBytes",
+                            "databaseReadDocuments", "databaseWriteDocuments", "databaseWriteIndexRows"):
                     number = usage_stats.get(key)
                     if type(number) in (int, float) and math.isfinite(number) and number >= 0:
                         if row[key] is not None:
@@ -110,7 +145,9 @@ def main():
             except (json.JSONDecodeError, KeyError, TypeError, AttributeError):
                 continue
         output["sampledExecutionLogs"] = {
-            "scope": "ambient logs including requested history; not a controlled idle or native workload",
+            "scope": "execution completions within requested UTC window; attribution needs workload evidence" if window else "ambient logs including requested history; not a controlled idle or native workload",
+            "requestedWindow": {"sinceUtc": args.since, "untilUtc": args.until} if window else None,
+            "historyReachesWindowStart": min(available_timestamps) <= window[0] if window and available_timestamps else None,
             "captureSeconds": args.log_sample_seconds, "requestedHistoryEvents": args.log_history,
             "firstEventUtc": datetime.fromtimestamp(min(timestamps), timezone.utc).isoformat() if timestamps else None,
             "lastEventUtc": datetime.fromtimestamp(max(timestamps), timezone.utc).isoformat() if timestamps else None,

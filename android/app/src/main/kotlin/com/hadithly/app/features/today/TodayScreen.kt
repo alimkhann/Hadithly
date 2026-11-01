@@ -167,7 +167,7 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit, previewState: String? 
     LaunchedEffect(Unit) {
         if (com.hadithly.app.BuildConfig.DEBUG && previewState != null) return@LaunchedEffect
         withContext(Dispatchers.IO) {
-            ReaderPrefetch.warmEntryCache(app.repository, Collections.all.map { it.first }, app.library.progress.value)
+            ReaderPrefetch.warmEntryCache(app.repository, app.library.progress.value)
         }
     }
 

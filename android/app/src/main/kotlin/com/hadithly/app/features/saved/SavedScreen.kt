@@ -58,7 +58,6 @@ import com.hadithly.app.core.data.HadithRef
 import com.hadithly.app.core.data.ReaderPrefetch
 import com.hadithly.app.core.data.ReaderTargetSource
 import com.hadithly.app.core.data.SavedItemEntry
-import com.hadithly.app.core.data.Collections
 import com.hadithly.app.core.theme.LocalHadithlyColors
 import com.hadithly.app.features.main.ReaderOpenTarget
 import com.hadithly.app.features.main.rememberApp
@@ -124,7 +123,7 @@ fun SavedScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
     }
 
     androidx.compose.runtime.LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) { ReaderPrefetch.warmEntryCache(app.repository, Collections.all.map { it.first }, app.library.progress.value) }
+        withContext(Dispatchers.IO) { ReaderPrefetch.warmEntryCache(app.repository, app.library.progress.value) }
     }
     Column(Modifier.fillMaxSize().background(colors.background).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {

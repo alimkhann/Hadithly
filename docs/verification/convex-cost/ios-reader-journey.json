@@ -1,0 +1,21 @@
+{
+  "auth": "fresh simulator guest",
+  "automaticGeneration": false,
+  "endedAtUtc": "2026-11-01T08:41:23Z",
+  "locale": "en",
+  "pageMoves": 10,
+  "platform": "ios",
+  "startedAtUtc": "2026-11-01T08:39:31Z",
+  "deployment": "festive-cobra-664",
+  "revision": "51ee40d plus measurement test; iOS product prefetch unchanged",
+  "device": "isolated Hadithly Convex Cost iPhone 18 Pro iOS 27 simulator 5EF04509-2CE0-4FBA-9341-F407EBDE8045",
+  "collection": "bukhari",
+  "arabicFontSize": 26,
+  "translationFontSize": 16,
+  "initialClientState": "app uninstalled only on the task-owned fresh simulator before reinstall; no reading progress or offline packs",
+  "backendCache": "populated shared deployment content cache; server query cache not flushed",
+  "harnessSha256": "402a0580dcd97a155d3dc4feac945f4634325f3bbc781542d91b7979af0fe44b",
+  "verification": "ten page-position label changes after swipes and control-visibility transitions; XCTest succeeded",
+  "timestampResolutionSeconds": 1,
+  "readingPreferencesVerifiedFromLocalAppStore": true
+}

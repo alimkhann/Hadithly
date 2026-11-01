@@ -1,0 +1,190 @@
+{
+  "deployment": "festive-cobra-664",
+  "scope": "live deployment aggregate, not a reader journey or team allowance",
+  "startedAtUtc": "2026-11-01T08:46:04.207396+00:00",
+  "completedAtUtc": "2026-11-01T08:46:05.415488+00:00",
+  "seedStatus": "complete",
+  "metrics": {
+    "functionCalls": {
+      "unit": "calls",
+      "usage": {
+        "current_day": 3260,
+        "current_month": 3260
+      }
+    },
+    "databaseIoGb": {
+      "unit": "GB",
+      "usage": {
+        "current_day": 0.006927662529051304,
+        "current_month": 0.006927662529051304
+      }
+    },
+    "dataEgressGb": {
+      "unit": "GB",
+      "usage": {
+        "current_day": 0.0013029957190155983,
+        "current_month": 0.0013029957190155983
+      }
+    },
+    "searchQueryGb": {
+      "unit": "Query-GB",
+      "usage": {
+        "current_day": 0,
+        "current_month": 0
+      }
+    },
+    "actionComputeConvexGbHours": {
+      "unit": "GB-hours",
+      "usage": {
+        "current_day": 0.00032880208333333324,
+        "current_month": 0.00032880208333333416
+      }
+    },
+    "actionComputeNodeJsGbHours": {
+      "unit": "GB-hours",
+      "usage": {
+        "current_day": 0.012029722222222214,
+        "current_month": 0.012029722222222233
+      }
+    },
+    "actionComputeCpuGbHours": {
+      "unit": "GB-hours",
+      "usage": {
+        "current_day": 0.00029345486111111103,
+        "current_month": 0.0002934548611111119
+      }
+    },
+    "queryMutationComputeGbHours": {
+      "unit": "GB-hours",
+      "usage": {
+        "current_day": 0.0004247395833333324,
+        "current_month": 0.00042473958333333334
+      }
+    },
+    "aiGatewayCostDollars": {
+      "unit": "dollars",
+      "usage": {
+        "current_day": 0,
+        "current_month": 0
+      }
+    }
+  },
+  "sampledExecutionLogs": {
+    "scope": "execution completions within requested UTC window; attribution needs workload evidence",
+    "requestedWindow": {
+      "sinceUtc": "2026-11-01T08:42:14.170283+00:00",
+      "untilUtc": "2026-11-01T08:44:06.170283+00:00"
+    },
+    "historyReachesWindowStart": true,
+    "captureSeconds": 5,
+    "requestedHistoryEvents": 2000,
+    "firstEventUtc": "2026-11-01T08:42:28.612442+00:00",
+    "lastEventUtc": "2026-11-01T08:43:49.662907+00:00",
+    "functions": {
+      "library:listPushDeliveryPage": {
+        "completionEvents": 1,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 2005,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0,
+        "executionSeconds": 0.013907971,
+        "failedEvents": 0,
+        "databaseReadDocuments": 5,
+        "databaseWriteDocuments": 0,
+        "databaseWriteIndexRows": 0,
+        "actionMemoryGbHours": null
+      },
+      "diagnostics:heartbeat": {
+        "completionEvents": 1,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 538,
+        "databaseIoWriteBytes": 269,
+        "networkEgressBytes": 0,
+        "executionSeconds": 0.016516429,
+        "failedEvents": 0,
+        "databaseReadDocuments": 2,
+        "databaseWriteDocuments": 1,
+        "databaseWriteIndexRows": 2,
+        "actionMemoryGbHours": null
+      },
+      "actions/daily:sendDueDailyPushes": {
+        "completionEvents": 1,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 4381,
+        "executionSeconds": 0.152374382,
+        "failedEvents": 0,
+        "databaseReadDocuments": 0,
+        "databaseWriteDocuments": 0,
+        "databaseWriteIndexRows": 0,
+        "actionMemoryGbHours": 2.1163108611111113e-05
+      },
+      "diagnostics:health": {
+        "completionEvents": 4,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 1076,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0,
+        "executionSeconds": 0.026463913000000002,
+        "failedEvents": 0,
+        "databaseReadDocuments": 4,
+        "databaseWriteDocuments": 0,
+        "databaseWriteIndexRows": 0,
+        "actionMemoryGbHours": null
+      },
+      "actions/analytics:exportDaily": {
+        "completionEvents": 1,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0,
+        "executionSeconds": 0.091963712,
+        "failedEvents": 0,
+        "databaseReadDocuments": 0,
+        "databaseWriteDocuments": 0,
+        "databaseWriteIndexRows": 0,
+        "actionMemoryGbHours": 1.2772737777777779e-05
+      },
+      "evidenceReview:dispatch": {
+        "completionEvents": 1,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 3887,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0,
+        "executionSeconds": 0.015740815,
+        "failedEvents": 0,
+        "databaseReadDocuments": 4,
+        "databaseWriteDocuments": 0,
+        "databaseWriteIndexRows": 0,
+        "actionMemoryGbHours": null
+      },
+      "librarySync:pruneFolderManifests": {
+        "completionEvents": 1,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0,
+        "executionSeconds": 0.010668525,
+        "failedEvents": 0,
+        "databaseReadDocuments": 0,
+        "databaseWriteDocuments": 0,
+        "databaseWriteIndexRows": 0,
+        "actionMemoryGbHours": null
+      },
+      "librarySync:recoverFolderManifests": {
+        "completionEvents": 1,
+        "cachedResultEvents": 0,
+        "databaseIoReadBytes": 0,
+        "databaseIoWriteBytes": 0,
+        "networkEgressBytes": 0,
+        "executionSeconds": 0.016852104,
+        "failedEvents": 0,
+        "databaseReadDocuments": 0,
+        "databaseWriteDocuments": 0,
+        "databaseWriteIndexRows": 0,
+        "actionMemoryGbHours": null
+      }
+    }
+  }
+}

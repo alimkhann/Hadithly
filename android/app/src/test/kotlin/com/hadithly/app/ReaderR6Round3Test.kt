@@ -152,44 +152,40 @@ class ReaderR6Round3Test {
 
     // Prefetch bounds
 
+    @Test
+    fun `entry planning does no work without reading progress`() {
+        assertTrue(ReaderPrefetch.entryPlan(emptyList()).isEmpty())
+    }
+
     private fun volumes(n: Int) = (1..n).map {
         OutlineVolume(volumeId = "$it", title = "Volume $it", hadithCount = 10.0)
     }
 
     @Test
-    fun `entry plan is bounded to seven outlines plus one page`() {
-        val slugs = listOf("bukhari", "muslim", "bukhari") + (1..10).map { "extra-$it" }
-        val plan = ReaderPrefetch.entryPlan(slugs, listOf(ref()))
-        val outlines = plan.filterIsInstance<EntryFetch.Outline>()
-        assertEquals(ReaderPrefetch.MAX_ENTRY_COLLECTIONS, outlines.size)
-        assertEquals(outlines.map { it.collectionSlug }.distinct().size, outlines.size)
-        val pages = plan.filterIsInstance<EntryFetch.FirstPage>()
-        assertEquals(1, pages.size)
-        assertEquals("bukhari", pages.single().collectionSlug)
-        assertEquals("2", pages.single().volumeId)
-        assertTrue(plan.size <= ReaderPrefetch.MAX_ENTRY_COLLECTIONS + 1)
+    fun `entry plan warms only the resume collection and its first page`() {
+        assertEquals(
+            listOf(EntryFetch.Outline("bukhari"), EntryFetch.FirstPage("bukhari", "2")),
+            ReaderPrefetch.entryPlan(listOf(ref())),
+        )
     }
 
     @Test
-    fun `entry plan without progress fetches outlines only`() {
-        val plan = ReaderPrefetch.entryPlan(listOf("bukhari", "muslim"), emptyList())
-        assertEquals(2, plan.size)
-        assertTrue(plan.all { it is EntryFetch.Outline })
+    fun `a volumeless resume target warms only its outline`() {
+        assertEquals(listOf(EntryFetch.Outline("bukhari")), ReaderPrefetch.entryPlan(listOf(ref(volumeId = null))))
     }
 
     @Test
     fun `most recent progress wins the page fetch`() {
         val plan = ReaderPrefetch.entryPlan(
-            listOf("bukhari", "muslim"),
             listOf(
                 ref(volumeId = "1", updatedAt = 100.0),
                 ref(volumeId = "3", updatedAt = 900.0).copy(collectionSlug = "muslim"),
             ),
         )
-        val pages = plan.filterIsInstance<EntryFetch.FirstPage>()
-        assertEquals(1, pages.size)
-        assertEquals("muslim", pages.single().collectionSlug)
-        assertEquals("3", pages.single().volumeId)
+        assertEquals(
+            listOf(EntryFetch.Outline("muslim"), EntryFetch.FirstPage("muslim", "3")),
+            plan,
+        )
     }
 
     @Test
@@ -208,11 +204,11 @@ class ReaderR6Round3Test {
         var outlines = 0
         var pages = 0
         ReaderPrefetch.executePlan(
-            plan = ReaderPrefetch.entryPlan((1..20).map { "s$it" }, listOf(ref())),
+            plan = ReaderPrefetch.entryPlan(listOf(ref())),
             fetchOutline = { outlines += 1 },
             fetchPage = { _, _ -> pages += 1 },
         )
-        assertEquals(ReaderPrefetch.MAX_ENTRY_COLLECTIONS, outlines)
+        assertEquals(1, outlines)
         assertEquals(1, pages)
 
         // Failures (offline) never escape and never stop the batch.

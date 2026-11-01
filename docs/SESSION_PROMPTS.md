@@ -9,8 +9,9 @@ Never use Relay.
 The owner expanded the diagnostic into reducing usage. Follow the exact prompt
 in `NEXT_SESSION_PROMPT.md`, current proof in `CONVEX_COST_VERIFICATION.md` and the
 measurement contract in `CONVEX_COST_DIAGNOSTIC.md`. The notification repair is
-approved, deployed and verified in two scheduled development runs. Paired native
-reader/idle measurement remains open. Keep `hadithly-convex-cost`, the app-experience
+approved, deployed and verified in two scheduled development runs. The Android
+resume-only prefetch repair and paired native reading baselines pass. The next
+unit measures and reduces the large outline read, retaining cache limitations. Keep `hadithly-convex-cost`, the app-experience
 destination, free-first preference and all existing gates. Local implementation
 does not authorize cloud deployment, migrations, paid actions or production work.
 

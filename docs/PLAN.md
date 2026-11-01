@@ -23,11 +23,19 @@ endpoint. Two successful scheduled runs at 20:12 and 20:27 UTC each used one new
 token-page query and zero old bucket calls. Notification dispatch reduction is
 verified on development. Paired native reader/idle I/O measurement remains open.
 
-The reader baseline is a separate unfinished unit. Its first Android attempt
-took 2h 36m and failed on an ambiguous Library text selector; it produced no
-valid journey baseline. The selector now uses tabs.library. Its bounded rerun finished in 46 seconds
-and timed out waiting for reader.nextPage after entering the reader. The iOS
-test is drafted but unrun. Do not count either native baseline as passed.
+The paired reader workload now passes on the Android emulator and an isolated
+iOS simulator, with automatic generation off. Controlled Android before/after
+runs display identical positions and reduce outline actions from nine to one,
+with reader-page actions unchanged at 21. Android entry prefetch now matches the
+iOS resume-only policy. Thirty focused Android tests pass. Shared cache hits
+differ, so no isolated database-byte saving is claimed. See
+[CONVEX_READER_COST_VERIFICATION.md](CONVEX_READER_COST_VERIFICATION.md).
+Equal-duration Android idle controls include a scheduled notification tick and
+no reader traffic. The matched 112-second iOS idle control also contains one
+scheduled notification tick and no reader calls. The next backend
+candidate is the large Bukhari outline read, about 890 KB on a cache miss;
+compact metadata needs a separately verified design and any deployment/migration
+approval. Do not repeat the completed notification or native prefetch repair.
 
 All G01-G41, A1/A3/A4 acceptance, A7's deferral, E Linear and the final audit remain
 open. Preserve A2/A5 and B/C/D local completion and incoming work. The current

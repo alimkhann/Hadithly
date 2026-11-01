@@ -297,6 +297,46 @@ final class ReaderR5UITests: XCTestCase {
 
     // MARK: - Live: real reader against development Convex
 
+    func testConvexCostColdLaunchLibraryAndTenPageMoves() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-onboarding.completed", "YES", "-reader.automaticTranslation", "NO", "-AppleLanguages", "(en)"]
+        let started = Date()
+        app.launch()
+        defer { app.terminate() }
+        XCTAssertTrue(app.tabBars.buttons["Library"].waitForExistence(timeout: 30))
+        app.tabBars.buttons["Library"].tap()
+        let collection = app.buttons["library.collection.bukhari"]
+        XCTAssertTrue(collection.waitForExistence(timeout: 30))
+        collection.tap()
+        XCTAssertTrue(element("reader.page", in: app).waitForExistence(timeout: 30))
+        func showProgress() {
+            let progress = element("reader.unfocusedProgress", in: app)
+            if !progress.waitForExistence(timeout: 1) {
+                app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            }
+            XCTAssertTrue(progress.waitForExistence(timeout: 10))
+        }
+        for step in 1...10 {
+            showProgress()
+            let progress = element("reader.unfocusedProgress", in: app)
+            XCTAssertTrue(progress.waitForExistence(timeout: 10))
+            let previousLabel = progress.label
+            app.swipeLeft()
+            XCTAssertTrue(progress.waitForNonExistence(timeout: 10))
+            showProgress()
+            let changed = NSPredicate { _, _ in progress.exists && progress.label != previousLabel }
+            expectation(for: changed, evaluatedWith: nil)
+            waitForExpectations(timeout: 30)
+            print("COST_JOURNEY_STEP \(step)")
+        }
+        let formatter = ISO8601DateFormatter()
+        let record: [String: Any] = ["platform": "ios", "startedAtUtc": formatter.string(from: started),
+            "endedAtUtc": formatter.string(from: Date()), "pageMoves": 10, "locale": "en",
+            "auth": "fresh simulator guest", "automaticGeneration": false]
+        let data = try JSONSerialization.data(withJSONObject: record, options: [.sortedKeys])
+        print("COST_JOURNEY_JSON " + String(decoding: data, as: UTF8.self))
+    }
+
     /// Opens Bukhari live, jumps to Hadith 57 through the contents field,
     /// and proves the quiet page (no ellipsis), the grade dot plus source
     /// label, the long-press menu with its gating, and tap-to-toggle

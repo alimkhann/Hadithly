@@ -1,54 +1,58 @@
-# Next unit: finish the paired native reader I/O baseline
+# Next unit: reduce the measured reader database I/O
 
-The owner expanded the diagnostic into reducing Convex usage. The local
-notification repair has executable before/after proof and approved development
-rollout. Two scheduled runs each used one page query and no old bucket queries.
-No invoice saving or reader I/O reduction is claimed. The app-experience
-destination and deferred release dependencies remain. Low cost has no numeric
-spending approval.
+The notification repair is approved, deployed and verified on development. The
+Android entry-prefetch repair and paired native reading baselines are complete.
+The wider Convex cost goal remains active. Staying free matters; low cost has no
+approved numeric spending ceiling. Keep the original app program and all gates.
 
 ```text
-Continue Hadithly's Convex cost goal. Read AGENTS.md, the current checkpoint
-and mistakes in docs/PLAN.md, the Convex usage reduction entry in
-SESSION_PROMPTS.md and docs/CONVEX_COST_VERIFICATION.md. Keep the measurement
-contract in docs/CONVEX_COST_DIAGNOSTIC.md and use hadithly-convex-cost.
+Continue Hadithly's Convex cost goal. Read AGENTS.md, the current checkpoint and
+mistakes in docs/PLAN.md, the Convex entry in SESSION_PROMPTS.md,
+CONVEX_COST_VERIFICATION.md and CONVEX_READER_COST_VERIFICATION.md. Use the
+hadithly-convex-cost procedure and the measurement contract in
+CONVEX_COST_DIAGNOSTIC.md. Keep one bounded, verifiable implementation unit.
 
-The local notification change replaces 96 bucket queries per tick with one
-bounded indexed scan. Tests and the real local backend preserve delivery,
-retry, deletion, legacy exclusions and attempt caps. Inspect current code and
-artifacts before relying on that evidence. Commit any completed remaining local
-work without pushing and preserve incoming iOS catalog/project/scheme changes.
+Completed work must not restart:
+- fe8742c replaced the fixed 96-bucket notification fan-out with an indexed page
+  scan. The owner approved development festive-cobra-664, it deployed October 31
+  at 19:58 UTC, and two scheduled runs each used one query and no old bucket call.
+  The observer is finished. Do not ask for that approval again or redeploy it.
+- Android entry prefetch now matches iOS: warm only the latest resume target,
+  or nothing when there is no reading progress. Controlled fresh-guest native
+  before/after runs show identical eleven page/volume positions, nine to one
+  outline actions and unchanged 21 reader-page actions. Thirty focused Android
+  tests pass. iOS product behavior is unchanged and its fresh ten-swipe run passes.
+- Paired native/idle captures are in verification/convex-cost. Inspect their
+  current metadata and limits. Shared caches differ; calls are not invoice
+  savings. Do not repeat the harness diagnosis or infer user capacity from it.
 
-The owner approved fe8742c for development festive-cobra-664 and passive readback.
-The push succeeded on October 31 at 19:58 UTC. Deployed metadata confirms the
-new endpoint and removal of the old bucket endpoint. Do not request the same
-approval again or redeploy. The observer finished successfully and its output
-is docs/verification/convex-cost/deployed-scheduled-runs.json. No production, migration,
-paid generation or manual notification send is authorized.
+Next investigate the large chapter-rich Bukhari outline. Exploratory cold reads
+were about 890 KB; controlled warm queries can cost zero DB bytes. Trace native
+outline/chapter use, backend reads, refresh and cache invalidation before changing
+shape. Rank alternatives by measured I/O, latency and correctness. Returning fewer
+fields after reading the same large database document does not remove that read.
+Do not impose a broad rewrite when a smaller measured repair suffices.
 
-The two successful scheduled runs completed at October 31 20:12 and 20:27 UTC,
-with one page query and zero old calls each. Deployed notification dispatch is
-verified; do not restart the completed observer or repeat that work.
+Build the next change locally first, with repeatable same-workload before/after
+proof and real local Convex where feasible. Preserve canonical identity, exact
+locale/provenance, freshness/revocation, chapter and hadith jumps, content-sized
+pagination, offline data, quotas, private reading progress and platform parity.
+Distinguish cached and uncached runs. No new provider/generation call is needed
+to measure existing cached data. A schema/index, backfill, deployment or paid
+change still needs its own concrete action-time approval. The previous approval
+covers only fe8742c and its completed passive readback, not another deployment.
 
-The first Android native attempt failed before reading: a Library text selector
-matched two nodes. It ran 2h 36m without a useful checkpoint. The test now uses
-tabs.library and a ten-minute host deadline. Its rerun finished in 46 seconds,
-failing after entering the reader while waiting for reader.nextPage. Both
-Android jobs have finished. Diagnose the actual reader state before another run;
-do not repeat the launch blindly. The iOS method is drafted but unrun. Neither
-native baseline passes yet. Native test changes remain a separate work unit.
-
-The original paired native workload remains open: fixed build/auth/cache/locale,
-cold launch -> Library -> first reading -> ten page moves on both platforms,
-with an equal-duration controlled idle window spanning a cron tick. Use cached
-content without generation. Measure dimensions separately and mark unavailable
-values. Whole-volume reader reads remain a candidate, not a proven current defect.
-Choose the next optimization from that measurement before changing architecture.
+Keep production, manual notifications, paid generation and physical devices out.
+Preserve incoming iOS catalog/project/scheme changes and scripts/__pycache__;
+never stage them accidentally. Commit completed implementation, evidence and
+checkpoint docs without pushing. Use bounded native jobs, poll their actual
+handles and report failures promptly. The prior 2h36 unchecked run is not a
+pattern to repeat.
 
 Retain all G01-G41, A1/A3/A4 acceptance, A7/G38 deferred with its retired calendar,
 E actual Linear and the independent final audit. Keep A2 wrapped with row mode
 off, A5 repairs, B/C/D local completion, opaque data and RTL/locale bindings.
 No study recruitment, contact, observation, collection or setup questions.
-Keep GPT-only, no Relay, existing local tracking and action-time approvals.
-The cost-reduction goal stays open until its actual live evidence is established.
+Keep GPT-only, no Relay and existing local tracking. The cost goal stays open;
+no free-plan capacity or overall invoice saving has been established.
 ```

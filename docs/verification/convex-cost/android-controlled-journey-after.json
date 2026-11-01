@@ -1,0 +1,31 @@
+{
+  "platform": "android",
+  "startedAtUtc": "2026-11-01T08:31:41.296Z",
+  "endedAtUtc": "2026-11-01T08:31:51.436330Z",
+  "pageMoves": 10,
+  "locale": "en",
+  "auth": "guest",
+  "automaticGeneration": false,
+  "deployment": "festive-cobra-664",
+  "revision": "resume-only entry prefetch candidate",
+  "device": "task-owned hadithly AVD emulator-5554 Android 16",
+  "collection": "bukhari",
+  "arabicFontSize": 26,
+  "translationFontSize": 16,
+  "initialClientState": "Hadithly package absent before installation, verified on the task-owned emulator; no reading progress or offline packs",
+  "backendCache": "populated shared deployment caches; query-cache hits recorded separately and not forcibly equalized",
+  "harnessSha256": "ac60bfaf9930137788622192783b03d43e2950e699cc61a80deffbd85569aea1",
+  "renderedPositions": [
+    "Page 1|Volume 1",
+    "Page 2|Volume 1",
+    "Page 3|Volume 1",
+    "Page 4|Volume 1",
+    "Page 1|Volume 2",
+    "Page 2|Volume 2",
+    "Page 3|Volume 2",
+    "Page 4|Volume 2",
+    "Page 5|Volume 2",
+    "Page 6|Volume 2",
+    "Page 7|Volume 2"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "deployment": "festive-cobra-664",
+  "sinceUtc": "2026-11-01T08:42:14.170283+00:00",
+  "untilUtc": "2026-11-01T08:44:06.170283+00:00",
+  "durationSeconds": 112.0,
+  "nativeInputsDuringWindow": false,
+  "controlledAppsStoppedAtBothBoundaries": true,
+  "otherClientsControlled": false,
+  "scope": "same-duration stopped-app control, not an account-wide isolation guarantee"
+}

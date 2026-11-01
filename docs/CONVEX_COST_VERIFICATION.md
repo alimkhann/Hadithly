@@ -107,11 +107,11 @@ names, excludes payloads/log messages/identities, and marks missing usage null.
   fix those harness problems. One test invocation mistakenly used the repo root;
   it failed before running and was rerun from `backend/`.
 
-No native code or public backend contract changed. Source parity is preserved;
-no fresh native/device journey or live notification-delivery proof is claimed.
-The paired native reading workload and controlled equal-duration idle interval
-from `CONVEX_COST_DIAGNOSTIC.md` remain pending. The ambient sample is not a
-substitute for those measurements.
+The notification repair changed no native code or public backend contract.
+Its live proof is scheduled execution and query usage, not a new physical-device
+notification-delivery acceptance test. The subsequent paired native reading and
+equal-duration idle measurements are recorded in CONVEX_READER_COST_VERIFICATION.md;
+the ambient sample above is not a substitute for those controls.
 
 ## Remaining goal and action boundary
 
@@ -139,18 +139,21 @@ reader I/O savings or an invoice reduction; returned token bytes remain present.
 
 ## Native baseline checkpoint
 
-The first Android reader attempt ran 2h 36m and failed before reading because a
-Library text selector matched two UI nodes. No valid baseline resulted. The test
-now selects the stable `tabs.library` tag. Its rerun had a ten-minute host limit
-and finished in 46 seconds, timing out at line 42 while waiting for
-`reader.nextPage` after entering the reader. Both Android jobs have finished.
-The iOS reader method is drafted but unrun. Both platforms remain unfinished
-verification work. The long unchecked run was a workflow failure, not evidence
-that more optimization was needed. Poll live handles and record outcomes before
-starting or expanding another unit.
+The original Android text-selector failure and next-page timeout were harness
+failures, not valid baselines. The reader's next-page pill is at the bottom of
+scrolling content. Its existing accessibility action and rendered page/volume
+labels now drive and verify ten moves. The same fresh guest workload passes
+before and after the resume-only Android entry-prefetch change. iOS's fresh
+simulator ten-swipe workload also passes. See
+[CONVEX_READER_COST_VERIFICATION.md](CONVEX_READER_COST_VERIFICATION.md) for exact
+windows, controls, measured reduction, failed attempts and cache limitations.
+Both platforms have equal-duration stopped-app idle controls containing a
+scheduled notification tick and no reader calls. Shared cache and timestamp
+limits remain explicit in the reader verification record.
 
-Next investigate reader I/O with the pinned native journey: whole-volume reads
-remain a source-based candidate, not a measured current defect. Keep A1/A3/A4,
+The next database-I/O unit should address the large chapter-rich outline from
+the measured reader journey. Whole-volume reads remain a separate candidate;
+this repair does not claim they are fixed. Keep A1/A3/A4,
 all G01-G41, A7/G38, E Linear and final original-program acceptance open. Preserve
 A2's wrap-up, A5 fixes, B/C/D local completion and unrelated incoming work.
 

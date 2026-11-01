@@ -70,7 +70,7 @@ fun LibraryScreen(onOpenCollection: (String, String) -> Unit, onOpenTarget: (com
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            ReaderPrefetch.warmEntryCache(app.repository, Collections.all.map { it.first }, progress)
+            ReaderPrefetch.warmEntryCache(app.repository, progress)
         }
     }
 
