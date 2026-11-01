@@ -4,23 +4,34 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-## Current checkpoint: priority-2 native verification, November 1
+## Current checkpoint: reader scrolling diagnosis and floating controls, November 1
 
-The owner selected priority-2 translation font size and Arabic-to-English
-Settings direction as the first goal in the proposed backlog 2–4 sequence.
-Fresh verification retains both A5 repairs: 19 automated cases pass across the
-two native apps, with rendered text-growth and Settings-orientation evidence.
-No product code or test changed because no regression reproduced. See
-[PRIORITY2_VERIFICATION.md](PRIORITY2_VERIFICATION.md) and its result manifest.
+The owner started the next goal after priority-2 verification, approved a physical
+30-second Time Profiler capture, and explicitly requested installing the latest
+build first. The current Debug worktree was installed without resetting the
+phone. The physical trace identifies synchronous progress/account-partition work
+on the main thread. The owner describes continuous low-frame-rate scrolling and
+also reports the blank header introduced by A5's reserved viewport.
 
-This is a bounded sequencing exception, not original-program acceptance.
+The active repair batches iOS scroll persistence while retaining immediate
+navigation/lifecycle saves and account ownership. The real local account-facade
+reproduction originally makes 31 synchronous writes for 31 captures. A separate
+red UI check reproduces the blank header. Both native readers are being changed
+to retain measured content clearance inside a full-screen scrolling viewport.
+See [SCROLLING_VERIFICATION.md](SCROLLING_VERIFICATION.md) for current evidence,
+rejected measurement attempts and the still-open paired physical verification.
+The first repair is installed: physical hitch ratio improves from 8.012% to
+5.400%, but misses the 50% reduction target. The owner confirms improvement and
+restored appearance, with residual microjitters, and requests agent-driven
+scrolling/root-cause work. This goal is not complete. Page-transition/cache and priority-4 work have not
+started. Priority-2 passed 19 cases and was committed as `85adf64`.
+
 Preserve incoming iOS catalog/project/scheme bytes and scripts/__pycache__,
 the completed Convex continuation, A2 wrapped with row mode off, A5, B/C/D and
 all G01-G41, A1/A3/A4 acceptance, A7/G38 deferred with retired dates, E actual
-Linear and final audit. Commit this goal's evidence without pushing, then stop.
-Priority-3 scrolling measurement is proposed next; no performance, page-cache,
-free/pro override or translation-reliability work starts in this goal.
-`NEXT_SESSION_PROMPT.md` records that stop and the proposed next goal.
+Linear and final audit. Commit verified scoped work without pushing. No new
+cloud, account, paid-model, deployment, migration or publication action is
+covered by the physical-device approval.
 
 ## Convex usage reduction verified, November 1
 

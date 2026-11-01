@@ -19,6 +19,49 @@ final class ReaderR6AUITests: XCTestCase {
 
     // MARK: - Quiet page
 
+    func testLoadedReaderScrollsBehindFloatingControls() {
+        let app = scrollingApplication()
+        app.launch()
+        defer { app.terminate() }
+        let viewport = app.descendants(matching: .any)["reader.page"].firstMatch
+        let pills = app.descendants(matching: .any)["reader.unfocusedProgress"].firstMatch
+        XCTAssertTrue(viewport.waitForExistence(timeout: 10))
+        XCTAssertTrue(pills.waitForExistence(timeout: 10))
+        XCTAssertLessThan(viewport.frame.minY, pills.frame.minY, "The scrolling viewport must extend behind the floating controls")
+        let before = XCTAttachment(screenshot: app.screenshot())
+        before.name = "reader-full-bleed-initial"; before.lifetime = .keepAlways; add(before)
+        app.swipeUp()
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45)).tap()
+        XCTAssertTrue(pills.waitForExistence(timeout: 5))
+        let after = XCTAttachment(screenshot: app.screenshot())
+        after.name = "reader-full-bleed-scrolled-controls"; after.lifetime = .keepAlways; add(after)
+        XCTAssertLessThanOrEqual(viewport.frame.minY, 1, "Text must be able to scroll into the top safe area")
+    }
+
+    func testLoadedReaderSemanticReanchorPreservesScrolledPosition() {
+        let app = scrollingApplication()
+        app.launchEnvironment["READER_SCROLL_REANCHOR"] = "1"
+        app.launch()
+        defer { app.terminate() }
+        let probe = app.staticTexts["reader.performance.root"]
+        XCTAssertTrue(probe.waitForExistence(timeout: 10))
+        app.swipeUp()
+        app.swipeUp()
+        let before = Double(probe.label.split(separator: ":").last ?? "0") ?? 0
+        XCTAssertGreaterThan(before, 0.1)
+        app.buttons["reader.test.reanchor"].tap()
+        Thread.sleep(forTimeInterval: 1)
+        let after = Double(probe.label.split(separator: ":").last ?? "0") ?? 0
+        XCTAssertEqual(after, before, accuracy: 0.01, "Semantic restoration must use the same reading-area coordinates as scroll capture")
+    }
+
+    private func scrollingApplication() -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments = ["-R6AReaderFixture", "-FreshInstallForUITest", "-AppleLanguages", "(en)", "-AppleInterfaceStyle", "Dark", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
+        app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "PAGING_RENDER": "interactive", "READER_PERFORMANCE_PROBE": "1", "Q1_UI_LOCALE": "en"]
+        return app
+    }
+
     func testQuietPageHasHeadersMarkersAndNoEllipsis() {
         let app = launchFixture()
         XCTAssertTrue(element("reader.volumeHeader", in: app).waitForExistence(timeout: timeout))

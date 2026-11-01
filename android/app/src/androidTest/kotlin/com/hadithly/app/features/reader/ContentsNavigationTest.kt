@@ -129,7 +129,7 @@ class ContentsNavigationTest {
                 java.io.FileOutputStream(file).use { capture.asAndroidBitmap().compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
                 val transfer = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand("cp ${file.absolutePath} /data/local/tmp/a5-controls-$locale.png")
                 java.io.FileInputStream(transfer.fileDescriptor).use { it.readBytes() }; transfer.close()
-                assertTrue("Top pills overlap viewport: page=$pagePill volume=$volumePill viewport=$viewport", maxOf(pagePill.bottom, volumePill.bottom) <= viewport.top)
+                assertTrue("Reader viewport must extend behind floating controls: $viewport / $pagePill", viewport.top < minOf(pagePill.top, volumePill.top))
                 for (corner in corners.map { it.boundsInRoot }.filter { it.height > 0 }) {
                     assertTrue("Visible source overlaps progress: $corner", corner.top >= maxOf(pagePill.bottom, volumePill.bottom))
                 }
@@ -153,6 +153,7 @@ class ContentsNavigationTest {
                     }
                 }
                 val header = compose.onNode(hasTestTag("reader.hadithLabel") and hasContentDescription("Bukhari – 57", substring = true)).fetchSemanticsNode().boundsInRoot
+                assertTrue("Navigation target must clear floating controls", header.top >= maxOf(pagePill.bottom, volumePill.bottom))
                 compose.onNodeWithTag("reader.arabic", useUnmergedTree = true).performTouchInput { click(center) }
                 compose.waitForIdle()
                 compose.runOnIdle { assertFalse(model.state.value.chromeVisible) }

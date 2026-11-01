@@ -1,0 +1,60 @@
+{
+  "date": "2026-11-01",
+  "baseCommit": "85adf64dba39d64ae6d41b302644948da9a4b0b0",
+  "scope": "Loaded-page vertical scrolling and floating controls",
+  "runs": {
+    "ios-repair-checks.log": {
+      "unitTests": 3,
+      "uiTests": 2,
+      "notes": "Includes four locale iterations inside one large-type UI case.",
+      "passed": true,
+      "rawLogSHA256": "71b3687915406a151b97c5fc8db098787c8db172a2a17f017a152082601894e5",
+      "log": "ios-repair-checks.log"
+    },
+    "ios-final-checks.log": {
+      "unitTests": 33,
+      "uiTests": 3,
+      "passed": true,
+      "rawLogSHA256": "55cc0e4a36e0ad3b374f57f3ac373a8f54d3636f513decb9b536788b06bdd97f",
+      "log": "ios-final-checks.log"
+    },
+    "ios-semantic-check.log": {
+      "unitTests": 0,
+      "uiTests": 1,
+      "passed": true,
+      "rawLogSHA256": "1acf01d242df3b35d249f9deaf2a31307e188280707050e6304a942c700839b8",
+      "log": "ios-semantic-check.log"
+    },
+    "android-repair-checks.log": {
+      "instrumentationTests": 8,
+      "passed": true,
+      "rawLogSHA256": "0fdc2eb19eb7d72a0e17d446ba96604c42c96e54057b8b8955eae42450ad43e3",
+      "log": "android-repair-checks.log"
+    }
+  },
+  "uniqueIOSUnitTests": 33,
+  "uniqueIOSUITests": 5,
+  "androidInstrumentationTests": 8,
+  "physicalAcceptance": "improved, residual microjitters reported; target not met; goal active",
+  "notes": [
+    "Repeated cases are counted once in unique totals.",
+    "Large-type iOS UI case has ar, ur, ru and bn iterations.",
+    "Synthetic captures contain no owner reading content.",
+    "Time Profiler samples do not establish FPS."
+  ],
+  "physical": {
+    "device": "iPhone 16 Pro",
+    "os": "27.0.1",
+    "configuration": "Debug",
+    "template": "Animation Hitches, 30 seconds",
+    "installationReadback": true,
+    "ownerReadback": "Smoother and appearance restored; microjitters remain",
+    "hitchRatioTargetReduction": 0.5,
+    "hitchRatioObservedReduction": 0.3260044641588379
+  },
+  "sourceSHA256": {
+    "ios/Hadithly/Features/Reader/ReaderModel.swift": "8e43e72723a224bc12d34b3ae88cdc26a57f80cd259040a5e10c8b858a51a69a",
+    "ios/Hadithly/Features/Reader/ReaderView.swift": "92142f9c452f93bcd06b9a21490ff217f61c143bfbd0c37966795250d14db265",
+    "android/app/src/main/kotlin/com/hadithly/app/features/reader/ReaderScreen.kt": "9fc4d2f4e13d769f78cc8b3603713aa9bedb26f6126468d35c93eec393f41afc"
+  }
+}

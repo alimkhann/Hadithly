@@ -4,14 +4,23 @@ Paste one prompt into a fresh task. Use the named model and effort when it is
 available. Each prompt is self-contained and authorizes only its named session.
 Never use Relay.
 
+## Reader scrolling and floating controls
+
+The owner started the next goal after priority-2 verification and approved
+physical profiling and installing the latest build. Follow `NEXT_SESSION_PROMPT.md`
+and `SCROLLING_VERIFICATION.md`. Local account write coalescing and full-bleed
+viewport repairs have automated native evidence; paired physical timing and
+owner acceptance remain open. Continue that goal before page caching or priority
+4. Preserve all original-program gates and incoming work.
+
 ## Priority-2 native verification
 
 The owner's first goal in the proposed backlog 2–4 sequence is verified locally.
 The existing font-size and Settings direction repairs pass 19 fresh automated
 cases across both apps; no product repair was necessary. See
 `PRIORITY2_VERIFICATION.md` and `NEXT_SESSION_PROMPT.md`. Stop after the scoped
-evidence commit without pushing. Priority-3 scrolling measurement is proposed
-next and has not started. Preserve the completed Convex continuation and all
+evidence commit without pushing. The owner subsequently started priority-3
+scrolling; follow the current prompt above. Preserve the completed Convex continuation and all
 original-program acceptance gates and owner deferrals.
 
 ## Convex usage reduction

@@ -1,0 +1,10 @@
+{
+  "trace_duration_seconds": 31.177796,
+  "app_hitches": 102,
+  "hitch_interval_union_ms": 1683.618995,
+  "hitch_interval_ratio": 0.05400057768676143,
+  "median_hitch_ms": 16.6695,
+  "p95_hitch_ms": 33.339,
+  "max_hitch_ms": 41.67375,
+  "interpretation": "App-attributed hitch intervals, merged to avoid overlap. This is not an average display FPS measurement."
+}

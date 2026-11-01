@@ -1393,7 +1393,6 @@ private fun ReaderPage(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = topContentPadding)
             .testTag("reader.pageViewport")
             .confirmedTapGesture { onTap() },
     ) {
@@ -1417,7 +1416,7 @@ private fun ReaderPage(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(
                     start = 22.dp, end = 22.dp,
-                    top = 0.dp,
+                    top = topContentPadding,
                     bottom = 80.dp,
                 ),
             ) {

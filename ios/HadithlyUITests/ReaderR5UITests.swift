@@ -64,7 +64,7 @@ final class ReaderR5UITests: XCTestCase {
             XCTAssertTrue(progress.waitForExistence(timeout: 10))
             XCTAssertTrue(progress.label.contains(3.formatted(.number.locale(Locale(identifier: locale)))))
             let viewport = element("reader.page", in: app)
-            XCTAssertLessThanOrEqual(progress.frame.maxY, viewport.frame.minY)
+            XCTAssertLessThan(viewport.frame.minY, progress.frame.minY)
             let source = element("reader.volumeCorner", in: app)
             XCTAssertTrue(source.label.contains("Original %@ مصدر"))
             if source.isHittable { XCTAssertGreaterThanOrEqual(source.frame.minY, progress.frame.maxY) }
@@ -146,11 +146,11 @@ final class ReaderR5UITests: XCTestCase {
             let corner = element("reader.volumeCorner", in: app)
             let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "a5-controls-" + locale; capture.lifetime = .keepAlways; add(capture)
             let viewport = element("reader.page", in: app)
-            XCTAssertLessThanOrEqual(pills.frame.maxY, viewport.frame.minY, "Top pills overlap reader viewport: \(pills.frame), \(viewport.frame)")
+            XCTAssertLessThan(viewport.frame.minY, pills.frame.minY, "Reader viewport must extend behind floating controls")
             if corner.isHittable {
                 XCTAssertLessThanOrEqual(pills.frame.maxY, corner.frame.minY, "Visible source overlaps progress")
             }
-            XCTAssertGreaterThanOrEqual(target.frame.minY + 0.5, viewport.frame.minY)
+            XCTAssertGreaterThanOrEqual(target.frame.minY + 0.5, pills.frame.maxY, "Navigation target must clear floating controls")
             XCTAssertGreaterThanOrEqual(pills.frame.height, 44, "Scaled caption must fit its progress capsule")
             let headerBefore = target.frame
             let arabic = app.staticTexts["reader.arabic"].firstMatch

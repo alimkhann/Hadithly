@@ -1,4 +1,6 @@
 import XCTest
+import ConvexMobile
+import ClerkConvex
 import ClerkKit
 import Combine
 import SwiftData
@@ -7,6 +9,83 @@ import zlib
 @testable import Hadithly
 
 final class GuestMergePlannerTests: XCTestCase {
+    @MainActor func testReaderScrollCoalescesAccountWritesAndFlushesExactFinalPosition() async throws {
+        let fixture = LibraryFacadeFixture(store: GuestDataStore(inMemory: true))
+        await fixture.start()
+        defer { fixture.stop() }
+        let reader = scrollingReader(library: fixture.model)
+        defer { reader.stop() }
+        var writes = 0
+        fixture.sync.onPartitionChange = { owner in
+            writes += 1
+            fixture.model.partitionChanged(owner)
+        }
+        for step in 0...30 {
+            reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0,
+                rawPageOffset: Double(step * 30), normalizedOffset: Double(step) * 0.03)
+        }
+        XCTAssertLessThanOrEqual(writes, 1, "A single scrolling burst must not synchronously decode and persist the account partition for every capture")
+        reader.saveCurrentProgress()
+        XCTAssertLessThanOrEqual(writes, 2)
+        let position = try XCTUnwrap(fixture.model.progress(for: "bukhari")?.position)
+        XCTAssertEqual(position.rawPageOffset, 900)
+        XCTAssertEqual(position.normalizedOffset, 0.9, accuracy: 0.00001)
+        XCTAssertEqual(position.anchor.providerHadithId, "57")
+        XCTAssertEqual(position.pageKey, "pg1:scroll-page")
+        try await Task.sleep(for: .milliseconds(650))
+        XCTAssertEqual(fixture.model.progress(for: "bukhari")?.position, position, "A delayed capture must not overwrite the explicit final save")
+    }
+
+    @MainActor func testReaderScrollFlushesDuringContinuousReadingAndStop() async throws {
+        let fixture = LibraryFacadeFixture(store: GuestDataStore(inMemory: true))
+        await fixture.start()
+        defer { fixture.stop() }
+        let reader = scrollingReader(library: fixture.model)
+        reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0, rawPageOffset: 0, normalizedOffset: 0)
+        reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0, rawPageOffset: 400, normalizedOffset: 0.4)
+        XCTAssertEqual(fixture.model.progress(for: "bukhari")?.position?.rawPageOffset, 0)
+        try await Task.sleep(for: .milliseconds(650))
+        XCTAssertEqual(fixture.model.progress(for: "bukhari")?.position?.rawPageOffset, 400)
+        reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0, rawPageOffset: 600, normalizedOffset: 0.6)
+        reader.stop()
+        XCTAssertEqual(fixture.model.progress(for: "bukhari")?.position?.rawPageOffset, 600)
+    }
+
+    @MainActor func testPendingReaderScrollCannotFollowAnAccountSwitch() async throws {
+        let fixture = LibraryFacadeFixture(store: GuestDataStore(inMemory: true))
+        await fixture.start()
+        defer { fixture.stop() }
+        let reader = scrollingReader(library: fixture.model)
+        defer { reader.stop() }
+        reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0, rawPageOffset: 0, normalizedOffset: 0)
+        reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0, rawPageOffset: 700, normalizedOffset: 0.7)
+        fixture.stop()
+        fixture.session.value = .init(id: "session-b", subject: "subject-b")
+        await fixture.start()
+        try await Task.sleep(for: .milliseconds(650))
+        XCTAssertNil(fixture.model.progress(for: "bukhari"), "Deferred account A scroll must never enter account B")
+    }
+
+    @MainActor func testGuestScrollFlushesWhenReaderStops() throws {
+        let library = UserLibraryModel(guestData: GuestDataStore(inMemory: true))
+        library.refresh()
+        let reader = scrollingReader(library: library)
+        reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0, rawPageOffset: 0, normalizedOffset: 0)
+        reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0, rawPageOffset: 500, normalizedOffset: 0.5)
+        reader.stop()
+        XCTAssertEqual(try XCTUnwrap(library.progress(for: "bukhari")?.position).rawPageOffset, 500)
+    }
+
+    @MainActor private func scrollingReader(library: UserLibraryModel) -> ReaderModel {
+        let reader = ReaderModel(convex: ConvexClientWithAuth(deploymentUrl: "https://example.invalid", authProvider: ClerkConvexAuthProvider()),
+            collectionSlug: "bukhari", collectionName: "Bukhari", language: "en", isSignedIn: { true }, library: library)
+        let hadith = ReaderR6Round3FixtureHadith.hadith57
+        reader.seedForUITest(volumes: [], selectedVolumeId: hadith.volumeId ?? "1")
+        reader.seedPagesForUITest([ReaderPageResult(items: [hadith], page: 1, pageSize: 1, totalPages: 1, hasMore: false,
+            contentVersion: "cv1:scroll-content", paginationVersion: 1, pageKey: "pg1:scroll-page")])
+        return reader
+    }
+
     @MainActor func testReopenedAccountWritersPreserveEachAcceptedCommand() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)

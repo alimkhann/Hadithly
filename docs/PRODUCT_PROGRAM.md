@@ -8,17 +8,18 @@ for this program, not session names supplied by the owner.
 Their checksums and every research URL are recorded in
 `product-program/research-manifest.json`. No later phase replaces unfinished work.
 
-## Current owner priority: verify backlog priority 2, November 1
+## Current owner priority: reader scrolling, November 1
 
-The owner selected one goal to verify the A5 translation-size and Settings
-direction repairs before proposed priorities 3–4. Fresh verification passes
-19 automated cases across both apps. No regression reproduced and no product
-code changed. See `PRIORITY2_VERIFICATION.md`. This exception changes the order
-of only this named verification unit. All unfinished original requirements and
-gates remain open, including the A7 study deferral, E Linear and final audit.
-Stop after the evidence commit without pushing; performance work has not begun.
-The proposed next goal is scrolling measurement, as recorded in
-`NEXT_SESSION_PROMPT.md`. Earlier no-replacement-task statements are historical.
+Priority-2 verification passed 19 native cases and was committed as `85adf64`.
+The owner started the next goal, approved a physical iPhone trace and latest-build
+installation, then reported continuous low-frame-rate scrolling and the blank
+header introduced by A5. The active repair batches iOS scroll persistence and
+restores full-bleed text behind floating controls on both apps, while retaining
+measured target clearance and account ownership. See `SCROLLING_VERIFICATION.md`.
+Local proof does not close the pending paired physical timing/owner readback.
+Page-transition/cache and priority-4 goals have not started. This ordering
+exception retains every original requirement, A7 deferral, E Linear and final
+audit. `NEXT_SESSION_PROMPT.md` controls continuation.
 
 ## Convex usage reduction, November 1
 

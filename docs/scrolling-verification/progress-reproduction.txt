@@ -1,0 +1,2 @@
+ios/HadithlyTests/GuestMergePlannerTests.swift:27: error: -[HadithlyTests.GuestMergePlannerTests testReaderScrollCoalescesAccountWritesAndFlushesExactFinalPosition] : XCTAssertLessThanOrEqual failed: ("31") is greater than ("1") - A single scrolling burst must not synchronously decode and persist the account partition for every capture
+ios/HadithlyTests/GuestMergePlannerTests.swift:29: error: -[HadithlyTests.GuestMergePlannerTests testReaderScrollCoalescesAccountWritesAndFlushesExactFinalPosition] : XCTAssertLessThanOrEqual failed: ("32") is greater than ("2")

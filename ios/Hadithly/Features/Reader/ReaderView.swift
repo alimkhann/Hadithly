@@ -460,15 +460,13 @@ struct ReaderView: View {
                             verticalLanding: page == index ? model.verticalLanding : nil,
                             currentPageIndex: page,
                             pageCount: model.pages.count,
-                            topContentInset: 0,
+                            topContentInset: windowSafeAreaInsets.top + 8 + progressPillsHeight + 24,
                             palette: palette,
                             onTurn: { turnPage(model, turn: $0) },
                             onTap: { toggleChrome(model) },
                             onShowPaywall: { showQuotaPaywall = true },
                             onScrollFraction: page == index ? { scrollProgress.fraction = $0 } : nil
                         )
-                        .clipped()
-                        .padding(.top, windowSafeAreaInsets.top + 8 + progressPillsHeight + 24)
                         .scrollDisabled(page != index || horizontalDragging || pageSettling)
                         .allowsHitTesting(page == index && !pageSettling)
                         .accessibilityHidden(page != index)
@@ -1137,11 +1135,17 @@ struct ReaderPageView: View {
         })
     }
 
+    private func framesInReadingArea(_ frames: [String: ReaderAnchorFrame]) -> [String: ReaderAnchorFrame] {
+        frames.mapValues { ReaderAnchorFrame(minY: $0.minY - topContentInset, height: $0.height) }
+    }
+
     var body: some View {
         GeometryReader { viewport in
             ScrollViewReader { proxy in
                 let handleFrames: ([String: ReaderAnchorFrame]) -> Void = { frames in
                     latestAnchorFrames = frames
+                    let readingHeight = max(1, viewport.size.height - topContentInset)
+                    let readingFrames = framesInReadingArea(frames)
                     guard currentPageIndex == model.pageIndex else { return }
                     let activePage = ReaderVerticalLandingPage(
                         volumeId: model.selectedVolumeId ?? "",
@@ -1157,9 +1161,9 @@ struct ReaderPageView: View {
                             DispatchQueue.main.async {
                                 model.acknowledgeVerticalLanding(landing)
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                                    model.observeVisibleContent(hadiths: hadiths, frames: latestAnchorFrames, viewport: viewport.size.height)
+                                    model.observeVisibleContent(hadiths: hadiths, frames: framesInReadingArea(latestAnchorFrames), viewport: readingHeight)
                                     if !inspectedEntry { inspectedEntry = true
-                                        model.inspectInitialTarget(hadiths: hadiths, frames: latestAnchorFrames, viewport: viewport.size.height)
+                                        model.inspectInitialTarget(hadiths: hadiths, frames: framesInReadingArea(latestAnchorFrames), viewport: readingHeight)
                                     }
                                 }
                             }
@@ -1176,16 +1180,16 @@ struct ReaderPageView: View {
                                 let anchorY = ReaderScrollRestoration.anchorY(
                                     normalizedOffset: normalizedOffset,
                                     itemHeight: frame.height,
-                                    viewportHeight: viewport.size.height
+                                    viewportHeight: readingHeight
                                 )
                                 proxy.scrollTo(target.internalId, anchor: UnitPoint(x: 0.5, y: anchorY))
                             }
                             DispatchQueue.main.async {
                                 model.acknowledgeVerticalLanding(landing)
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                                    model.observeVisibleContent(hadiths: hadiths, frames: latestAnchorFrames, viewport: viewport.size.height)
+                                    model.observeVisibleContent(hadiths: hadiths, frames: framesInReadingArea(latestAnchorFrames), viewport: readingHeight)
                                     if !inspectedEntry { inspectedEntry = true
-                                        model.inspectInitialTarget(hadiths: hadiths, frames: latestAnchorFrames, viewport: viewport.size.height)
+                                        model.inspectInitialTarget(hadiths: hadiths, frames: framesInReadingArea(latestAnchorFrames), viewport: readingHeight)
                                     }
                                 }
                             }
@@ -1194,14 +1198,14 @@ struct ReaderPageView: View {
                     }
 
                     if currentPageIndex == model.pageIndex {
-                        model.observeVisibleContent(hadiths: hadiths, frames: frames, viewport: viewport.size.height)
+                        model.observeVisibleContent(hadiths: hadiths, frames: readingFrames, viewport: readingHeight)
                     }
                     let indexed = hadiths.enumerated().compactMap { index, hadith in
-                        frames[hadith.internalId].map { (index, $0) }
+                        readingFrames[hadith.internalId].map { (index, $0) }
                     }
                     guard let leading = indexed.min(by: {
-                        abs(($0.1.minY + $0.1.height / 2) - viewport.size.height / 2)
-                        < abs(($1.1.minY + $1.1.height / 2) - viewport.size.height / 2)
+                        abs(($0.1.minY + $0.1.height / 2) - readingHeight / 2)
+                        < abs(($1.1.minY + $1.1.height / 2) - readingHeight / 2)
                     }) ?? indexed.first else { return }
                     model.captureStableScroll(
                         hadiths: hadiths,
@@ -1267,7 +1271,7 @@ struct ReaderPageView: View {
                             .padding(.top, 8)
                         }
                         .padding(.horizontal, 22)
-                        .padding(.top, topContentInset + 20)
+                        .padding(.top, 20)
                         .padding(.bottom, 80)
                         .background(
                             GeometryReader { content in
@@ -1282,14 +1286,15 @@ struct ReaderPageView: View {
                         )
                     }
                 }
+                .contentMargins(.top, topContentInset, for: .scrollContent)
                 .scrollIndicators(.hidden)
                 .coordinateSpace(name: "reader.page")
                 .onPreferenceChange(ReaderScrollStateKey.self) { state in
                     guard currentPageIndex == model.pageIndex, let onScrollFraction, let state else { return }
-                    let scrolled = max(0, -state.minY)
+                    let scrolled = max(0, topContentInset - state.minY)
                     let raw = ReaderProgressBars.scrollFraction(
                         contentHeight: state.contentHeight,
-                        viewportHeight: viewport.size.height,
+                        viewportHeight: max(1, viewport.size.height - topContentInset),
                         scrolled: scrolled
                     )
                     onScrollFraction((raw * 200).rounded() / 200)
@@ -3174,6 +3179,13 @@ struct ReaderR6ATestFixtureView: View {
             )
             .frame(width: 0, height: 0)
             .accessibilityHidden(true)
+        }
+        .overlay(alignment: .bottom) {
+            if ProcessInfo.processInfo.environment["READER_SCROLL_REANCHOR"] == "1" {
+                Button("Reanchor") { model.reanchorAfterLayoutChange() }
+                    .frame(minHeight: 44)
+                    .accessibilityIdentifier("reader.test.reanchor")
+            }
         }
         .sheet(isPresented: $showQuotaPaywallFixture) { QuotaPaywallView {} }
         .transformEnvironment(\.locale) { locale in

@@ -175,6 +175,9 @@ final class ReaderModel {
     private var publicationTask: Task<Void, Never>?
     private var publicationDeadlineTask: Task<Void, Never>?
     private var translationGeneration = 0
+    @ObservationIgnored private var scrollProgressTask: Task<Void, Never>?
+    private var pendingScrollProgress: (position: ReadingPosition, reference: HadithRef, scope: UUID)?
+    private var lastProgressSavedUptime = -Double.infinity
     private var lastPositionUpdatedAt = 0.0
     private var lastCapturedAnchor: String?
     private var lastCapturedNormalizedOffset: Double?
@@ -269,6 +272,7 @@ final class ReaderModel {
     }
 
     func stop() {
+        flushScrollProgress()
         pageGeneration += 1
         isLoadingPage = false
         automaticTranslationTask?.cancel()
@@ -729,6 +733,7 @@ final class ReaderModel {
     // MARK: - Adjacent-volume prefetch (R6 round 3)
 
     private func resetReading() {
+        flushScrollProgress()
         pageGeneration += 1
         pageTask?.cancel()
         isLoadingPage = false
@@ -1071,6 +1076,7 @@ final class ReaderModel {
     }
 
     func resetTranslationRequestsForAccount() {
+        cancelScrollProgress()
         automaticTranslationTask?.cancel()
         automaticRequests = ReaderAutomaticTranslationLedger()
         translationAllowances = [:]
@@ -1179,6 +1185,7 @@ final class ReaderModel {
     /// on every page turn and when the reader closes; the backend upserts
     /// per collection so repeats stay cheap.
     func saveCurrentProgress() {
+        cancelScrollProgress()
         guard phase == .reading, pages.indices.contains(pageIndex) else { return }
         let page = pages[pageIndex]
         guard let first = page.items.first else { return }
@@ -1247,7 +1254,8 @@ final class ReaderModel {
             anchor: anchor,
             page: pages[pageIndex],
             rawPageOffset: max(0, rawPageOffset),
-            normalizedOffset: clamped
+            normalizedOffset: clamped,
+            coalescingScroll: true
         )
     }
 
@@ -1379,10 +1387,12 @@ final class ReaderModel {
         anchor: ReaderHadith,
         page: ReaderPageResult,
         rawPageOffset: Double,
-        normalizedOffset: Double
+        normalizedOffset: Double,
+        coalescingScroll: Bool = false
     ) {
+        guard let library else { return }
         let layout = readingLayout(page.paginationVersion ?? 1)
-        let storedUpdatedAt = library?.progress(for: collectionSlug)?.position?.updatedAt ?? 0
+        let storedUpdatedAt = library.progress(for: collectionSlug)?.position?.updatedAt ?? 0
         let updatedAt = max(
             Date.now.millisecondsSinceEpoch,
             max(storedUpdatedAt + 1, lastPositionUpdatedAt + 1)
@@ -1404,6 +1414,35 @@ final class ReaderModel {
             layoutSignature: layout.signature,
             updatedAt: updatedAt
         )
-        library?.saveProgress(position, ref: ref(for: anchor))
+        let snapshot = (position: position, reference: ref(for: anchor), scope: library.actionScope)
+        if coalescingScroll {
+            pendingScrollProgress = snapshot
+            let delay = 0.5 - (ProcessInfo.processInfo.systemUptime - lastProgressSavedUptime)
+            if delay <= 0 {
+                flushScrollProgress()
+            } else if scrollProgressTask == nil {
+                scrollProgressTask = Task { [weak self] in
+                    do { try await Task.sleep(for: .seconds(delay)) } catch { return }
+                    self?.flushScrollProgress()
+                }
+            }
+        } else {
+            lastProgressSavedUptime = ProcessInfo.processInfo.systemUptime
+            library.saveProgress(position, ref: snapshot.reference)
+        }
+    }
+
+    private func cancelScrollProgress() {
+        scrollProgressTask?.cancel()
+        scrollProgressTask = nil
+        pendingScrollProgress = nil
+    }
+
+    private func flushScrollProgress() {
+        let snapshot = pendingScrollProgress
+        cancelScrollProgress()
+        guard let snapshot, let library, library.isActionCurrent(snapshot.scope) else { return }
+        lastProgressSavedUptime = ProcessInfo.processInfo.systemUptime
+        library.saveProgress(snapshot.position, ref: snapshot.reference)
     }
 }

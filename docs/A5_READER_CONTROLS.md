@@ -6,6 +6,13 @@ reading/saving/return matrix. The earlier Contents race and its actual tap,
 dismissal, target ownership and landing trace remain in
 [A5_CONTENTS_NAVIGATION.md](A5_CONTENTS_NAVIGATION.md).
 
+November 1 follow-up: the owner reported the reserved viewport as a visual
+regression. The active scrolling goal restores a full-screen viewport with
+measured content clearance, allowing manually scrolled text behind floating
+controls while preserving large-type explicit landing and focus stability. See
+[SCROLLING_VERIFICATION.md](SCROLLING_VERIFICATION.md). The reserved-viewport
+implementation below is historical; its source/glyph safety requirements remain.
+
 ## Reproduced defects and repair
 
 Both production readers reproduced overlapping source and progress controls
