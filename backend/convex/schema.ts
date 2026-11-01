@@ -1,3 +1,4 @@
+import { collectionOutlineStorage } from "./lib/outlineStorage";
 import { syncStreamSlot } from "./lib/librarySyncPolicy";
 import { purchaseAccess } from "./lib/revenueCat";
 import { defineSchema, defineTable } from "convex/server";
@@ -140,34 +141,8 @@ export default defineSchema({
     sortOrder: v.optional(v.number()),
   }).index("by_slug", ["slug"]),
 
-  // Cached volume/chapter outline per collection so the app can navigate
-  // without re-paginating the whole collection from the provider.
-  collectionOutlines: defineTable({
-    collectionSlug: v.string(),
-    volumes: v.array(
-      v.object({
-        volumeId: v.string(),
-        title: v.string(),
-        firstChapterTitle: v.optional(v.string()),
-        firstChapterArabicTitle: v.optional(v.string()),
-        hadithCount: v.number(),
-        // R5: source-provided chapters per volume. Optional so outlines
-        // cached before R5 still validate; fresh outlines always include it.
-        chapters: v.optional(
-          v.array(
-            v.object({
-              chapterId: v.optional(v.string()),
-              title: v.string(),
-              arabicTitle: v.optional(v.string()),
-              hadithCount: v.number(),
-              firstProviderHadithId: v.string(),
-            }),
-          ),
-        ),
-      }),
-    ),
-    indexedAt: v.number(),
-  }).index("by_collection_slug", ["collectionSlug"]),
+  // Legacy rows remain valid when packing does not reduce their complete stored size.
+  collectionOutlines: defineTable(collectionOutlineStorage).index("by_collection_slug", ["collectionSlug"]),
 
   licenseRecords: defineTable({
     sourceKey: v.string(),

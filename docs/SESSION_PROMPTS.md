@@ -11,7 +11,9 @@ in `NEXT_SESSION_PROMPT.md`, current proof in `CONVEX_COST_VERIFICATION.md` and 
 measurement contract in `CONVEX_COST_DIAGNOSTIC.md`. The notification repair is
 approved, deployed and verified in two scheduled development runs. The Android
 resume-only prefetch repair and paired native reading baselines pass. The next
-unit measures and reduces the large outline read, retaining cache limitations. Keep `hadithly-convex-cost`, the app-experience
+unit has locally verified lossless outline compression. See
+`CONVEX_OUTLINE_STORAGE_VERIFICATION.md`; the next boundary is explicit approval
+for its development deployment and seven-row conversion, then live verification. Keep `hadithly-convex-cost`, the app-experience
 destination, free-first preference and all existing gates. Local implementation
 does not authorize cloud deployment, migrations, paid actions or production work.
 

@@ -1,3 +1,4 @@
+import { prepareOutline, unpackVolumes } from "./lib/outlineStorage";
 import { advanceLibraryVersion } from "./lib/librarySyncVersions";
 import type { Id } from "./_generated/dataModel";
 import { paginationOptsValidator } from "convex/server";
@@ -287,5 +288,27 @@ export const materializeQ1CollectionCounts = internalMutation({
       written++;
     }
     return { written };
+  },
+});
+
+/** Rewrites one cached outline without changing its freshness or identity. */
+export const rewriteCollectionOutlineStorage = internalMutation({
+  args: { collectionSlug: v.string(), format: v.union(v.literal("packed"), v.literal("legacy")) },
+  handler: async (ctx, args) => {
+    const row = await ctx.db.query("collectionOutlines")
+      .withIndex("by_collection_slug", q => q.eq("collectionSlug", args.collectionSlug)).unique();
+    if (!row) return { status: "missing" };
+    const packed = "packedVolumes" in row;
+    if (args.format === "packed") {
+      if (packed) return { status: "already_packed" };
+      const fields = await prepareOutline({ collectionSlug: row.collectionSlug, indexedAt: row.indexedAt, volumes: row.volumes });
+      if (!("packedVolumes" in fields)) return { status: "already_small" };
+      await ctx.db.replace(row._id, fields);
+      return { status: "packed" };
+    }
+    if (!("packedVolumes" in row)) return { status: "already_legacy" };
+    await ctx.db.replace(row._id, { collectionSlug: row.collectionSlug, indexedAt: row.indexedAt,
+      volumes: await unpackVolumes(row.packedVolumes) });
+    return { status: "legacy" };
   },
 });

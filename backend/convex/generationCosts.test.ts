@@ -12,12 +12,13 @@ describe("Q1 compact progress counts", () => {
     await t.mutation(internal.collections.upsertOutline, { collectionSlug: "bukhari", volumes });
     const first = await t.query(api.library.listCollectionProgressSummaries, {});
     expect(first.find(x => x.collectionSlug === "bukhari")).toMatchObject({ totalHadiths: 1000, state: "unopened" });
+    const publicOutline = await t.query(api.collections.getOutline, { collectionSlug: "bukhari" });
     const sizes = await t.run(async ctx => {
       const outline = await ctx.db.query("collectionOutlines").unique();
       const count = await ctx.db.query("collectionCounts").unique();
       if (!outline || !count) throw new Error("Missing counts");
       await ctx.db.delete(count._id);
-      return { outline: JSON.stringify(outline).length, count: JSON.stringify(count).length };
+      return { outline: JSON.stringify(publicOutline).length, count: JSON.stringify(count).length };
     });
     expect(sizes.count).toBeLessThan(sizes.outline / 100);
     expect(await t.mutation(internal.migrations.materializeQ1CollectionCounts, {})).toEqual({ written: 1 });

@@ -1,0 +1,188 @@
+{
+  "capturedAtUtc": "2026-11-01T09:08:38.203Z",
+  "scope": "real isolated anonymous local Convex using a private snapshot of public cached outlines",
+  "snapshotSha256": "18488839933e5a7f856e0dbfae02fdc3fa467a34e660098b59f3be84bdd39d3e",
+  "cloudDeployed": false,
+  "providerCallsInvoked": false,
+  "publicPayloadsIdentical": true,
+  "nativeJourneyMeasured": false,
+  "billedUsageMeasured": false,
+  "convexVersion": "1.45.0",
+  "results": [
+    {
+      "collectionSlug": "ibn-majah",
+      "volumeCount": 5,
+      "chapterCount": 40,
+      "legacy": {
+        "packed": false,
+        "storedDocumentBytes": 6378,
+        "coldDatabaseIoReadBytes": 6432,
+        "warmDatabaseIoReadBytes": 0,
+        "coldDatabaseReadDocuments": 1,
+        "coldQueryExecutionSeconds": 0.007974792,
+        "publicPayloadSha256": "43e8c98b97edb0cf3f45c085c759ae514a3c37061c48895e3ffaec19404f471c"
+      },
+      "packed": {
+        "packed": true,
+        "storedDocumentBytes": 2470,
+        "coldDatabaseIoReadBytes": 2524,
+        "warmDatabaseIoReadBytes": 0,
+        "coldDatabaseReadDocuments": 1,
+        "coldQueryExecutionSeconds": 0.006506875,
+        "publicPayloadSha256": "43e8c98b97edb0cf3f45c085c759ae514a3c37061c48895e3ffaec19404f471c"
+      },
+      "conversionIdempotent": true,
+      "rollbackIdentical": true
+    },
+    {
+      "collectionSlug": "bukhari",
+      "volumeCount": 97,
+      "chapterCount": 3512,
+      "legacy": {
+        "packed": false,
+        "storedDocumentBytes": 889523,
+        "coldDatabaseIoReadBytes": 889575,
+        "warmDatabaseIoReadBytes": 0,
+        "coldDatabaseReadDocuments": 1,
+        "coldQueryExecutionSeconds": 0.034765375,
+        "publicPayloadSha256": "88b32528f33cd3908eb3ddb813405ad8bcc1be23f8dac5045437662ac196ec48"
+      },
+      "packed": {
+        "packed": true,
+        "storedDocumentBytes": 232271,
+        "coldDatabaseIoReadBytes": 232323,
+        "warmDatabaseIoReadBytes": 0,
+        "coldDatabaseReadDocuments": 1,
+        "coldQueryExecutionSeconds": 0.08286275,
+        "publicPayloadSha256": "88b32528f33cd3908eb3ddb813405ad8bcc1be23f8dac5045437662ac196ec48"
+      },
+      "conversionIdempotent": true,
+      "rollbackIdentical": true
+    },
+    {
+      "collectionSlug": "muslim",
+      "volumeCount": 6,
+      "chapterCount": 56,
+      "legacy": {
+        "packed": false,
+        "storedDocumentBytes": 10151,
+        "coldDatabaseIoReadBytes": 10202,
+        "warmDatabaseIoReadBytes": 0,
+        "coldDatabaseReadDocuments": 1,
+        "coldQueryExecutionSeconds": 0.00409825,
+        "publicPayloadSha256": "52a9322c9c8aa5268437a5f64a61369629798b5f4f1e98114ffbefbf079d1e52"
+      },
+      "packed": {
+        "packed": true,
+        "storedDocumentBytes": 3706,
+        "coldDatabaseIoReadBytes": 3757,
+        "warmDatabaseIoReadBytes": 0,
+        "coldDatabaseReadDocuments": 1,
+        "coldQueryExecutionSeconds": 0.00767825,
+        "publicPayloadSha256": "52a9322c9c8aa5268437a5f64a61369629798b5f4f1e98114ffbefbf079d1e52"
+      },
+      "conversionIdempotent": true,
+      "rollbackIdentical": true
+    },
+    {
+      "collectionSlug": "tirmidhi",
+      "volumeCount": 3,
+      "chapterCount": 50,
+      "legacy": {
+        "packed": false,
+        "storedDocumentBytes": 10273,
+        "coldDatabaseIoReadBytes": 10326,
+        "warmDatabaseIoReadBytes": 0,
+        "coldDatabaseReadDocuments": 1,
+        "coldQueryExecutionSeconds": 0.004493625,
+        "publicPayloadSha256": "1920d63a654bbbc552da271fb03d042a3e899469d5ff550d8d136bab6366800b"
+      },
+      "packed": {
+        "packed": true,
+        "storedDocumentBytes": 2800,
+        "coldDatabaseIoReadBytes": 2853,
+        "warmDatabaseIoReadBytes": 0,
+        "coldDatabaseReadDocuments": 1,
+        "coldQueryExecutionSeconds": 0.007121542,
+        "publicPayloadSha256": "1920d63a654bbbc552da271fb03d042a3e899469d5ff550d8d136bab6366800b"
+      },
+      "conversionIdempotent": true,
+      "rollbackIdentical": true
+    },
+    {
+      "collectionSlug": "sunan-nasai",
+      "volumeCount": 6,
+      "chapterCount": 52,
+      "legacy": {
+        "packed": false,
+        "storedDocumentBytes": 8574,
+        "coldDatabaseIoReadBytes": 8630,
+        "warmDatabaseIoReadBytes": 0,
+        "coldDatabaseReadDocuments": 1,
+        "coldQueryExecutionSeconds": 0.004488375,
+        "publicPayloadSha256": "b4bd02a3eb56ff0b39b22a4f3b6a9e76a9cbda96c35616385718a9f5fde4c377"
+      },
+      "packed": {
+        "packed": true,
+        "storedDocumentBytes": 3261,
+        "coldDatabaseIoReadBytes": 3317,
+        "warmDatabaseIoReadBytes": 0,
+        "coldDatabaseReadDocuments": 1,
+        "coldQueryExecutionSeconds": 0.006922209,
+        "publicPayloadSha256": "b4bd02a3eb56ff0b39b22a4f3b6a9e76a9cbda96c35616385718a9f5fde4c377"
+      },
+      "conversionIdempotent": true,
+      "rollbackIdentical": true
+    },
+    {
+      "collectionSlug": "abu-dawood",
+      "volumeCount": 4,
+      "chapterCount": 43,
+      "legacy": {
+        "packed": false,
+        "storedDocumentBytes": 7111,
+        "coldDatabaseIoReadBytes": 7166,
+        "warmDatabaseIoReadBytes": 0,
+        "coldDatabaseReadDocuments": 1,
+        "coldQueryExecutionSeconds": 0.004747709,
+        "publicPayloadSha256": "4e39356f9aa1eb8f20b34da12a2e837fe8cdb48bc464426bed00ad3477cbc5ab"
+      },
+      "packed": {
+        "packed": true,
+        "storedDocumentBytes": 2740,
+        "coldDatabaseIoReadBytes": 2795,
+        "warmDatabaseIoReadBytes": 0,
+        "coldDatabaseReadDocuments": 1,
+        "coldQueryExecutionSeconds": 0.006529375,
+        "publicPayloadSha256": "4e39356f9aa1eb8f20b34da12a2e837fe8cdb48bc464426bed00ad3477cbc5ab"
+      },
+      "conversionIdempotent": true,
+      "rollbackIdentical": true
+    },
+    {
+      "collectionSlug": "mishkat-al-masabih",
+      "volumeCount": 3,
+      "chapterCount": 29,
+      "legacy": {
+        "packed": false,
+        "storedDocumentBytes": 4276,
+        "coldDatabaseIoReadBytes": 4339,
+        "warmDatabaseIoReadBytes": 0,
+        "coldDatabaseReadDocuments": 1,
+        "coldQueryExecutionSeconds": 0.003751,
+        "publicPayloadSha256": "8d4ac2971de954676d5b28b200069cd88cfb4a2655d2d73e0af5b9ec8255cbd5"
+      },
+      "packed": {
+        "packed": true,
+        "storedDocumentBytes": 1873,
+        "coldDatabaseIoReadBytes": 1936,
+        "warmDatabaseIoReadBytes": 0,
+        "coldDatabaseReadDocuments": 1,
+        "coldQueryExecutionSeconds": 0.00634325,
+        "publicPayloadSha256": "8d4ac2971de954676d5b28b200069cd88cfb4a2655d2d73e0af5b9ec8255cbd5"
+      },
+      "conversionIdempotent": true,
+      "rollbackIdentical": true
+    }
+  ]
+}

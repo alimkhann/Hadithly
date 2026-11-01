@@ -21,7 +21,7 @@ claim. Development rollout succeeded on October 31 at 19:58 UTC after the
 owner approval. Deployed metadata shows the new endpoint and no old bucket
 endpoint. Two successful scheduled runs at 20:12 and 20:27 UTC each used one new
 token-page query and zero old bucket calls. Notification dispatch reduction is
-verified on development. Paired native reader/idle I/O measurement remains open.
+verified on development. Paired native reader/idle I/O measurement subsequently passed.
 
 The paired reader workload now passes on the Android emulator and an isolated
 iOS simulator, with automatic generation off. Controlled Android before/after
@@ -32,10 +32,21 @@ differ, so no isolated database-byte saving is claimed. See
 [CONVEX_READER_COST_VERIFICATION.md](CONVEX_READER_COST_VERIFICATION.md).
 Equal-duration Android idle controls include a scheduled notification tick and
 no reader traffic. The matched 112-second iOS idle control also contains one
-scheduled notification tick and no reader calls. The next backend
-candidate is the large Bukhari outline read, about 890 KB on a cache miss;
-compact metadata needs a separately verified design and any deployment/migration
-approval. Do not repeat the completed notification or native prefetch repair.
+scheduled notification tick and no reader calls.
+
+Lossless outline storage compression is now implemented and verified locally.
+A real isolated Convex backend using the seven existing public cached outlines
+measured cold reads falling from 936,670 to 249,505 bytes, 73.36% less. Bukhari
+fell from 889,575 to 232,323 bytes. Full public payloads, identity, freshness and
+rollback matched exactly; warm reads remained zero bytes. The largest local cold
+query took 83 ms versus 35 ms, so the I/O reduction has a decoding cost. All 557
+backend tests and type checking pass. Independent standards/spec reviews passed
+after fixes for malformed compression, expansion bounds and document-size limits.
+See [CONVEX_OUTLINE_STORAGE_VERIFICATION.md](CONVEX_OUTLINE_STORAGE_VERIFICATION.md).
+This new schema/deployment and seven-row conversion still require separate owner
+approval. Only fe8742c is approved for cloud rollout. No outline change has been
+deployed, and no live billing saving is established. Do not restart completed
+notification, native prefetch or local outline work.
 
 All G01-G41, A1/A3/A4 acceptance, A7's deferral, E Linear and the final audit remain
 open. Preserve A2/A5 and B/C/D local completion and incoming work. The current

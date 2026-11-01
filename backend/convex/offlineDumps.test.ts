@@ -605,3 +605,24 @@ describe("offline artifact storage", () => {
     expect(found).toHaveLength(0);
   });
 });
+
+
+describe("packed outline offline compatibility", () => {
+  test("chapter membership and immutable dump bytes survive the storage rewrite", async () => {
+    const t = convexTest(schema, modules);
+    await t.run(ctx => ctx.db.insert("collectionOutlines", { collectionSlug: "bukhari", indexedAt: 123,
+      volumes: [{ volumeId: "2", title: "Volume", hadithCount: 1, chapters: [{ chapterId: "42",
+        title: "Source chapter title ".repeat(200), hadithCount: 1, firstProviderHadithId: "7" }] }] }));
+    const build = async () => {
+      const outline = await t.query(api.collections.getOutline, { collectionSlug: "bukhari" });
+      if (!outline) throw new Error("Missing outline");
+      const payload = canonicalRowsPayload("bukhari", [makeRow()], outline);
+      return serializeDeterministic(buildBaseDump({ collectionSlug: "bukhari", collectionName: "Sahih al-Bukhari",
+        contentVersion: contentVersionForPayload(payload, sha256Hex(payload)), generatedAt: 123,
+        license: verifiedLicense, rowsPayload: payload }));
+    };
+    const before = await build();
+    expect(await t.mutation(internal.migrations.rewriteCollectionOutlineStorage, { collectionSlug: "bukhari", format: "packed" })).toEqual({ status: "packed" });
+    expect(await build()).toBe(before);
+  });
+});

@@ -156,7 +156,9 @@ Resource interpretation follows the current official
 [execution log documentation](https://docs.convex.dev/production/integrations/log-streams).
 The CLI exposes recent events without installing a paid log-stream integration.
 
-The remaining largest reader I/O candidate is the chapter-rich Bukhari outline
-read on a cache miss. Splitting its metadata requires a separately measured
-backend design, schema/backfill decision and any needed action-time approval.
-This unit does not silently introduce that migration or promise unlimited free use.
+The following unit implemented lossless outline storage compression and measured
+all seven cached outlines on a real isolated local Convex backend. See
+[CONVEX_OUTLINE_STORAGE_VERIFICATION.md](CONVEX_OUTLINE_STORAGE_VERIFICATION.md).
+Its local I/O reduction does not establish native behavior against the new live
+backend or billed savings. Development deployment and conversion need separate
+approval; the native evidence above predates that backend change.

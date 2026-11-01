@@ -1,3 +1,5 @@
+import { convexToJson } from "convex/values";
+import { outlineVolume, prepareOutline, unpackVolumes, volumeMetadata } from "./lib/outlineStorage";
 import { internalMutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { DEFAULT_COLLECTION_ORDER } from "./lib/sunnahNow";
@@ -43,26 +45,7 @@ export const list = query({
 export const upsertOutline = internalMutation({
   args: {
     collectionSlug: v.string(),
-    volumes: v.array(
-      v.object({
-        volumeId: v.string(),
-        title: v.string(),
-        firstChapterTitle: v.optional(v.string()),
-        firstChapterArabicTitle: v.optional(v.string()),
-        hadithCount: v.number(),
-        chapters: v.optional(
-          v.array(
-            v.object({
-              chapterId: v.optional(v.string()),
-              title: v.string(),
-              arabicTitle: v.optional(v.string()),
-              hadithCount: v.number(),
-              firstProviderHadithId: v.string(),
-            }),
-          ),
-        ),
-      }),
-    ),
+    volumes: v.array(outlineVolume),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
@@ -76,28 +59,27 @@ export const upsertOutline = internalMutation({
         q.eq("collectionSlug", args.collectionSlug),
       )
       .unique();
+    const fields = await prepareOutline({ ...args, indexedAt: now });
     if (existing) {
-      await ctx.db.patch(existing._id, {
-        volumes: args.volumes,
-        indexedAt: now,
-      });
+      await ctx.db.replace(existing._id, fields);
       return existing._id;
     }
-    return await ctx.db.insert("collectionOutlines", {
-      ...args,
-      indexedAt: now,
-    });
+    return await ctx.db.insert("collectionOutlines", fields);
   },
 });
 
 /** Public: cached volume outline for a collection. */
 export const getOutline = query({
   args: { collectionSlug: v.string() },
-  handler: async (ctx, args) =>
-    await ctx.db
-      .query("collectionOutlines")
-      .withIndex("by_collection_slug", (q) =>
-        q.eq("collectionSlug", args.collectionSlug),
-      )
-      .unique(),
+  handler: async (ctx, args) => {
+    const row = await ctx.db.query("collectionOutlines")
+      .withIndex("by_collection_slug", q => q.eq("collectionSlug", args.collectionSlug)).unique();
+    if (!row) return null;
+    const volumes = "packedVolumes" in row ? await unpackVolumes(row.packedVolumes) : row.volumes;
+    if ("packedVolumes" in row && JSON.stringify(convexToJson(volumeMetadata(volumes))) !== JSON.stringify(convexToJson(row.volumes))) {
+      throw new Error("Invalid packed collection outline metadata");
+    }
+    return { _id: row._id, _creationTime: row._creationTime, collectionSlug: row.collectionSlug,
+      indexedAt: row.indexedAt, volumes };
+  },
 });
