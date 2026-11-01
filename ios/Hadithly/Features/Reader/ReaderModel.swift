@@ -201,8 +201,8 @@ final class ReaderModel {
     private var publicationDeadlineTask: Task<Void, Never>?
     private var translationGeneration = 0
     @ObservationIgnored private var scrollProgressTask: Task<Void, Never>?
-    private var pendingScrollProgress: (position: ReadingPosition, reference: HadithRef, scope: UUID)?
-    private var lastProgressSavedUptime = -Double.infinity
+    @ObservationIgnored private var pendingScrollSave: (scope: UUID, updatedAt: Double)?
+    @ObservationIgnored private var lastViewportMotionUptime = -Double.infinity
     private var lastPositionUpdatedAt = 0.0
     private var lastCapturedAnchor: String?
     private var lastCapturedNormalizedOffset: Double?
@@ -1210,6 +1210,10 @@ final class ReaderModel {
     /// on every page turn and when the reader closes; the backend upserts
     /// per collection so repeats stay cheap.
     func saveCurrentProgress() {
+        saveCurrentProgress(capturedAt: nil)
+    }
+
+    private func saveCurrentProgress(capturedAt: Double?) {
         cancelScrollProgress()
         guard phase == .reading, pages.indices.contains(pageIndex) else { return }
         let page = pages[pageIndex]
@@ -1243,7 +1247,8 @@ final class ReaderModel {
             anchor: stableHadith ?? restoredHadith ?? landingHadith ?? first,
             page: page,
             rawPageOffset: rawPageOffset,
-            normalizedOffset: normalizedOffset
+            normalizedOffset: normalizedOffset,
+            capturedAt: capturedAt
         )
     }
 
@@ -1257,11 +1262,14 @@ final class ReaderModel {
     ) {
         guard verticalLanding == nil else { return }
         guard hadiths.indices.contains(leadingIndex), pages.indices.contains(pageIndex) else { return }
+        lastViewportMotionUptime = ProcessInfo.processInfo.systemUptime
         let anchor = hadiths[leadingIndex]
         let clamped = min(1, max(0, normalizedOffset))
         lastStableAnchor = anchor
         lastStableRawPageOffset = max(0, rawPageOffset)
         lastStableNormalizedOffset = clamped
+        let capturedAt = nextPositionUpdatedAt()
+        if pendingScrollSave != nil { pendingScrollSave?.updatedAt = capturedAt }
         if lastCapturedAnchor == anchor.internalId,
            let lastCapturedNormalizedOffset,
            abs(lastCapturedNormalizedOffset - clamped) < 0.02 {
@@ -1280,7 +1288,8 @@ final class ReaderModel {
             page: pages[pageIndex],
             rawPageOffset: max(0, rawPageOffset),
             normalizedOffset: clamped,
-            coalescingScroll: true
+            coalescingScroll: true,
+            capturedAt: capturedAt
         )
     }
 
@@ -1413,16 +1422,29 @@ final class ReaderModel {
         page: ReaderPageResult,
         rawPageOffset: Double,
         normalizedOffset: Double,
-        coalescingScroll: Bool = false
+        coalescingScroll: Bool = false,
+        capturedAt: Double? = nil
     ) {
         guard let library else { return }
+        if coalescingScroll {
+            pendingScrollSave = (scope: library.actionScope, updatedAt: capturedAt ?? nextPositionUpdatedAt())
+            if scrollProgressTask == nil {
+                scrollProgressTask = Task { [weak self] in
+                    while let self {
+                        let delay = lastViewportMotionUptime + 0.5 - ProcessInfo.processInfo.systemUptime
+                        if delay > 0 {
+                            do { try await Task.sleep(for: .seconds(delay)) } catch { return }
+                        } else {
+                            flushScrollProgress()
+                            return
+                        }
+                    }
+                }
+            }
+            return
+        }
         let layout = readingLayout(page.paginationVersion ?? 1)
-        let storedUpdatedAt = library.progress(for: collectionSlug)?.position?.updatedAt ?? 0
-        let updatedAt = max(
-            Date.now.millisecondsSinceEpoch,
-            max(storedUpdatedAt + 1, lastPositionUpdatedAt + 1)
-        )
-        lastPositionUpdatedAt = updatedAt
+        let updatedAt = capturedAt ?? nextPositionUpdatedAt()
         let position = ReadingPosition(
             anchor: .init(
                 provider: anchor.provider,
@@ -1439,37 +1461,28 @@ final class ReaderModel {
             layoutSignature: layout.signature,
             updatedAt: updatedAt
         )
-        let snapshot = (position: position, reference: ref(for: anchor), scope: library.actionScope)
-        if coalescingScroll {
-            pendingScrollProgress = snapshot
-            let delay = 0.5 - (ProcessInfo.processInfo.systemUptime - lastProgressSavedUptime)
-            if delay <= 0 {
-                flushScrollProgress()
-            } else if scrollProgressTask == nil {
-                scrollProgressTask = Task { [weak self] in
-                    do { try await Task.sleep(for: .seconds(delay)) } catch { return }
-                    self?.flushScrollProgress()
-                }
-            }
-        } else {
-            lastProgressSavedUptime = ProcessInfo.processInfo.systemUptime
-            library.saveProgress(position, ref: snapshot.reference)
-        }
+        library.saveProgress(position, ref: ref(for: anchor))
+    }
+
+    private func nextPositionUpdatedAt() -> Double {
+        let storedUpdatedAt = library?.progress(for: collectionSlug)?.position?.updatedAt ?? 0
+        let updatedAt = max(Date.now.millisecondsSinceEpoch, max(storedUpdatedAt + 1, lastPositionUpdatedAt + 1))
+        lastPositionUpdatedAt = updatedAt
+        return updatedAt
     }
 
     private func cancelScrollProgress() {
         scrollProgressTask?.cancel()
         scrollProgressTask = nil
-        pendingScrollProgress = nil
+        pendingScrollSave = nil
     }
 
     private func flushScrollProgress() {
-        let snapshot = pendingScrollProgress
+        let pending = pendingScrollSave
         cancelScrollProgress()
-        guard let snapshot, let library, library.isActionCurrent(snapshot.scope) else { return }
+        guard let pending, let library, library.isActionCurrent(pending.scope) else { return }
         let interval = ReaderScrollProfile.begin("ScrollProgressPersistence")
         defer { ReaderScrollProfile.end("ScrollProgressPersistence", interval) }
-        lastProgressSavedUptime = ProcessInfo.processInfo.systemUptime
-        library.saveProgress(snapshot.position, ref: snapshot.reference)
+        saveCurrentProgress(capturedAt: pending.updatedAt)
     }
 }

@@ -1,0 +1,143 @@
+{
+  "candidate": "Quiet-period progress persistence, preserving capture timestamp and final semantic position",
+  "decision": "Retain measured interruption repair; below-1-ms/s acceptance remains open",
+  "build": {
+    "configuration": "Debug with optimized Swift and C compilation",
+    "swiftOptimization": "-O",
+    "swiftCompilation": "wholemodule",
+    "bundleIdentifier": "com.hadithly.app",
+    "developmentURL": "https://festive-cobra-664.eu-west-1.convex.cloud",
+    "diagnosticsEnvironment": "development",
+    "appAttestEnvironment": "development",
+    "debuggerAttachAllowed": true,
+    "binarySHA256": "752126647cfce78865b919ff0ac9648205545cd97154f5380239818a39e89d2e",
+    "iosTrackedSourceSHA256": "a44d66fccfb648aa244c87997942674d4b7f356692a3418e6a44182a6a1a8511",
+    "gitHead": "8655bd86c391a17ba6d9cd56983fc0ff4c5b1bb8",
+    "note": "Retains DEBUG compilation conditions and development entitlements. No app installation or project regeneration."
+  },
+  "workload": {
+    "automaticGenerationEnabled": false,
+    "collection": "bukhari",
+    "contentVersion": "cv1:2fa67689c3fda0749574b5d2a2790f36778377446bc9f14b3cff0585dab44330",
+    "hadiths": [
+      "7188",
+      "7189",
+      "7190",
+      "7191",
+      "7192"
+    ],
+    "lowPowerMode": false,
+    "maximumFramesPerSecond": 120,
+    "pageIndex": 26,
+    "pageKey": "pg1:8d20cc6ff8d418d358aa7ecddf5102625c43b74500113ff2630119c90a53a09b",
+    "preferences": {
+      "appTheme": "system",
+      "arabicFont": "amiri",
+      "arabicFontSize": 40,
+      "arabicVisible": true,
+      "readerTheme": "system",
+      "readingDirection": "auto",
+      "schemaVersion": 2,
+      "translationFontSize": 22,
+      "translationLocale": "en",
+      "translationVisible": true,
+      "uiLocale": "en",
+      "usesSeparateReaderTheme": false
+    },
+    "textBytes": 5266,
+    "textSHA256": "70602abc1b4796922a8fd8f426ec3d10b682b37c8ea6e53fbe47d41fa96c91a1",
+    "thermalState": 0,
+    "volume": "97",
+    "connectionTransport": "wired"
+  },
+  "summary": {
+    "runs": [
+      {
+        "run": 0,
+        "clock_seconds": 30.438387375,
+        "active_scroll_seconds": 18.665259082,
+        "display_presentations": 1667,
+        "app_frame_updates": 1707,
+        "verified_scroll_gestures": 14,
+        "active_hitch_ms_per_second": 8.037686449510812,
+        "app_hitch_events": 11,
+        "active_hitch_union_ms": 150.0255,
+        "max_app_hitch_ms": 16.6695,
+        "hitch_intervals_ns": [
+          [
+            11112005375.0,
+            11128674875.0
+          ],
+          [
+            13591589583.0,
+            13599924333.0
+          ],
+          [
+            17779794833.0,
+            17792296958.0
+          ],
+          [
+            17950656916.0,
+            17967326416.0
+          ],
+          [
+            19780131708.0,
+            19796801208.0
+          ],
+          [
+            19967663333.0,
+            19980165458.0
+          ],
+          [
+            21905489583.0,
+            21913824333.0
+          ],
+          [
+            34978524416.0,
+            34991026541.0
+          ],
+          [
+            35161888625.0,
+            35178558125.0
+          ],
+          [
+            37320585375.0,
+            37337254875.0
+          ],
+          [
+            39341759125.0,
+            39354261250.0
+          ]
+        ],
+        "operations": {
+          "ReaderAnchorGeometry": {
+            "count": 1727,
+            "max_ms": 0.421917,
+            "overlaps_hitch": 16
+          },
+          "ScrollProgressPersistence": {
+            "count": 14,
+            "max_ms": 5.127709,
+            "overlaps_hitch": 0
+          }
+        },
+        "observed_cpu_seconds": 12.206433625,
+        "resource_sample_window_seconds": 29.795450208,
+        "peak_sampled_footprint_mib": 165.7521209716797
+      }
+    ],
+    "worst_hitch_ms_per_second": 8.037686449510812,
+    "note": "App-attributed hitch intervals intersect native scrolling, with overlaps merged. Presentation counts describe the shared phone display, not app FPS. CPU and footprint are sampled within each run.",
+    "budget_passed": false
+  },
+  "verification": {
+    "ios_safety_tests": 161,
+    "ios_ui_tests": 2,
+    "failures": 0,
+    "red_path": "Continuous reader captures caused durable position writes before quiet; post-change regression requires none until quiet, exact latest sub-threshold offset and capture-time ordering."
+  },
+  "limits": [
+    "Only one retained warm candidate run; target fails. Do not expand full matrix before attributing remaining stalls.",
+    "Writes use existing main-actor serialized store after quiet; no background-executor claim."
+  ]
+}

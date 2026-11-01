@@ -1,9 +1,9 @@
 # Smooth reader implementation decision
 
-November 2, 2026. Keep the current SwiftUI text surface for the first repair.
-Test live geometry storage without publishing every offset change to the page.
-This is a controlled repair candidate, not a claim that the remaining stalls
-are fixed. UIKit/TextKit 2 remains conditional on a measured text-layout limit.
+November 2, 2026. Keep the current SwiftUI renderer. Two geometry experiments
+did not improve the measured stalls and were removed. The current experiment
+defers progress persistence until viewport motion is quiet. UIKit/TextKit 2
+remains conditional on a measured text-layout limit; the full performance gate remains open.
 
 ## Evidence
 
@@ -100,3 +100,46 @@ Retain SwiftUI if it passes. Compare bounded SwiftUI and reusable UIKit/TextKit 
 only if attributed text creation/layout still prevents acceptance. Preserve all
 original program gates, incoming files, A2 row mode off, and the deferred page
 cache and priority-4 work.
+
+## First experiment result and bounded tracking
+
+The non-observed dictionary alone measured 35.61 ms/s on the nominal, wired
+large-type workload, within the baseline's 32.89–52.94 range. It is insufficient;
+no improvement is claimed. Both full-bleed and semantic-reanchor UI tests passed.
+The [experiment record](smooth-reader-verification/anchor-cache-experiment.json)
+retains the measured result and exact candidate build.
+
+The next experiment stores item frames in a stable content coordinate space and
+projects them using one viewport offset. On iOS 18 and later, the offset comes
+from Apple's `onScrollGeometryChange`; iOS 17 retains a single content-origin
+geometry preference. The same model landing command and ScrollViewReader remain
+the only scroll writer. The prediction is fewer page-wide geometry updates and
+less app-update work without changing semantic restoration. The candidate passed both UI checks but measured 35.13 ms/s, again within
+baseline variation. The [result](smooth-reader-verification/bounded-viewport-experiment.json)
+is retained and both geometry experiments were removed. Neither warrants extra
+renderer complexity.
+
+## Quiet-period persistence experiment
+
+Both large-type experiments still performed 42 progress saves per run, taking
+up to 15 ms each. The next candidate keeps the latest viewport anchor/offset
+cheaply and waits for 500 ms without geometry motion before saving. One pending
+task follows the latest quiet deadline. It does not encode a new durable position
+for each capture. Explicit final saves, stop and background behavior still flush
+the latest semantic location, and the pending scope must pass the existing
+account fence. Writes remain serialized through the existing main-actor store;
+this is deferral to a quiet period, not background execution.
+
+A regression using the real reader/library/store path fails before the change:
+continuous motion generated six partition-change notifications before quiet.
+The corrected counter deduplicates sync acknowledgments by position timestamp.
+All 161 safety tests and two UI checks pass on the final ordered implementation.
+The [first matched run](smooth-reader-verification/quiet-persistence-experiment.json)
+measures 8.04 ms/s with 11 hitches, down from the 32.89–52.94 baseline range.
+Geometry callback maximum falls to 0.42 ms. Saves fall from 42 to 14, with a
+5.13 ms maximum. Sampled CPU is 12.21 seconds versus baseline 12.52–12.60;
+peak sampled footprint is 165.75 MiB versus 177.61–178.49. These are observed
+windows, not whole-app resource guarantees. Retain this interruption repair,
+but do not claim the target passes or expand the full matrix while this case
+still fails. Remaining hitches do not overlap the save intervals or their joined
+app updates. A separate CPU diagnostic is running to attribute the remaining work.

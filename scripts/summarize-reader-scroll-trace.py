@@ -49,7 +49,7 @@ def intersection(intervals, masks):
                   for lower, upper in masks if max(start, lower) < min(end, upper)])
 
 
-def signpost_intervals(path):
+def signpost_intervals(path, complete_only=False):
     opened = {}; completed = []
     for row in rows(path):
         name = label(row['name']); process = label(row['process'])
@@ -67,9 +67,11 @@ def signpost_intervals(path):
             opened[key] = time
         elif 'end' in event:
             if key not in opened:
+                if complete_only:
+                    continue
                 raise ValueError('Trace begins inside a required signpost; capture is incomplete')
             completed.append((process, name, opened.pop(key), time))
-    if opened:
+    if opened and not complete_only:
         raise ValueError('Trace ends inside a required signpost; capture is incomplete')
     return completed
 

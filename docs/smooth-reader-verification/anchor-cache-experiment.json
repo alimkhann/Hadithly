@@ -1,0 +1,301 @@
+{
+  "candidate": "Non-observed latest-anchor dictionary only",
+  "decision": "No meaningful improvement against baseline range; insufficient repair",
+  "build": {
+    "configuration": "Debug with optimized Swift and C compilation",
+    "swiftOptimization": "-O",
+    "swiftCompilation": "wholemodule",
+    "bundleIdentifier": "com.hadithly.app",
+    "developmentURL": "https://festive-cobra-664.eu-west-1.convex.cloud",
+    "diagnosticsEnvironment": "development",
+    "appAttestEnvironment": "development",
+    "debuggerAttachAllowed": true,
+    "binarySHA256": "059e75fb67ff996fd156c86ef1dc6c4c490cacce2a2a0732d60857a24ffa6900",
+    "iosTrackedSourceSHA256": "e8f57bbea8e0faab0cc999f674ae0a54c4bbd902a02bd220f5296de8050b5aa2",
+    "gitHead": "8655bd86c391a17ba6d9cd56983fc0ff4c5b1bb8",
+    "note": "Retains DEBUG compilation conditions and development entitlements. No app installation or project regeneration."
+  },
+  "workload": {
+    "automaticGenerationEnabled": false,
+    "collection": "bukhari",
+    "contentVersion": "cv1:2fa67689c3fda0749574b5d2a2790f36778377446bc9f14b3cff0585dab44330",
+    "hadiths": [
+      "7188",
+      "7189",
+      "7190",
+      "7191",
+      "7192"
+    ],
+    "lowPowerMode": false,
+    "maximumFramesPerSecond": 120,
+    "pageIndex": 26,
+    "pageKey": "pg1:8d20cc6ff8d418d358aa7ecddf5102625c43b74500113ff2630119c90a53a09b",
+    "preferences": {
+      "appTheme": "system",
+      "arabicFont": "amiri",
+      "arabicFontSize": 40,
+      "arabicVisible": true,
+      "readerTheme": "system",
+      "readingDirection": "auto",
+      "schemaVersion": 2,
+      "translationFontSize": 22,
+      "translationLocale": "en",
+      "translationVisible": true,
+      "uiLocale": "en",
+      "usesSeparateReaderTheme": false
+    },
+    "textBytes": 5266,
+    "textSHA256": "70602abc1b4796922a8fd8f426ec3d10b682b37c8ea6e53fbe47d41fa96c91a1",
+    "thermalState": 0,
+    "volume": "97",
+    "connectionTransport": "wired"
+  },
+  "summary": {
+    "runs": [
+      {
+        "run": 0,
+        "clock_seconds": 30.323648042,
+        "active_scroll_seconds": 18.659896959,
+        "display_presentations": 1588,
+        "app_frame_updates": 1674,
+        "verified_scroll_gestures": 14,
+        "active_hitch_ms_per_second": 35.61084975228131,
+        "app_hitch_events": 53,
+        "active_hitch_union_ms": 664.494787,
+        "max_app_hitch_ms": 33.339,
+        "hitch_intervals_ns": [
+          [
+            10991806500.0,
+            11000141208.0
+          ],
+          [
+            11554401208.0,
+            11562735958.0
+          ],
+          [
+            12842117875.0,
+            12854620000.0
+          ],
+          [
+            13488060166.0,
+            13504729666.0
+          ],
+          [
+            13508896791.0,
+            13521398916.0
+          ],
+          [
+            13729767500.0,
+            13742269625.0
+          ],
+          [
+            13933968583.0,
+            13946470708.0
+          ],
+          [
+            14996647333.0,
+            15009149458.0
+          ],
+          [
+            15388379958.0,
+            15400882083.0
+          ],
+          [
+            15884296958.0,
+            15917635958.0
+          ],
+          [
+            15925970708.0,
+            15934305374.0
+          ],
+          [
+            17301202333.0,
+            17313704458.0
+          ],
+          [
+            17822123333.0,
+            17830458083.0
+          ],
+          [
+            18063830666.0,
+            18088834916.0
+          ],
+          [
+            18326374916.0,
+            18338877041.0
+          ],
+          [
+            19551581250.0,
+            19559916000.0
+          ],
+          [
+            19926644375.0,
+            19943313875.0
+          ],
+          [
+            20076669666.0,
+            20085004416.0
+          ],
+          [
+            21485240166.0,
+            21493574916.0
+          ],
+          [
+            21835299125.0,
+            21843633875.0
+          ],
+          [
+            21993659083.0,
+            22010328583.0
+          ],
+          [
+            22231199125.0,
+            22239533875.0
+          ],
+          [
+            22518747333.0,
+            22531249458.0
+          ],
+          [
+            23727284416.0,
+            23735619166.0
+          ],
+          [
+            24235703208.0,
+            24244038083.0
+          ],
+          [
+            24594097083.0,
+            24606599208.0
+          ],
+          [
+            26144358125.0,
+            26152692791.0
+          ],
+          [
+            26319387541.0,
+            26336057041.0
+          ],
+          [
+            26344391791.0,
+            26352726499.0
+          ],
+          [
+            26561095000.0,
+            26569429666.0
+          ],
+          [
+            26840308625.0,
+            26852810750.0
+          ],
+          [
+            28294720166.0,
+            28303054916.0
+          ],
+          [
+            28653113833.0,
+            28661448583.0
+          ],
+          [
+            28669783333.0,
+            28678118083.0
+          ],
+          [
+            28819808625.0,
+            28828143375.0
+          ],
+          [
+            29240712791.0,
+            29257382291.0
+          ],
+          [
+            30182538125.0,
+            30195040250.0
+          ],
+          [
+            30470086500.0,
+            30478421250.0
+          ],
+          [
+            30715961291.0,
+            30724295999.0
+          ],
+          [
+            32553770666.0,
+            32570440166.0
+          ],
+          [
+            33074691750.0,
+            33087193875.0
+          ],
+          [
+            33095528625.0,
+            33112198125.0
+          ],
+          [
+            34591613916.0,
+            34604116041.0
+          ],
+          [
+            34879162333.0,
+            34887496999.0
+          ],
+          [
+            35112535000.0,
+            35120869666.0
+          ],
+          [
+            35629288666.0,
+            35641790791.0
+          ],
+          [
+            37029524416.0,
+            37037859166.0
+          ],
+          [
+            37529608583.0,
+            37562947583.0
+          ],
+          [
+            37571282333.0,
+            37579617041.0
+          ],
+          [
+            39296572875.0,
+            39309075000.0
+          ],
+          [
+            39392422333.0,
+            39409091833.0
+          ],
+          [
+            39617460166.0,
+            39650799166.0
+          ],
+          [
+            39925845291.0,
+            39938347416.0
+          ]
+        ],
+        "operations": {
+          "ReaderAnchorGeometry": {
+            "count": 1684,
+            "max_ms": 11.125833,
+            "overlaps_hitch": 66
+          },
+          "ScrollProgressPersistence": {
+            "count": 42,
+            "max_ms": 15.5335,
+            "overlaps_hitch": 1
+          }
+        },
+        "observed_cpu_seconds": 12.45976925,
+        "resource_sample_window_seconds": 28.670150292,
+        "peak_sampled_footprint_mib": 163.4864730834961
+      }
+    ],
+    "worst_hitch_ms_per_second": 35.61084975228131,
+    "note": "App-attributed hitch intervals intersect native scrolling, with overlaps merged. Presentation counts describe the shared phone display, not app FPS. CPU and footprint are sampled within each run.",
+    "budget_passed": false
+  }
+}

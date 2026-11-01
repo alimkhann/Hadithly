@@ -193,3 +193,22 @@ and a causal result are still open.
   VoiceOver, account/lifecycle safety, repeated visits and Android parity.
 - Goal commits and current handoff updates. Preserve the incoming five iOS
   project/scheme/catalog files and existing Python cache; never push unrequested.
+
+## Quiet-period persistence repair
+
+Two geometry experiments failed to improve large type and were removed. Their
+records are `anchor-cache-experiment.json` and `bounded-viewport-experiment.json`.
+The retained interruption repair defers durable progress writes until 500 ms
+without viewport motion, while keeping the latest semantic location and its
+capture-time ordering. Explicit final saves, stop, backgrounding and pending
+account fences remain in force. Storage still runs on the existing main actor
+once quiet; no background executor is claimed.
+
+All 161 safety tests and two full-bleed/reanchor UI checks pass. The new real-path
+regression was red before repair and now verifies no accepted durable positions
+during continuous motion, exact final sub-threshold offset and capture timestamp.
+The first matched large-type slow run measures 8.04 ms/s and 11 hitches, versus
+the baseline's 32.89–52.94 range. Geometry peaks at 0.42 ms; progress saves fall
+from 42 to 14. See [the portable record](smooth-reader-verification/quiet-persistence-experiment.json).
+The strict target still fails. A separate CPU diagnostic will attribute remaining
+work; the full final matrix and owner confirmation remain open.

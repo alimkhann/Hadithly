@@ -84,14 +84,45 @@ final class GuestMergePlannerTests: XCTestCase {
         XCTAssertEqual(fixture.model.progress(for: "bukhari")?.position, position, "A delayed capture must not overwrite the explicit final save")
     }
 
-    @MainActor func testReaderScrollFlushesDuringContinuousReadingAndStop() async throws {
+    @MainActor func testContinuousReaderMotionDefersDurableWritesUntilQuiet() async throws {
         let fixture = LibraryFacadeFixture(store: GuestDataStore(inMemory: true))
         await fixture.start()
         defer { fixture.stop() }
         let reader = scrollingReader(library: fixture.model)
+        defer { reader.stop() }
+        var persistedPositions: Set<Double> = []
+        fixture.sync.onPartitionChange = { owner in
+            fixture.model.partitionChanged(owner)
+            if let position = fixture.model.progress(for: "bukhari")?.position {
+                persistedPositions.insert(position.updatedAt)
+            }
+        }
+        for step in 1...24 {
+            reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0,
+                rawPageOffset: Double(step * 20), normalizedOffset: Double(step) * 0.03)
+            try await Task.sleep(for: .milliseconds(40))
+        }
+        reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0,
+            rawPageOffset: 489, normalizedOffset: 0.729)
+        let motionEndedAt = Date.now.millisecondsSinceEpoch
+        XCTAssertEqual(persistedPositions.count, 0, "Continuous viewport motion must not run durable account writes on the scrolling UI path")
+        try await Task.sleep(for: .milliseconds(650))
+        XCTAssertEqual(persistedPositions.count, 1)
+        let position = try XCTUnwrap(fixture.model.progress(for: "bukhari")?.position)
+        XCTAssertEqual(position.rawPageOffset, 489)
+        XCTAssertEqual(position.normalizedOffset, 0.729, accuracy: 0.00001)
+        XCTAssertLessThanOrEqual(position.updatedAt, motionEndedAt + 1, "Deferring persistence must preserve the capture's ordering timestamp")
+    }
+
+    @MainActor func testReaderScrollFlushesAfterQuietAndOnStop() async throws {
+        let fixture = LibraryFacadeFixture(store: GuestDataStore(inMemory: true))
+        await fixture.start()
+        defer { fixture.stop() }
+        let reader = scrollingReader(library: fixture.model)
+        let before = fixture.model.progress(for: "bukhari")?.position
         reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0, rawPageOffset: 0, normalizedOffset: 0)
         reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0, rawPageOffset: 400, normalizedOffset: 0.4)
-        XCTAssertEqual(fixture.model.progress(for: "bukhari")?.position?.rawPageOffset, 0)
+        XCTAssertEqual(fixture.model.progress(for: "bukhari")?.position, before)
         try await Task.sleep(for: .milliseconds(650))
         XCTAssertEqual(fixture.model.progress(for: "bukhari")?.position?.rawPageOffset, 400)
         reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0, rawPageOffset: 600, normalizedOffset: 0.6)

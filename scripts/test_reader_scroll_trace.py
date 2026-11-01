@@ -5,7 +5,8 @@ import unittest
 import xml.etree.ElementTree as ET
 
 
-SUMMARIZE = runpy.run_path(str(Path(__file__).with_name('summarize-reader-scroll-trace.py')))['summarize']
+TRACE = runpy.run_path(str(Path(__file__).with_name('summarize-reader-scroll-trace.py')))
+SUMMARIZE = TRACE['summarize']
 
 
 def table(path, fields, values):
@@ -77,6 +78,22 @@ class ReaderScrollTraceTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 SUMMARIZE(*paths)
             self.assertEqual(len(SUMMARIZE(*paths, expected_runs=1)['runs']), 1)
+
+    def test_short_cpu_diagnostic_discards_partial_tail_without_relaxing_acceptance(self):
+        with tempfile.TemporaryDirectory() as folder:
+            paths = self.fixture(folder, runs=1)
+            tree = ET.parse(paths[0]); root = tree.getroot()
+            row = ET.SubElement(root, 'row')
+            for key, value in zip(['time', 'process', 'event-type', 'identifier', 'name', 'subsystem'],
+                                  [31e9, 'Hadithly (1)', 'Begin', 999, 'ReaderActiveScroll', 'com.hadithly.app.reader']):
+                node = ET.SubElement(row, key)
+                if isinstance(value, str): node.set('fmt', value)
+                else: node.text = str(value)
+            tree.write(paths[0])
+            with self.assertRaisesRegex(ValueError, 'Trace ends inside'):
+                SUMMARIZE(*paths, expected_runs=1)
+            intervals = TRACE['signpost_intervals'](paths[0], complete_only=True)
+            self.assertEqual(len([item for item in intervals if item[1] == 'ReaderActiveScroll']), 1)
 
     def test_partial_native_scroll_stream_cannot_pass_with_positive_frames(self):
         with tempfile.TemporaryDirectory() as folder:

@@ -11,7 +11,7 @@ TRACE = runpy.run_path(str(Path(__file__).with_name('summarize-reader-scroll-tra
 
 
 def summarize(profile, signposts):
-    intervals = TRACE['signpost_intervals'](signposts)
+    intervals = TRACE['signpost_intervals'](signposts, complete_only=True)
     active = [(start, end) for process, name, start, end in intervals if name == 'ReaderActiveScroll']
     root = ET.parse(profile).getroot()
     definitions = {node.get('id'): node for node in root.iter() if node.get('id')}

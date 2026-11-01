@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-## Current checkpoint: optimized iPhone baseline and first repair candidate, November 2
+## Current checkpoint: quiet-period reader persistence experiment, November 2
 
 The owner approved implementing the stricter smooth-reader plan after the
 bounded repair below. Goal 1 baseline and decision are complete: optimized development builds, three
@@ -22,14 +22,22 @@ attributes delays to app-update work, with SwiftUI graph and library storage hot
 paths. Sajda's scrolling, full-bleed pills and tap-to-hide controls were inspected;
 its private implementation and FPS are not claimed.
 
-[SMOOTH_READER_DECISION.md](SMOOTH_READER_DECISION.md) keeps SwiftUI for a small
-controlled repair: retain live anchor geometry without publishing each pixel
-change to the page. That candidate is building locally and is not installed. Build/test and measure
-the candidate before keeping it. Persistence remains on the main actor at this stage.
-160 iOS safety, two iOS UI, eight Android parity and twelve capture checks pass
-for preparation. Full post-change behavior/performance and owner confirmation
-remain open. Preserve incoming files, all original gates, A2 row mode off, and
-the deferred page-cache/priority-4 work. Commit completed units without pushing.
+[SMOOTH_READER_DECISION.md](SMOOTH_READER_DECISION.md) records two falsified
+geometry experiments. A non-observed dictionary measured 35.61 ms/s and bounded
+viewport tracking 35.13 on large type, within baseline variation; both were
+removed. Goal 2 now tests quiet-period persistence. Capture retains the latest
+semantic position cheaply and waits for 500 ms without viewport motion before
+running the existing ordered writer. Explicit final/lifecycle saves and account
+fences remain. This is idle deferral, not background execution.
+
+The new real-path regression reproduced writes during continuous motion before
+the repair. The optimized installed candidate passes 161 iOS safety and two UI checks. Its
+first matched large-type run improves to 8.04 ms/s with 11 remaining hitches,
+still above the target. Geometry callbacks now peak at 0.42 ms and saves fall
+from 42 to 14. Retain this measured repair; attribute the remaining stalls before
+expanding the full matrix. Owner acceptance remains open. Preparation also has
+eight unchanged-Android parity and twelve capture checks. Preserve incoming files, all original gates, A2 row mode off,
+and deferred page-cache/priority-4 work. Commit completed units without pushing.
 
 ## Prior checkpoint: bounded reader scrolling goal verified, November 1
 
