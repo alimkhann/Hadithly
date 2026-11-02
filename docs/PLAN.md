@@ -4,7 +4,7 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-## Current checkpoint: quiet-period reader persistence experiment, November 2
+## Current checkpoint: owner reports improvement and requests exact rollback, November 2
 
 The owner approved implementing the stricter smooth-reader plan after the
 bounded repair below. Goal 1 baseline and decision are complete: optimized development builds, three
@@ -41,6 +41,21 @@ preference path, including a 7.24 ms update. Retest bounded viewport tracking
 with quiet-period persistence before expanding the full matrix. Owner acceptance remains open. Preparation also has
 eight unchanged-Android parity and twelve capture checks. Preserve incoming files, all original gates, A2 row mode off,
 and deferred page-cache/priority-4 work. Commit completed units without pushing.
+
+The owner now reports that the current installed build feels much better and
+requests a checkpoint before further work. Preserve
+[SMOOTH_READER_CHECKPOINT.md](SMOOTH_READER_CHECKPOINT.md) and local tag
+`reader-smooth-owner-20261102`. Its exact signed app and matching complete iOS
+source snapshot are archived outside /tmp. It includes bounded tracking because
+that is what was installed when the owner reported improvement; the isolated
+tracking tests still do not show a hitch reduction. Its measured 8.94 ms/s fails
+the strict target. Continue attribution and verification; do not close the goal.
+
+Animation Hitches plus app-only Time Profiler captured the full workload.
+Parallel exports expanded scratch data and exhausted local disk; only the owned
+export scratch was removed, recovering about 17 GiB. The recorded trace remains.
+Export this large diagnostic once at a time, preferably multiple selected tables
+in one export. Attribute remaining stalls before further architecture changes.
 
 ## Prior checkpoint: bounded reader scrolling goal verified, November 1
 

@@ -1,0 +1,260 @@
+{
+  "method": "Join native app hitches to update display/swap IDs and their app surface IDs; durations are phases, not additive cost attribution",
+  "rows": [
+    {
+      "at_s": 10.679,
+      "hitch_ms": 12.502125,
+      "app_update_max_ms": 2.323,
+      "hitches-renders": {
+        "matching_app_surface_records": 1,
+        "max_ms": 3.449
+      },
+      "hitches-gpu": {
+        "matching_app_surface_records": 1,
+        "max_ms": 1.271
+      },
+      "hitches-framewait": {
+        "matching_app_surface_records": 1,
+        "max_ms": 12.205
+      }
+    },
+    {
+      "at_s": 15.067,
+      "hitch_ms": 12.502125,
+      "app_update_max_ms": 16.078,
+      "hitches-renders": {
+        "matching_app_surface_records": 1,
+        "max_ms": 2.298
+      },
+      "hitches-gpu": {
+        "matching_app_surface_records": 1,
+        "max_ms": 1.206
+      },
+      "hitches-framewait": {
+        "matching_app_surface_records": 1,
+        "max_ms": 13.35
+      }
+    },
+    {
+      "at_s": 15.154,
+      "hitch_ms": 12.502125,
+      "app_update_max_ms": 1.387,
+      "hitches-renders": {
+        "matching_app_surface_records": 1,
+        "max_ms": 3.478
+      },
+      "hitches-gpu": {
+        "matching_app_surface_records": 1,
+        "max_ms": 1.23
+      },
+      "hitches-framewait": {
+        "matching_app_surface_records": 1,
+        "max_ms": 11.757
+      }
+    },
+    {
+      "at_s": 17.226,
+      "hitch_ms": 12.502125,
+      "app_update_max_ms": 2.095,
+      "hitches-renders": {
+        "matching_app_surface_records": 1,
+        "max_ms": 2.935
+      },
+      "hitches-gpu": {
+        "matching_app_surface_records": 1,
+        "max_ms": 1.408
+      },
+      "hitches-framewait": {
+        "matching_app_surface_records": 1,
+        "max_ms": 12.605
+      }
+    },
+    {
+      "at_s": 17.417,
+      "hitch_ms": 12.502125,
+      "app_update_max_ms": 2.901,
+      "hitches-renders": {
+        "matching_app_surface_records": 1,
+        "max_ms": 3.37
+      },
+      "hitches-gpu": {
+        "matching_app_surface_records": 1,
+        "max_ms": 1.395
+      },
+      "hitches-framewait": {
+        "matching_app_surface_records": 1,
+        "max_ms": 12.003
+      }
+    },
+    {
+      "at_s": 21.606,
+      "hitch_ms": 12.502125,
+      "app_update_max_ms": 4.802,
+      "hitches-renders": {
+        "matching_app_surface_records": 1,
+        "max_ms": 3.087
+      },
+      "hitches-gpu": {
+        "matching_app_surface_records": 1,
+        "max_ms": 1.394
+      },
+      "hitches-framewait": {
+        "matching_app_surface_records": 1,
+        "max_ms": 12.335
+      }
+    },
+    {
+      "at_s": 21.735,
+      "hitch_ms": 8.334666,
+      "app_update_max_ms": 3.203,
+      "hitches-renders": {
+        "matching_app_surface_records": 1,
+        "max_ms": 2.674
+      },
+      "hitches-gpu": {
+        "matching_app_surface_records": 1,
+        "max_ms": 1.402
+      },
+      "hitches-framewait": {
+        "matching_app_surface_records": 1,
+        "max_ms": 13.269
+      }
+    },
+    {
+      "at_s": 23.664,
+      "hitch_ms": 12.502125,
+      "app_update_max_ms": 3.26,
+      "hitches-renders": {
+        "matching_app_surface_records": 1,
+        "max_ms": 2.294
+      },
+      "hitches-gpu": {
+        "matching_app_surface_records": 1,
+        "max_ms": 1.325
+      },
+      "hitches-framewait": {
+        "matching_app_surface_records": 1,
+        "max_ms": 13.326
+      }
+    },
+    {
+      "at_s": 25.49,
+      "hitch_ms": 12.502125,
+      "app_update_max_ms": 15.149,
+      "hitches-renders": {
+        "matching_app_surface_records": 1,
+        "max_ms": 3.679
+      },
+      "hitches-gpu": {
+        "matching_app_surface_records": 1,
+        "max_ms": 1.481
+      },
+      "hitches-framewait": {
+        "matching_app_surface_records": 1,
+        "max_ms": 11.87
+      }
+    },
+    {
+      "at_s": 25.565,
+      "hitch_ms": 12.502125,
+      "app_update_max_ms": 1.358,
+      "hitches-renders": {
+        "matching_app_surface_records": 1,
+        "max_ms": 2.738
+      },
+      "hitches-gpu": {
+        "matching_app_surface_records": 1,
+        "max_ms": 1.412
+      },
+      "hitches-framewait": {
+        "matching_app_surface_records": 1,
+        "max_ms": 12.642
+      }
+    },
+    {
+      "at_s": 25.752,
+      "hitch_ms": 8.33475,
+      "app_update_max_ms": 1.498,
+      "hitches-renders": {
+        "matching_app_surface_records": 1,
+        "max_ms": 2.798
+      },
+      "hitches-gpu": {
+        "matching_app_surface_records": 1,
+        "max_ms": 1.378
+      },
+      "hitches-framewait": {
+        "matching_app_surface_records": 1,
+        "max_ms": 13.228
+      }
+    },
+    {
+      "at_s": 30.044,
+      "hitch_ms": 12.502125,
+      "app_update_max_ms": 3.007,
+      "hitches-renders": {
+        "matching_app_surface_records": 1,
+        "max_ms": 3.645
+      },
+      "hitches-gpu": {
+        "matching_app_surface_records": 1,
+        "max_ms": 1.412
+      },
+      "hitches-framewait": {
+        "matching_app_surface_records": 1,
+        "max_ms": 12.133
+      }
+    },
+    {
+      "at_s": 32.07,
+      "hitch_ms": 12.502125,
+      "app_update_max_ms": 1.277,
+      "hitches-renders": {
+        "matching_app_surface_records": 1,
+        "max_ms": 3.269
+      },
+      "hitches-gpu": {
+        "matching_app_surface_records": 1,
+        "max_ms": 1.359
+      },
+      "hitches-framewait": {
+        "matching_app_surface_records": 1,
+        "max_ms": 12.506
+      }
+    },
+    {
+      "at_s": 34.37,
+      "hitch_ms": 12.502125,
+      "app_update_max_ms": 6.125,
+      "hitches-renders": {
+        "matching_app_surface_records": 1,
+        "max_ms": 3.654
+      },
+      "hitches-gpu": {
+        "matching_app_surface_records": 1,
+        "max_ms": 1.554
+      },
+      "hitches-framewait": {
+        "matching_app_surface_records": 1,
+        "max_ms": 11.822
+      }
+    },
+    {
+      "at_s": 38.792,
+      "hitch_ms": 12.502125,
+      "app_update_max_ms": 1.464,
+      "hitches-renders": {
+        "matching_app_surface_records": 1,
+        "max_ms": 3.106
+      },
+      "hitches-gpu": {
+        "matching_app_surface_records": 1,
+        "max_ms": 1.417
+      },
+      "hitches-framewait": {
+        "matching_app_surface_records": 1,
+        "max_ms": 12.282
+      }
+    }
+  ]
+}

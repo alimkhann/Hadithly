@@ -1,0 +1,145 @@
+{
+  "candidate": "Bounded viewport tracking after quiet-period persistence and committed decoded reuse",
+  "decision": "No meaningful hitch reduction; remove experimental geometry complexity",
+  "build": {
+    "configuration": "Debug with optimized Swift and C compilation",
+    "swiftOptimization": "-O",
+    "swiftCompilation": "wholemodule",
+    "bundleIdentifier": "com.hadithly.app",
+    "developmentURL": "https://festive-cobra-664.eu-west-1.convex.cloud",
+    "diagnosticsEnvironment": "development",
+    "appAttestEnvironment": "development",
+    "debuggerAttachAllowed": true,
+    "binarySHA256": "1fb14968656c962988b2203ed700037bb706df736b539df4371e671376be465d",
+    "iosTrackedSourceSHA256": "768003a403931e35ebd4ad0411a8e9ce483d254d3e61bd8a4ddc5c3e3ec1ad6f",
+    "gitHead": "b9d8604ad966705198e466186981fed041e5d72a",
+    "note": "Retains DEBUG compilation conditions and development entitlements. No app installation or project regeneration."
+  },
+  "summary": {
+    "runs": [
+      {
+        "run": 0,
+        "clock_seconds": 30.217542417,
+        "active_scroll_seconds": 18.655061375,
+        "display_presentations": 1663,
+        "app_frame_updates": 1708,
+        "verified_scroll_gestures": 14,
+        "active_hitch_ms_per_second": 8.935640180921142,
+        "app_hitch_events": 14,
+        "active_hitch_union_ms": 166.694916,
+        "max_app_hitch_ms": 16.6695,
+        "hitch_intervals_ns": [
+          [
+            10537423208.0,
+            10549925333.0
+          ],
+          [
+            10741624250.0,
+            10749959000.0
+          ],
+          [
+            12962831625.0,
+            12979501125.0
+          ],
+          [
+            14829812666.0,
+            14842314791.0
+          ],
+          [
+            17351070541.0,
+            17363572666.0
+          ],
+          [
+            19180545375.0,
+            19193047500.0
+          ],
+          [
+            19355574791.0,
+            19363909541.0
+          ],
+          [
+            21447593750.0,
+            21460095875.0
+          ],
+          [
+            25602460083.0,
+            25619129583.0
+          ],
+          [
+            25781656916.0,
+            25794159041.0
+          ],
+          [
+            27840336916.0,
+            27852839041.0
+          ],
+          [
+            36537634625.0,
+            36550136750.0
+          ],
+          [
+            37350271750.0,
+            37358606416.0
+          ],
+          [
+            38825520083.0,
+            38833854833.0
+          ]
+        ],
+        "operations": {
+          "ReaderAnchorGeometry": {
+            "count": 1724,
+            "max_ms": 0.693666,
+            "overlaps_hitch": 20
+          },
+          "ScrollProgressPersistence": {
+            "count": 14,
+            "max_ms": 6.463875,
+            "overlaps_hitch": 0
+          }
+        },
+        "observed_cpu_seconds": 11.223491917,
+        "resource_sample_window_seconds": 28.778085042,
+        "peak_sampled_footprint_mib": 165.0645980834961
+      }
+    ],
+    "worst_hitch_ms_per_second": 8.935640180921142,
+    "note": "App-attributed hitch intervals intersect native scrolling, with overlaps merged. Presentation counts describe the shared phone display, not app FPS. CPU and footprint are sampled within each run.",
+    "budget_passed": false
+  },
+  "workload": {
+    "automaticGenerationEnabled": false,
+    "collection": "bukhari",
+    "contentVersion": "cv1:2fa67689c3fda0749574b5d2a2790f36778377446bc9f14b3cff0585dab44330",
+    "hadiths": [
+      "7188",
+      "7189",
+      "7190",
+      "7191",
+      "7192"
+    ],
+    "lowPowerMode": false,
+    "maximumFramesPerSecond": 120,
+    "pageIndex": 26,
+    "pageKey": "pg1:8d20cc6ff8d418d358aa7ecddf5102625c43b74500113ff2630119c90a53a09b",
+    "preferences": {
+      "appTheme": "system",
+      "arabicFont": "amiri",
+      "arabicFontSize": 40,
+      "arabicVisible": true,
+      "readerTheme": "system",
+      "readingDirection": "auto",
+      "schemaVersion": 2,
+      "translationFontSize": 22,
+      "translationLocale": "en",
+      "translationVisible": true,
+      "uiLocale": "en",
+      "usesSeparateReaderTheme": false
+    },
+    "textBytes": 5266,
+    "textSHA256": "70602abc1b4796922a8fd8f426ec3d10b682b37c8ea6e53fbe47d41fa96c91a1",
+    "thermalState": 0,
+    "volume": "97",
+    "connectionTransport": "wired"
+  }
+}

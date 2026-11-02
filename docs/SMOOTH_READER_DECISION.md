@@ -161,3 +161,38 @@ This new evidence supports retesting bounded viewport tracking after quiet-perio
 persistence. Earlier geometry tests ran with 42 saves per workload, so they did
 not isolate the remaining post-repair preference cost. Keep the same renderer,
 typography, single landing writer and semantic restoration during that test.
+
+## Combined geometry result and next attribution
+
+The combined bounded-tracking/quiet-save build passed both UI checks but still
+measured 8.94 ms/s with 14 hitches. The extra geometry implementation was removed.
+The [record](smooth-reader-verification/quiet-bounded-viewport-experiment.json)
+preserves the failed experiment. Preference tracing suggested a candidate, but
+the controlled test does not support retaining it as a hitch repair.
+
+[Matched frame phases](smooth-reader-verification/remaining-frame-phases.json)
+show 1.21–1.55 ms GPU phases for the 15 retained hitches in the post-commit-cache
+run. Render CPU phases peak at 3.68 ms. These pipeline intervals overlap and must
+not be added. Two associated app updates exceed 15 ms. This keeps app work and
+synchronization in scope; it does not establish a GPU limit. See Apple's
+[frame-lifetime explanation](https://developer.apple.com/documentation/xcode/understanding-hitches-in-your-app).
+
+The standard Animation Hitches template, with app-only Time Profiler and Points
+of Interest, successfully captured the complete scrolling driver. Unlike the
+older custom combination, it finalized without the backtrace schema error.
+Correlate its late-frame lifetime and main-thread stacks before further repairs.
+The installed app during this diagnostic still contains the rejected bounded
+tracking experiment; local ReaderView.swift is restored to the retained renderer.
+This diagnostic is not an acceptance run. Restore the retained app before final
+owner testing. The below-1-ms/s matrix and full behavior/owner gates remain open.
+
+## Owner checkpoint overrides experimental removal
+
+The owner subsequently reported that the currently installed app feels much
+better and requested an exact checkpoint before continuing. Restore the bounded
+tracking source to match that installed binary and preserve it in the
+[owner checkpoint](SMOOTH_READER_CHECKPOINT.md). The whole tracked iOS source
+digest matches the build manifest, including incoming files left uncommitted.
+This preserves a known improved experience, while the strict 1 ms/s gate and the
+isolated geometry-benefit claim remain unproven. Further work continues from
+this rollback point rather than discarding the owner's observed improvement.

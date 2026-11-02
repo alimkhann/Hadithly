@@ -1,0 +1,207 @@
+{
+  "acceptance_capture": false,
+  "rows": 253111,
+  "top_inclusive_updates": [
+    {
+      "description": "Other Updates | PreferenceChange",
+      "total_ms": 219.71275600000035,
+      "count": 1966
+    },
+    {
+      "description": "Other Updates | Preference List",
+      "total_ms": 176.26044199999794,
+      "count": 39760
+    },
+    {
+      "description": "Other Updates | GeometryReader<ModifiedContent>.Child",
+      "total_ms": 144.9175390000008,
+      "count": 9480
+    },
+    {
+      "description": "Other Updates | View Responders",
+      "total_ms": 73.80625599999436,
+      "count": 40750
+    },
+    {
+      "description": "Other Updates | ResolvedStorageFilter",
+      "total_ms": 69.07388499999998,
+      "count": 1966
+    },
+    {
+      "description": "Other Updates | MakeConfirmationDialog<ModifiedContent<ModifiedContent, StyleContextWriter>, Text>",
+      "total_ms": 69.0050510000001,
+      "count": 4915
+    },
+    {
+      "description": "Other Updates | HostPreferencesTransform<SheetPreference.Key>",
+      "total_ms": 56.04779999999934,
+      "count": 12787
+    },
+    {
+      "description": "Other Updates | Layout: LayoutChildGeometries",
+      "total_ms": 41.59146199999994,
+      "count": 3932
+    },
+    {
+      "description": "Other Updates | Layout: DynamicLayoutComputer<GlassEntryLayout>",
+      "total_ms": 36.02764900000007,
+      "count": 1966
+    },
+    {
+      "description": "Other Updates | View Transform",
+      "total_ms": 34.900717999999905,
+      "count": 4923
+    },
+    {
+      "description": "Other Updates | DynamicBody<ViewBodyAccessor<ReaderPageView>, MainThreadFlags>",
+      "total_ms": 34.752388999999965,
+      "count": 983
+    },
+    {
+      "description": "Other Updates | UIViewSnapshotResponder.Transform",
+      "total_ms": 31.12846599999984,
+      "count": 4915
+    },
+    {
+      "description": "Other Updates | GlassEffectLayout.GlassEffectLayout.Resolved<ForEach, Array>.ResolvedEntryGeometries",
+      "total_ms": 28.159522999999986,
+      "count": 1966
+    },
+    {
+      "description": "Other Updates | GlassEntryLayout.GlassEntryLayout.Resolved<ForEach>.Init",
+      "total_ms": 27.60891300000001,
+      "count": 1966
+    },
+    {
+      "description": "Other Updates | GlassEffectShapePathModifier.GlassEntryUnanimatedPath",
+      "total_ms": 22.86980500000004,
+      "count": 1966
+    },
+    {
+      "description": "Other Updates | UpdateFilter<AnimationTimelineSchedule, GeometryReader<ModifiedContent>>",
+      "total_ms": 22.768027999999994,
+      "count": 1043
+    },
+    {
+      "description": "Other Updates | UpdatedHostingScrollView",
+      "total_ms": 22.405657000000026,
+      "count": 1007
+    },
+    {
+      "description": "Other Updates | HostPreferencesTransform<SharingActivityPickerPresentation.Key>",
+      "total_ms": 21.93572200000002,
+      "count": 4923
+    },
+    {
+      "description": "Other Updates | Transaction",
+      "total_ms": 21.431957999999224,
+      "count": 12512
+    },
+    {
+      "description": "Other Updates | DynamicPreferenceCombiner<HostPreferencesKey>",
+      "total_ms": 21.083118000000056,
+      "count": 3940
+    },
+    {
+      "description": "Other Updates | GlassEffectAnchor",
+      "total_ms": 18.86329600000012,
+      "count": 3932
+    },
+    {
+      "description": "Other Updates | DynamicTransaction",
+      "total_ms": 17.7190450000005,
+      "count": 10872
+    },
+    {
+      "description": "Other Updates | GlassEntryLayout.GlassEntryLayout.Resolved<ForEach>.ResolvedItemGeometries",
+      "total_ms": 16.310387999999957,
+      "count": 1966
+    },
+    {
+      "description": "Other Updates | LayoutChildGeometries",
+      "total_ms": 16.16766100000026,
+      "count": 3940
+    },
+    {
+      "description": "Other Updates | EventListenerPhase<SpatialEvent>",
+      "total_ms": 15.556668000000002,
+      "count": 643
+    }
+  ],
+  "slow_updates": [
+    {
+      "start_s": 7.334397708,
+      "duration_ms": 7.244333,
+      "type": "Other Updates",
+      "view": "",
+      "description": "PreferenceChange",
+      "root_causes": "<transaction>, GeometryReader<ModifiedContent>.Child, Preference List, Preference List, PreferenceBinder<ReaderScrollStateKey>, ScrollViewAdjustedState, View Transform",
+      "severity": "High"
+    },
+    {
+      "start_s": 20.67802275,
+      "duration_ms": 4.56225,
+      "type": "Other Updates",
+      "view": "[unknown view: created before tracing started?]",
+      "description": "DynamicLayoutViewChildGeometry",
+      "root_causes": "<transaction>, GeometryReader<ModifiedContent>.Child, GlassEffectAnchor, GlassEntryLayout.GlassEntryLayout.Resolved<ForEach>.Init, Layout: DynamicLayoutComputer<GlassEffectLayout>, Layout: DynamicLayoutComputer<GlassEntryLayout>, Layout: DynamicLayoutViewChildGeometry, Layout: LayoutChildGeometries, ScrollViewAdjustedState, View Transform, View Transform",
+      "severity": "High"
+    },
+    {
+      "start_s": 20.486865042,
+      "duration_ms": 3.258666,
+      "type": "Other Updates",
+      "view": "",
+      "description": "PreferenceChange",
+      "root_causes": "<transaction>, GeometryReader<ModifiedContent>.Child, Preference List, Preference List, PreferenceBinder<ReaderScrollStateKey>, ScrollViewAdjustedState, View Transform",
+      "severity": "High"
+    },
+    {
+      "start_s": 14.448112875,
+      "duration_ms": 2.488833,
+      "type": "Other Updates",
+      "view": "[unknown view: created before tracing started?]",
+      "description": "Transaction",
+      "root_causes": "Transaction, Transaction, Transaction, Transaction, Transaction, Transaction, Transaction, Transaction, Transaction, Transaction",
+      "severity": "High"
+    },
+    {
+      "start_s": 12.715202958,
+      "duration_ms": 2.444125,
+      "type": "Other Updates",
+      "view": "",
+      "description": "PreferenceChange",
+      "root_causes": "<transaction>, GeometryReader<ModifiedContent>.Child, Preference List, Preference List, PreferenceBinder<ReaderScrollStateKey>, ScrollViewAdjustedState, View Transform",
+      "severity": "High"
+    },
+    {
+      "start_s": 10.235867291,
+      "duration_ms": 2.4435,
+      "type": "Other Updates",
+      "view": "",
+      "description": "PreferenceChange",
+      "root_causes": "<transaction>, GeometryReader<ModifiedContent>.Child, Preference List, Preference List, PreferenceBinder<ReaderScrollStateKey>, ScrollViewAdjustedState, View Transform",
+      "severity": "High"
+    },
+    {
+      "start_s": 15.194728542,
+      "duration_ms": 2.410291,
+      "type": "Other Updates",
+      "view": "",
+      "description": "PreferenceChange",
+      "root_causes": "<transaction>, GeometryReader<ModifiedContent>.Child, Preference List, Preference List, PreferenceBinder<ReaderScrollStateKey>, ScrollViewAdjustedState, View Transform",
+      "severity": "High"
+    },
+    {
+      "start_s": 7.935395167,
+      "duration_ms": 2.382208,
+      "type": "Other Updates",
+      "view": "",
+      "description": "PreferenceChange",
+      "root_causes": "<transaction>, GeometryReader<ModifiedContent>.Child, Preference List, Preference List, PreferenceBinder<ReaderScrollStateKey>, ScrollViewAdjustedState, View Transform",
+      "severity": "High"
+    }
+  ],
+  "note": "Diagnostic only; nested updates overlap and cannot be added. Views created before attachment can have unknown names.",
+  "build_context": "Quiet-period persistence installed before post-commit cache change"
+}

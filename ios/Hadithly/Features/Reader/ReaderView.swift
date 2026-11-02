@@ -1126,6 +1126,36 @@ private struct ReaderScrollProfileModifier: ViewModifier {
     }
 }
 
+@MainActor
+private final class ReaderLiveAnchorFrames {
+    var contentFrames: [String: ReaderAnchorFrame] = [:]
+    var scrollState: ReaderScrollState?
+
+    var value: [String: ReaderAnchorFrame] {
+        guard let scrollState else { return [:] }
+        return contentFrames.mapValues {
+            ReaderAnchorFrame(minY: $0.minY + scrollState.minY, height: $0.height)
+        }
+    }
+}
+
+private struct ReaderViewportTracking: ViewModifier {
+    let onChange: (ReaderScrollState) -> Void
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 18, *) {
+            content.onScrollGeometryChange(for: ReaderScrollState.self) { geometry in
+                ReaderScrollState(contentHeight: geometry.contentSize.height, minY: -geometry.contentOffset.y)
+            } action: { _, state in
+                onChange(state)
+            }
+        } else {
+            content
+        }
+    }
+}
+
 struct ReaderPageView: View {
     @Environment(\.locale) private var locale
     let model: ReaderModel
@@ -1149,13 +1179,13 @@ struct ReaderPageView: View {
     var onScrollFraction: ((Double) -> Void)? = nil
 
     @State private var appliedLandingToken: Int?
-    @State private var latestAnchorFrames: [String: ReaderAnchorFrame] = [:]
+    @State private var liveAnchorFrames = ReaderLiveAnchorFrames()
     @State private var inspectedEntry = false
     @State private var chapterOpenings: Set<Int> = []
 
     private func chapterAnchor(_ hadith: ReaderHadith) -> some View {
         GeometryReader { geometry in
-            let frame: CGRect = geometry.frame(in: .named("reader.page"))
+            let frame: CGRect = geometry.frame(in: .named("reader.content"))
             Color.clear.preference(key: ReaderAnchorFramesKey.self,
                 value: ["chapter." + hadith.internalId: ReaderAnchorFrame(minY: frame.minY, height: frame.height)])
         }
@@ -1224,7 +1254,7 @@ struct ReaderPageView: View {
         )
         .id(hadith.internalId)
         .background(GeometryReader { geometry in
-            let frame = geometry.frame(in: .named("reader.page"))
+            let frame = geometry.frame(in: .named("reader.content"))
             Color.clear.preference(
                 key: ReaderAnchorFramesKey.self,
                 value: [
@@ -1247,7 +1277,6 @@ struct ReaderPageView: View {
                 let handleFrames: ([String: ReaderAnchorFrame]) -> Void = { frames in
                     let interval = ReaderScrollProfile.begin("ReaderAnchorGeometry")
                     defer { ReaderScrollProfile.end("ReaderAnchorGeometry", interval) }
-                    latestAnchorFrames = frames
                     let readingHeight = max(1, viewport.size.height - topContentInset)
                     let readingFrames = framesInReadingArea(frames)
                     guard currentPageIndex == model.pageIndex else { return }
@@ -1265,9 +1294,9 @@ struct ReaderPageView: View {
                             DispatchQueue.main.async {
                                 model.acknowledgeVerticalLanding(landing)
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                                    model.observeVisibleContent(hadiths: hadiths, frames: framesInReadingArea(latestAnchorFrames), viewport: readingHeight)
+                                    model.observeVisibleContent(hadiths: hadiths, frames: framesInReadingArea(liveAnchorFrames.value), viewport: readingHeight)
                                     if !inspectedEntry { inspectedEntry = true
-                                        model.inspectInitialTarget(hadiths: hadiths, frames: framesInReadingArea(latestAnchorFrames), viewport: readingHeight)
+                                        model.inspectInitialTarget(hadiths: hadiths, frames: framesInReadingArea(liveAnchorFrames.value), viewport: readingHeight)
                                     }
                                 }
                             }
@@ -1291,9 +1320,9 @@ struct ReaderPageView: View {
                             DispatchQueue.main.async {
                                 model.acknowledgeVerticalLanding(landing)
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                                    model.observeVisibleContent(hadiths: hadiths, frames: framesInReadingArea(latestAnchorFrames), viewport: readingHeight)
+                                    model.observeVisibleContent(hadiths: hadiths, frames: framesInReadingArea(liveAnchorFrames.value), viewport: readingHeight)
                                     if !inspectedEntry { inspectedEntry = true
-                                        model.inspectInitialTarget(hadiths: hadiths, frames: framesInReadingArea(latestAnchorFrames), viewport: readingHeight)
+                                        model.inspectInitialTarget(hadiths: hadiths, frames: framesInReadingArea(liveAnchorFrames.value), viewport: readingHeight)
                                     }
                                 }
                             }
@@ -1318,6 +1347,18 @@ struct ReaderPageView: View {
                         normalizedOffset: max(0, -leading.1.minY) / max(1, leading.1.height)
                     )
 
+                }
+                let handleScrollState: (ReaderScrollState) -> Void = { state in
+                    liveAnchorFrames.scrollState = state
+                    handleFrames(liveAnchorFrames.value)
+                    guard currentPageIndex == model.pageIndex, let onScrollFraction else { return }
+                    let scrolled = max(0, topContentInset - state.minY)
+                    let raw = ReaderProgressBars.scrollFraction(
+                        contentHeight: state.contentHeight,
+                        viewportHeight: max(1, viewport.size.height - topContentInset),
+                        scrolled: scrolled
+                    )
+                    onScrollFraction((raw * 200).rounded() / 200)
                 }
                 ScrollView {
                     if hadiths.isEmpty {
@@ -1377,34 +1418,34 @@ struct ReaderPageView: View {
                         .padding(.horizontal, 22)
                         .padding(.top, 20)
                         .padding(.bottom, 80)
-                        .background(
-                            GeometryReader { content in
-                                Color.clear.preference(
-                                    key: ReaderScrollStateKey.self,
-                                    value: ReaderScrollState(
-                                        contentHeight: content.size.height,
-                                        minY: content.frame(in: .named("reader.page")).minY
+                        .coordinateSpace(name: "reader.content")
+                        .background {
+                            if #unavailable(iOS 18) {
+                                GeometryReader { content in
+                                    Color.clear.preference(
+                                        key: ReaderScrollStateKey.self,
+                                        value: ReaderScrollState(
+                                            contentHeight: content.size.height,
+                                            minY: content.frame(in: .named("reader.page")).minY
+                                        )
                                     )
-                                )
+                                }
                             }
-                        )
+                        }
                     }
                 }
                 .contentMargins(.top, topContentInset, for: .scrollContent)
                 .scrollIndicators(.hidden)
                 .coordinateSpace(name: "reader.page")
+                .modifier(ReaderViewportTracking(onChange: handleScrollState))
                 .onPreferenceChange(ReaderScrollStateKey.self) { state in
-                    guard currentPageIndex == model.pageIndex, let onScrollFraction, let state else { return }
-                    let scrolled = max(0, topContentInset - state.minY)
-                    let raw = ReaderProgressBars.scrollFraction(
-                        contentHeight: state.contentHeight,
-                        viewportHeight: max(1, viewport.size.height - topContentInset),
-                        scrolled: scrolled
-                    )
-                    onScrollFraction((raw * 200).rounded() / 200)
+                    if let state { handleScrollState(state) }
                 }
-                .onPreferenceChange(ReaderAnchorFramesKey.self, perform: handleFrames)
-                .onChange(of: verticalLanding?.id) { _, _ in handleFrames(latestAnchorFrames) }
+                .onPreferenceChange(ReaderAnchorFramesKey.self) { frames in
+                    liveAnchorFrames.contentFrames = frames
+                    handleFrames(liveAnchorFrames.value)
+                }
+                .onChange(of: verticalLanding?.id) { _, _ in handleFrames(liveAnchorFrames.value) }
                 .modifier(ReaderScrollProfileModifier())
 
             }
