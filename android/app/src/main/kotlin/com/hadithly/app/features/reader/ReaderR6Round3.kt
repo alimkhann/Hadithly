@@ -220,10 +220,27 @@ sealed interface ReaderVerticalLanding {
     ) : ReaderVerticalLanding
 }
 
+data class ReaderViewportLayout(
+    val projection: String,
+    val width: Int,
+    val height: Int,
+    val hadiths: List<com.hadithly.app.core.data.ReaderHadith>,
+    val volume: com.hadithly.app.core.data.OutlineVolume?,
+    val translations: List<TranslationUiState?>,
+    val allowances: List<com.hadithly.app.core.data.TranslationAllowance?>,
+)
+
+data class ReaderViewportSnapshot(
+    val layout: ReaderViewportLayout,
+    val firstItemIndex: Int,
+    val firstItemOffset: Int,
+)
+
 data class ReaderVerticalLandingRequest(
     val token: Int,
     val page: ReaderVerticalLandingPage,
     val landing: ReaderVerticalLanding,
+    val viewport: ReaderViewportSnapshot? = null,
 )
 
 internal fun readerHadithIndex(itemIndex: Int, hadithCount: Int): Int? =

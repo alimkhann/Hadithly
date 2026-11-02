@@ -4,7 +4,25 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-## Current checkpoint: page-transition discovery and plan, November 2
+## Active owner continuation: all paging units, November 2
+
+The owner expanded this chat from Unit 1 to all four units in
+[PAGE_TRANSITION_PLAN.md](PAGE_TRANSITION_PLAN.md), followed by an Android
+scrolling parity audit. Execute and commit the units in order without pushing.
+The older Unit 1 stop below is historical and no longer limits this chat.
+Unit 1 is verified on both native apps. It retains bounded recent positions,
+uses compatible viewport restoration and reanchors semantically when layout or
+text changes. The iPhone before/after captures resolve both observed jumps;
+the owner watched the installed repair and said, "no jerk, it was good."
+[PAGE_TRANSITION_VERIFICATION.md](PAGE_TRANSITION_VERIFICATION.md) records the
+native scopes, test results, source/build provenance, original-frame inspection,
+Android scrolling audit and bounded iPhone scrolling recheck. The reviewed signed
+build and exact tracked source archive remain outside the checkout for comparison.
+Next is Unit 2 content reuse and request deduplication. Do not batch it with
+Unit 3 pending-target presentation or Unit 4 surrounding motion/layout. Incoming project, scheme, catalog
+and Python cache bytes remain preserved. All original gates stay open.
+
+## Prior checkpoint: page-transition discovery and plan, November 2
 
 The owner completed the planning interview and authorized live Sajda/Hadithly
 inspection on the available iPhone. Matched controlled gestures and native video

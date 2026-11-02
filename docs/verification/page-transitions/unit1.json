@@ -1,0 +1,159 @@
+{
+  "unit": 1,
+  "status": "Unit1 paired-platform landing verified; later paging units remain active",
+  "date": "2026-11-02",
+  "red": {
+    "ios": "Header instead of Semantic(57, 0.4)",
+    "android": "Header instead of Semantic(1, 0.4)"
+  },
+  "verification": {
+    "iosLatestCore": {
+      "passed": 19,
+      "failed": 0,
+      "scope": "17 model tests and 2 rendered UI cases"
+    },
+    "iosPinnedFinal": {
+      "passed": 6,
+      "failed": 0,
+      "scope": "2 model cases, actual reflow, recreation, Contents intent and Saved return"
+    },
+    "android": {
+      "passed": 6,
+      "failed": 0,
+      "scope": "model return, pending account clear, explicit target, rendered body/header, recreation and bilingual reflow"
+    }
+  },
+  "physical": {
+    "binarySHA256": "44f4fb5d1c0e1f9c32e5e968c72f09684e3fc6e79cf35e7dee0cced855d74059",
+    "ownerObservation": "no jerk, it was good",
+    "scope": "vertical-up, fast-left, fast-right A-to-B-to-A on installed optimized iPhone build",
+    "before": {
+      "videoSHA256": "253a0a7f05953cae0e4bdc2795ff068cb309dc0c4f465abfae19171a287ba484",
+      "forwardJumpWindowSeconds": [
+        20.24,
+        20.37
+      ],
+      "returnResetWindowSeconds": [
+        23.26,
+        23.39
+      ]
+    },
+    "after": {
+      "videoSHA256": "d355eabf480088ced331bc20d78991f25d3ca11c64191d961da7d6f2a401d207",
+      "forwardInspectedWindowSeconds": [
+        17.95,
+        19.25
+      ],
+      "returnInspectedWindowSeconds": [
+        20.98,
+        22.3
+      ],
+      "settledSampleVerticalShiftPixels": [
+        0,
+        0
+      ],
+      "captureFrames": 1498,
+      "captureMeanFramesPerSecond": 55.1940942540367,
+      "maximumCaptureIntervalSeconds": 0.05005
+    }
+  },
+  "limits": [
+    "Capture cadence is not app FPS; unobserved frames are not proved.",
+    "Installed source archive predates only the later stale-frame capture guard and pinned DEBUG fixture setup.",
+    "Physical matrices and original release/acceptance gates remain distinct.",
+    "Units2-4 remain active. Android physical performance and all original gates remain open."
+  ],
+  "androidScrolling": {
+    "baseline": {
+      "sdk": 36,
+      "deviceModel": "sdk_gphone64_arm64",
+      "hardwareAccelerated": true,
+      "refreshRateHz": 60.000004,
+      "elapsedNanos": 3342632168,
+      "pageRequests": 1,
+      "arabicFontSize": 26,
+      "translationFontSize": 16,
+      "translationLocale": "en",
+      "arabicTopBefore": 0,
+      "arabicTopAfter": -3188,
+      "frameCount": 63,
+      "deadlineMisses": 54,
+      "medianMs": 79.785143,
+      "p95Ms": 124.620797
+    },
+    "repair": {
+      "sdk": 36,
+      "deviceModel": "sdk_gphone64_arm64",
+      "hardwareAccelerated": true,
+      "refreshRateHz": 60.000004,
+      "elapsedNanos": 3195723252,
+      "pageRequests": 1,
+      "arabicFontSize": 26,
+      "translationFontSize": 16,
+      "translationLocale": "en",
+      "arabicTopBefore": 0,
+      "arabicTopAfter": -3443,
+      "frameCount": 88,
+      "deadlineMisses": 66,
+      "medianMs": 72.960921,
+      "p95Ms": 96.46495
+    },
+    "scope": "Same controlled emulator inputs. Measured movement differs. No physical FPS or isolated hitch saving claim."
+  },
+  "iPhoneScrolling": {
+    "slow": {
+      "region": "Scroll_DraggingAndDeceleration",
+      "active_seconds": [
+        1.3256,
+        1.327614,
+        1.326737
+      ],
+      "scroll_hitch_ms_per_second": {
+        "samples": [
+          0.0,
+          0.0,
+          12.561836
+        ],
+        "mean": 4.187278666666667,
+        "worst": 12.561836
+      },
+      "cpu_seconds": {
+        "samples": [
+          6.192288,
+          6.163772,
+          6.199866
+        ],
+        "mean": 6.185308666666667
+      },
+      "note": "Named scroll-signpost metrics only. App-wide zero fields and hardware maximum refresh are not used as proof.",
+      "budget_passed": true
+    },
+    "fast": {
+      "region": "Scroll_DraggingAndDeceleration",
+      "active_seconds": [
+        2.342526,
+        2.308893,
+        2.343289
+      ],
+      "scroll_hitch_ms_per_second": {
+        "samples": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mean": 0.0,
+        "worst": 0.0
+      },
+      "cpu_seconds": {
+        "samples": [
+          6.892273,
+          6.882837,
+          6.766327
+        ],
+        "mean": 6.847145666666667
+      },
+      "note": "Named scroll-signpost metrics only. App-wide zero fields and hardware maximum refresh are not used as proof.",
+      "budget_passed": true
+    }
+  }
+}

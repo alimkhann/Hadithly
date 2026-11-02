@@ -9,6 +9,53 @@ import zlib
 @testable import Hadithly
 
 final class GuestMergePlannerTests: XCTestCase {
+    @MainActor func testRecentPageReturnRetainsSemanticPosition() throws {
+        let library = UserLibraryModel(guestData: GuestDataStore(inMemory: true))
+        let reader = scrollingReader(library: library)
+        defer { reader.stop() }
+        let first = reader.pages[0]
+        let second = ReaderPageResult(items: first.items, page: 2, pageSize: 1, totalPages: 2,
+            hasMore: false, contentVersion: "cv1:scroll-content", paginationVersion: 1, pageKey: "pg1:second")
+        reader.seedPagesForUITest([first, second])
+        reader.captureStableScroll(hadiths: first.items, leadingIndex: 0, rawPageOffset: 400, normalizedOffset: 0.4)
+        reader.pageIndex = 1
+        if let request = reader.verticalLanding { reader.acknowledgeVerticalLanding(request) }
+        reader.pageIndex = 0
+        XCTAssertEqual(reader.verticalLanding?.landing, .semantic(providerHadithId: "57", normalizedOffset: 0.4))
+    }
+
+    @MainActor func testRecentLandingPreviewIdentityInvalidationAndSessionClear() throws {
+        let library = UserLibraryModel(guestData: GuestDataStore(inMemory: true))
+        let reader = scrollingReader(library: library)
+        defer { reader.stop() }
+        let first = reader.pages[0]
+        let second = ReaderPageResult(items: first.items, page: 2, pageSize: 1, totalPages: 2,
+            hasMore: false, contentVersion: "cv1:scroll-content", paginationVersion: 1, pageKey: "pg1:second")
+        reader.seedPagesForUITest([first, second])
+        reader.captureStableScroll(hadiths: first.items, leadingIndex: 0, rawPageOffset: 400, normalizedOffset: 0.4)
+        reader.pageIndex = 1
+        if let request = reader.verticalLanding { reader.acknowledgeVerticalLanding(request) }
+        let preview = try XCTUnwrap(reader.landingForPage(0))
+        reader.pageIndex = 0
+        XCTAssertEqual(reader.verticalLanding, preview, "Commit must reuse the preview command")
+        reader.clearRecentPositions()
+        XCTAssertEqual(reader.verticalLanding?.landing, .header, "An unacknowledged recent command cannot survive the account boundary")
+        reader.acknowledgeVerticalLanding(preview)
+        reader.clearRecentPositions()
+        reader.pageIndex = 1
+        if let request = reader.verticalLanding { reader.acknowledgeVerticalLanding(request) }
+        reader.pageIndex = 0
+        XCTAssertEqual(reader.verticalLanding?.landing, .header)
+        if let request = reader.verticalLanding { reader.acknowledgeVerticalLanding(request) }
+        reader.captureStableScroll(hadiths: first.items, leadingIndex: 0, rawPageOffset: 700, normalizedOffset: 0.7)
+        reader.pageIndex = 1
+        let changed = ReaderPageResult(items: first.items, page: 1, pageSize: 1, totalPages: 2,
+            hasMore: true, contentVersion: "cv1:new-content", paginationVersion: 1, pageKey: "pg1:scroll-page")
+        reader.seedPagesForUITest([changed, second])
+        reader.pageIndex = 0
+        XCTAssertEqual(reader.verticalLanding?.landing, .header, "Changed content cannot reuse a recent position")
+    }
+
     @MainActor func testRepeatedUnchangedAccountPartitionReadsStayWithinScrollBudget() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)

@@ -1,8 +1,10 @@
 # Page and volume transition plan
 
-November 2, 2026. Planning is complete for the decisions below. Product repairs
-have not started. The owner's request to plan controls this session. The first
-implementation unit is Unit 1; do not batch the whole plan into one change.
+November 2, 2026. Planning is complete. The owner subsequently authorized all
+four units and an Android scrolling parity audit in this chat. Unit 1 now has
+paired native verification and owner-reviewed physical iPhone evidence in
+[PAGE_TRANSITION_VERIFICATION.md](PAGE_TRANSITION_VERIFICATION.md). Continue with
+Unit 2. Keep each unit separately verified and committed without pushing.
 
 ## Agreed experience
 
@@ -173,7 +175,8 @@ Laziness Protocol keeps loading presentation at one boundary. Build the Lever
 produced the reusable native gesture probe. Prove It Works requires the actual
 native before/after replay, rather than a passing build.
 
-Next task: implement Unit 1 on both native apps. Start with the recorded A → B → A
-case and the existing single-owner landing contract. Preserve all earlier scrolling
-and cost repairs. Stop after verified recent-page restoration, updated evidence
-and a scoped commit; then select Unit 2.
+Next task: implement Unit 2 on both native apps. Preserve the verified recent-page
+landing and owner-reviewed signed build, accepted scrolling and Convex reductions.
+Measure reuse, duplicate calls, destination readiness and retained memory before
+changing fetch policy. Commit Unit 2 with evidence, then continue through Units 3
+and 4 under the owner's expanded goal. Keep all original gates open.

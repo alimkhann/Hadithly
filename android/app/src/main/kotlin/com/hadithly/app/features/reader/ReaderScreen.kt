@@ -100,6 +100,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -169,6 +170,7 @@ import com.hadithly.app.features.purchases.QuotaPaywallSheet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.delay
@@ -209,7 +211,7 @@ fun ReaderScreen(
     }
     val state by viewModel.state.collectAsStateWithLifecycle()
     val activeSession by com.clerk.api.Clerk.sessionFlow.collectAsStateWithLifecycle()
-    LaunchedEffect(activeSession?.id) { viewModel.resetTranslationRequestsForAccount() }
+    LaunchedEffect(activeSession?.id) { viewModel.updateRecentPositionAccount(activeSession?.id); viewModel.resetTranslationRequestsForAccount() }
     DisposableEffect(viewModel) {
         viewModel.beginMeasurement()
         onDispose { viewModel.endMeasurement(); viewModel.saveCurrentProgress() }
@@ -240,6 +242,7 @@ fun ReaderScreen(
 
     fun closeReader() {
         viewModel.saveCurrentProgress()
+        viewModel.clearRecentPositions()
         onClose()
     }
     BackHandler(enabled = !showContents && !showSettings, onBack = ::closeReader)
@@ -601,7 +604,7 @@ private fun ReadingView(
                 // (placeholder load, volume switch) changes identity and
                 // re-resolves exactly once.
                 val page = pages.getOrNull(pageIndex)
-                key("${state.selectedVolumeId}:${page?.pageKey ?: "page-$pageIndex"}") {
+                key("${state.selectedVolumeId}:${page?.pageKey ?: "page-$pageIndex"}:${page?.contentVersion}") {
                     val stableHadiths = remember(page) { page?.items ?: emptyList() }
                     // Round 8: end-of-page pills resolve per pager slot from
                     // already-cached synchronous sources (this slot's index,
@@ -620,7 +623,7 @@ private fun ReadingView(
                         pagingPolicy = pagingPolicy,
                         pageIndex = pageIndex,
                         pillState = pagePillState,
-                        verticalLanding = state.verticalLanding,
+                        verticalLanding = viewModel.landingForPage(pageIndex),
                         topContentPadding = progressHeaderHeight,
                         isSentinel = pageIndex >= pages.size,
                         // Round 7: the inline corner label rides the chrome
@@ -1217,10 +1220,26 @@ private fun ReaderPage(
     var noteTarget by remember { mutableStateOf<ReaderHadith?>(null) }
     var submissionTarget by remember { mutableStateOf<Pair<ReaderHadith, ReaderTranslation?>?>(null) }
     var reportTarget by remember { mutableStateOf<Pair<ReaderHadith, ReaderTranslation>?>(null) }
-    val landing = verticalLanding?.takeIf {
+    var initialLanding by remember { mutableStateOf(
+        if (state.pageIndex == pageIndex && verticalLanding == null) viewModel.recentLandingForPage(pageIndex) else null
+    ) }
+    val landing = (verticalLanding ?: initialLanding)?.takeIf {
         it.page == ReaderVerticalLandingPage(state.selectedVolumeId.orEmpty(), pageIndex)
     }
     val listState = rememberLazyListState()
+    var appliedLandingToken by remember { mutableStateOf<Int?>(null) }
+    var appliedLandingLayout by remember { mutableStateOf<ReaderViewportLayout?>(null) }
+    val density = LocalDensity.current
+    val viewportSize by remember { derivedStateOf { listState.layoutInfo.viewportSize } }
+    val selectedLayoutVolume = remember(state.volumes, state.selectedVolumeId) {
+        state.volumes.firstOrNull { it.volumeId == state.selectedVolumeId }
+    }
+    val layoutTranslations = remember(hadiths, state.translations) { hadiths.map { state.translations[it.internalId] } }
+    val layoutAllowances = remember(hadiths, state.translationAllowances) { hadiths.map { state.translationAllowances[it.internalId] } }
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val layoutProjection = preferences.layoutProjection + "|${preferences.uiLocale}|${configuration.locales}|${state.language}|${density.density}|${density.fontScale}|$topContentPadding"
+    fun viewportLayout() = ReaderViewportLayout(layoutProjection, listState.layoutInfo.viewportSize.width,
+        listState.layoutInfo.viewportSize.height, hadiths, selectedLayoutVolume, layoutTranslations, layoutAllowances)
     val chapterOpenings = remember(hadiths) { ReaderChapterBoundaries.openingIndices(hadiths) }
     // R6A: the selected volume's outline chapters feed the quiet chapter
     // header's optional Arabic second line; the cumulative counts feed the
@@ -1295,10 +1314,24 @@ private fun ReaderPage(
 
     // This is the only vertical-scroll writer. A command waits through a
     // sentinel/unloaded page, then applies once the matching list exists.
-    LaunchedEffect(landing?.token, hadiths.firstOrNull()?._id, pageIndex) {
+    LaunchedEffect(landing?.token, hadiths.firstOrNull()?._id, pageIndex, state.pageIndex == pageIndex,
+        layoutProjection, hadiths, selectedLayoutVolume, layoutTranslations, layoutAllowances, viewportSize) {
         val request = landing ?: return@LaunchedEffect
+        if (!viewModel.isRecentLandingValid(request)) {
+            if (initialLanding == request) initialLanding = null
+            return@LaunchedEffect
+        }
         if (hadiths.isEmpty()) return@LaunchedEffect
-        when (val destination = request.landing) {
+        val layout = viewportLayout()
+        if (appliedLandingToken == request.token && appliedLandingLayout == layout) {
+            if (state.pageIndex == pageIndex) viewModel.acknowledgeVerticalLanding(request)
+            return@LaunchedEffect
+        }
+        val snapshot = request.viewport
+        if (snapshot != null && (viewportSize.width == 0 || viewportSize.height == 0)) return@LaunchedEffect
+        if (snapshot != null && snapshot.layout == layout) {
+            listState.scrollToItem(snapshot.firstItemIndex, snapshot.firstItemOffset)
+        } else when (val destination = request.landing) {
             ReaderVerticalLanding.Header -> listState.scrollToItem(0, 0)
             is ReaderVerticalLanding.Semantic -> {
                 val itemIndex = hadiths.indexOfFirst {
@@ -1307,6 +1340,7 @@ private fun ReaderPage(
                 listState.scrollToItem(itemIndex)
                 if (destination.normalizedOffset > 0.0) {
                     withFrameNanos { }
+                    if (!viewModel.isRecentLandingValid(request)) return@LaunchedEffect
                     val size = listState.layoutInfo.visibleItemsInfo
                         .firstOrNull { it.index == itemIndex }
                         ?.size
@@ -1315,7 +1349,10 @@ private fun ReaderPage(
                 }
             }
         }
-        viewModel.acknowledgeVerticalLanding(request)
+        appliedLandingToken = request.token
+        appliedLandingLayout = layout
+        if (initialLanding == request) initialLanding = null
+        if (state.pageIndex == pageIndex) viewModel.acknowledgeVerticalLanding(request)
     }
 
     // Clearing the command cancels its effect; observe the acknowledged frame separately.
@@ -1350,8 +1387,8 @@ private fun ReaderPage(
             .collect { onPageScrollFraction(pageIndex, it) }
     }
 
-    LaunchedEffect(listState, hadiths, state.pageIndex == pageIndex) {
-        if (state.pageIndex != pageIndex || hadiths.isEmpty()) return@LaunchedEffect
+    LaunchedEffect(listState, hadiths, state.pageIndex == pageIndex, initialLanding, layoutProjection, selectedLayoutVolume, layoutTranslations, layoutAllowances) {
+        if (state.pageIndex != pageIndex || hadiths.isEmpty() || initialLanding != null) return@LaunchedEffect
         snapshotFlow {
             val info = listState.layoutInfo
             info.visibleItemsInfo.firstOrNull { item ->
@@ -1362,6 +1399,11 @@ private fun ReaderPage(
         }
             .filterNotNull()
             .distinctUntilChanged()
+            .onEach { (index, offset, size) ->
+                viewModel.captureStableScroll(hadiths, readerHadithIndex(index, hadiths.size) ?: return@onEach,
+                    (-offset).coerceAtLeast(0).toDouble(), (-offset).coerceAtLeast(0).toDouble() / size.coerceAtLeast(1), persist = false, atHeader = listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0,
+                    viewport = ReaderViewportSnapshot(viewportLayout(), listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset))
+            }
             .debounce(500)
             .collect { (index, offset, size) ->
                 readerHadithIndex(index, hadiths.size)?.let { hadithIndex ->
@@ -1373,6 +1415,8 @@ private fun ReaderPage(
                     leadingIndex = readerHadithIndex(index, hadiths.size) ?: return@collect,
                     rawPageOffset = (-offset).coerceAtLeast(0).toDouble(),
                     normalizedOffset = (-offset).coerceAtLeast(0).toDouble() / size.coerceAtLeast(1),
+                    atHeader = listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0,
+                    viewport = ReaderViewportSnapshot(viewportLayout(), listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset),
                 )
             }
     }

@@ -135,6 +135,85 @@ class ReaderViewModel(
     private var publicationDeadlineJob: Job? = null
     private var translationGeneration = 0
     private var nextVerticalLandingToken = 0
+    private var recentPositionToken = 0
+    private var recentLayout: Pair<ReadingLayout, String>? = null
+    private val recentPositions = mutableListOf<RecentPagePosition>()
+    private var recentAccountInitialized = false
+    private var recentAccountId: String? = null
+
+    private data class RecentPagePosition(
+        val volumeId: String,
+        val pageIndex: Int,
+        val pageKey: String?,
+        val contentVersion: String?,
+        val paginationVersion: Double?,
+        val itemIDs: List<String>,
+        val position: ReadingPosition,
+        val request: ReaderVerticalLandingRequest,
+    ) {
+        fun matches(page: ReaderPageResult, volume: String, index: Int) =
+            volumeId == volume && pageIndex == index && pageKey == page.pageKey &&
+                contentVersion == page.contentVersion && paginationVersion == page.paginationVersion &&
+                itemIDs == page.items.map { it.internalId }
+    }
+
+    private fun recentPosition(index: Int): RecentPagePosition? {
+        val state = _state.value
+        val volume = state.selectedVolumeId ?: return null
+        val page = state.pages.getOrNull(index) ?: return null
+        return recentPositions.lastOrNull { it.matches(page, volume, index) }
+    }
+
+    fun recentLandingForPage(index: Int): ReaderVerticalLandingRequest? = recentPosition(index)?.request
+
+    fun landingForPage(index: Int): ReaderVerticalLandingRequest? {
+        val state = _state.value
+        if (index == state.pageIndex) return state.verticalLanding
+        return recentPosition(index)?.request ?: ReaderVerticalLandingRequest(
+            0, ReaderVerticalLandingPage(state.selectedVolumeId.orEmpty(), index), ReaderVerticalLanding.Header)
+    }
+
+    fun clearRecentPositions() {
+        recentPositions.clear()
+        val pending = _state.value.verticalLanding
+        if (pending != null && pending.token < 0) requestHeaderLanding(pending.page.pageIndex)
+    }
+
+    fun isRecentLandingValid(request: ReaderVerticalLandingRequest): Boolean =
+        request.token >= 0 || recentPositions.any { it.request == request }
+
+    fun updateRecentPositionAccount(accountId: String?) {
+        if (recentAccountInitialized && recentAccountId != accountId) clearRecentPositions()
+        recentAccountInitialized = true
+        recentAccountId = accountId
+    }
+
+    private fun requestRecentLanding(index: Int) {
+        val recent = recentPosition(index)
+        if (recent == null) requestHeaderLanding(index)
+        else _state.update { it.copy(verticalLanding = recent.request) }
+    }
+
+    private fun rememberPosition(anchor: ReaderHadith, page: ReaderPageResult, offset: Double, atHeader: Boolean, viewport: ReaderViewportSnapshot?) {
+        val state = _state.value
+        val volume = state.selectedVolumeId ?: return
+        recentPositionToken -= 1
+        val layout = readingLayout(page)
+        if (recentLayout?.first != layout) recentLayout = layout to layout.signature
+        val position = ReadingPosition(
+            anchor = ReadingPositionAnchor(anchor.provider, anchor.collectionSlug, anchor.providerHadithId),
+            contentVersion = page.contentVersion, volumeId = volume, chapterId = anchor.chapterId,
+            pageKey = page.pageKey, displayPageIndex = page.page.coerceAtLeast(1.0), rawPageOffset = 0.0,
+            normalizedOffset = offset, layoutSignature = recentLayout!!.second,
+            updatedAt = System.currentTimeMillis().toDouble(),
+        )
+        recentPositions.removeAll { it.volumeId == volume && it.pageIndex == state.pageIndex }
+        recentPositions.add(RecentPagePosition(volume, state.pageIndex, page.pageKey, page.contentVersion,
+            page.paginationVersion, page.items.map { it.internalId }, position,
+            ReaderVerticalLandingRequest(recentPositionToken, ReaderVerticalLandingPage(volume, state.pageIndex),
+                if (atHeader) ReaderVerticalLanding.Header else ReaderVerticalLanding.Semantic(anchor.providerHadithId, offset), viewport)))
+        if (recentPositions.size > 32) recentPositions.removeAt(0)
+    }
     private var readingWidthClass = ReadingWidthClass.COMPACT
     private var lastPositionUpdatedAt = 0.0
     private var lastCapturedAnchor: String? = null
@@ -193,6 +272,7 @@ class ReaderViewModel(
         val state = _state.value
         val volumeId = state.selectedVolumeId ?: return
         val items = state.pages.getOrNull(pageIndex)?.items.orEmpty()
+        recentPositions.removeAll { it.volumeId == volumeId && it.pageIndex == pageIndex }
         val position = restoredPosition
         when {
             position != null && items.any { it.providerHadithId == position.anchor.providerHadithId } ->
@@ -499,7 +579,7 @@ class ReaderViewModel(
                 _state.update {
                     it.copy(pages = pages, pageIndex = landing, phase = Phase.Reading)
                 }
-                requestHeaderLanding(landing)
+                requestRecentLanding(landing)
                 scheduleTranslationsForCurrentPage()
                 cacheAdjacentVolumes()
                 saveCurrentProgress()
@@ -694,7 +774,7 @@ class ReaderViewModel(
         val s = _state.value
         if (index == s.pageIndex) return
         _state.update { it.copy(pageIndex = index) }
-        requestHeaderLanding(index)
+        requestRecentLanding(index)
         // A settled scroll (user swipe or pill/edge turn) lands focused:
         // the menu is closed by the screen observing the page index, and
         // the chrome collapses here with no haptic.
@@ -974,7 +1054,8 @@ class ReaderViewModel(
         if (s.pageIndex !in s.pages.indices) return
         val page = s.pages[s.pageIndex]
         val first = page.items.firstOrNull() ?: return
-        val restoredHadith = restoredPosition?.let { position ->
+        val effectivePosition = recentPosition(s.pageIndex)?.position ?: restoredPosition
+        val restoredHadith = effectivePosition?.let { position ->
             page.items.firstOrNull {
                 it.provider == position.anchor.provider &&
                     it.collectionSlug == position.anchor.collectionSlug &&
@@ -992,12 +1073,12 @@ class ReaderViewModel(
             page = page,
             rawPageOffset = when {
                 stableHadith != null -> lastStableRawPageOffset
-                restoredHadith != null -> restoredPosition?.rawPageOffset ?: 0.0
+                restoredHadith != null -> effectivePosition?.rawPageOffset ?: 0.0
                 else -> 0.0
             },
             normalizedOffset = when {
                 stableHadith != null -> lastStableNormalizedOffset
-                restoredHadith != null -> restoredPosition?.normalizedOffset ?: 0.0
+                restoredHadith != null -> effectivePosition?.normalizedOffset ?: 0.0
                 else -> 0.0
             },
         )
@@ -1009,14 +1090,20 @@ class ReaderViewModel(
         leadingIndex: Int,
         rawPageOffset: Double,
         normalizedOffset: Double,
+        persist: Boolean = true,
+        atHeader: Boolean = false,
+        viewport: ReaderViewportSnapshot? = null,
     ) {
         if (_state.value.verticalLanding != null) return
         val page = _state.value.pages.getOrNull(_state.value.pageIndex) ?: return
         val anchor = hadiths.getOrNull(leadingIndex) ?: return
+        if (page.items.getOrNull(leadingIndex)?.internalId != anchor.internalId) return
         val clamped = normalizedOffset.coerceIn(0.0, 1.0)
         lastStableAnchor = anchor
         lastStableRawPageOffset = rawPageOffset.coerceAtLeast(0.0)
         lastStableNormalizedOffset = clamped
+        rememberPosition(anchor, page, clamped, atHeader, viewport)
+        if (!persist) return
         if (lastCapturedAnchor == anchor.internalId &&
             lastCapturedNormalizedOffset?.let { kotlin.math.abs(it - clamped) < 0.02 } == true
         ) return

@@ -154,6 +154,7 @@ struct ReaderView: View {
             model?.stop()
         }
         .onChange(of: clerk.user?.id) { _, _ in
+            model?.clearRecentPositions()
             model?.resetTranslationRequestsForAccount()
             showQuotaPaywall = false
         }
@@ -449,8 +450,8 @@ struct ReaderView: View {
     /// cancel-back when the finger releases short. Cross-volume targets
     /// show a quiet loading slot until their first page arrives. Every slot
     /// keeps its volume/page identity across turns and uses the same layout
-    /// before and after handoff. Only the active page owns scroll restoration
-    /// and model updates.
+    /// before and after handoff. Each slot applies the model's landing;
+    /// only the active page captures progress and acknowledges commands.
     private func pageStrip(_ model: ReaderModel, viewportWidth: CGFloat) -> some View {
         let targets = stripTargets(model)
         let slots = ReaderDragStrip.slots(hasPrevious: targets.previous, hasNext: targets.next, pageDirection: pagingPolicy.pageDirection)
@@ -465,7 +466,7 @@ struct ReaderView: View {
                             model: model, hadiths: model.pages[page].items,
                             arabicFontSize: arabicFontSizeBinding.wrappedValue,
                             preferences: environment.preferences.preferences,
-                            verticalLanding: page == index ? model.verticalLanding : nil,
+                            verticalLanding: model.landingForPage(page),
                             currentPageIndex: page,
                             pageCount: model.pages.count,
                             topContentInset: windowSafeAreaInsets.top + 8 + progressPillsHeight + 24,
@@ -482,7 +483,7 @@ struct ReaderView: View {
                         ArticleLoadingView(title: "Loading page").accessibilityIdentifier("reader.neighborLoading")
                     }
                 }
-                .id("\(model.selectedVolumeId ?? ""):\(page)")
+                .id("\(model.selectedVolumeId ?? ""):\(page):\(model.pages.indices.contains(page) ? model.pages[page].pageKey ?? "legacy" : "pending"):\(model.pages.indices.contains(page) ? model.pages[page].contentVersion ?? "legacy" : "pending")")
                 .frame(width: viewportWidth)
             }
         }
@@ -645,7 +646,7 @@ struct ReaderView: View {
                 ReaderBottomCircles(
                     menuOpen: showReaderMenu,
                     palette: palette,
-                    onClose: { dismiss() },
+                    onClose: { model.saveCurrentProgress(); model.clearRecentPositions(); dismiss() },
                     onMenu: {
                         ReaderHapticDispatcher.trigger(.menuToggle)
                         withAnimation(.easeInOut(duration: 0.2)) { showReaderMenu.toggle() }
@@ -1147,6 +1148,7 @@ private struct ReaderScrollActivityModifier: ViewModifier {
 private final class ReaderLiveAnchorFrames {
     var contentFrames: [String: ReaderAnchorFrame] = [:]
     var scrollState: ReaderScrollState?
+    weak var scrollView: UIScrollView?
 
     var value: [String: ReaderAnchorFrame] {
         guard let scrollState else { return [:] }
@@ -1154,6 +1156,32 @@ private final class ReaderLiveAnchorFrames {
             ReaderAnchorFrame(minY: $0.minY + scrollState.minY, height: $0.height)
         }
     }
+}
+
+private struct ReaderScrollLocator: UIViewRepresentable {
+    let onResolve: (UIScrollView) -> Void
+
+    final class Locator: UIView {
+        var onResolve: ((UIScrollView) -> Void)?
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                var ancestor = self.superview
+                while let view = ancestor {
+                    if let scroll = view as? UIScrollView { self.onResolve?(scroll); return }
+                    ancestor = view.superview
+                }
+            }
+        }
+    }
+
+    func makeUIView(context: Context) -> Locator {
+        let view = Locator(); view.onResolve = onResolve
+        view.isUserInteractionEnabled = false
+        return view
+    }
+    func updateUIView(_ view: Locator, context: Context) { view.onResolve = onResolve }
 }
 
 private struct ReaderViewportTracking: ViewModifier {
@@ -1174,6 +1202,7 @@ private struct ReaderViewportTracking: ViewModifier {
 }
 
 struct ReaderPageView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
     let model: ReaderModel
     let hadiths: [ReaderHadith]
@@ -1195,7 +1224,13 @@ struct ReaderPageView: View {
     /// passes this; neighbor slots stay silent.
     var onScrollFraction: ((Double) -> Void)? = nil
 
+    @State private var initialLanding: ReaderVerticalLandingRequest?
+    @State private var initializedLanding = false
+#if DEBUG
+    @State private var debugViewport = ""
+#endif
     @State private var appliedLandingToken: Int?
+    @State private var appliedLandingLayout: ReaderViewportLayout?
     @State private var viewportMotionID = UUID()
     @State private var liveAnchorFrames = ReaderLiveAnchorFrames()
     @State private var inspectedEntry = false
@@ -1292,24 +1327,58 @@ struct ReaderPageView: View {
     var body: some View {
         GeometryReader { viewport in
             ScrollViewReader { proxy in
+                let renderedTexts = hadiths.flatMap { hadith -> [String] in
+                    let translation: [String]
+                    switch model.translations[hadith.internalId] {
+                    case .loaded(let value): translation = ["loaded", value.translation] + value.glossaryNotes
+                    case .loading: translation = ["loading"]
+                    case .failed(let failure): translation = ["failed", String(describing: failure)]
+                    case .none: translation = ["idle"]
+                    }
+                    return [hadith.arabicText, hadith.englishText ?? "",
+                        hadith.narrator ?? "", hadith.narratorAr ?? "", hadith.chapterName ?? "", hadith.referenceDisplay,
+                        String(describing: model.translationAllowances[hadith.internalId])] + translation
+                }
+                let layout = ReaderViewportLayout(projection: preferences.layoutProjection + "|\(topContentInset)|\(dynamicTypeSize)|\(locale.identifier)|\(preferences.uiLocale)",
+                    width: viewport.size.width, height: viewport.size.height,
+                    texts: renderedTexts + [selectedVolume?.title ?? "", selectedVolume?.firstChapterTitle ?? ""])
                 let handleFrames: ([String: ReaderAnchorFrame]) -> Void = { frames in
+                    guard initializedLanding else { return }
                     let interval = ReaderScrollProfile.begin("ReaderAnchorGeometry")
                     defer { ReaderScrollProfile.end("ReaderAnchorGeometry", interval) }
                     let readingHeight = max(1, viewport.size.height - topContentInset)
                     let readingFrames = framesInReadingArea(frames)
-                    guard currentPageIndex == model.pageIndex else { return }
                     let activePage = ReaderVerticalLandingPage(
                         volumeId: model.selectedVolumeId ?? "",
                         pageIndex: currentPageIndex
                     )
-                    if let landing = verticalLanding,
+                    let candidate = verticalLanding ?? initialLanding
+                    let landingRequest = candidate.flatMap {
+                        $0.sessionGeneration == nil || $0.sessionGeneration == model.recentSessionGeneration ? $0 : nil
+                    }
+                    if let landing = landingRequest,
                        landing.page == activePage,
-                       appliedLandingToken != landing.id {
+                       appliedLandingToken != landing.id || appliedLandingLayout != layout {
+                        if let snapshot = landing.viewport, snapshot.layout == layout {
+                            guard !frames.isEmpty, let scroll = liveAnchorFrames.scrollView,
+                                  scroll.contentSize.height > 0, liveAnchorFrames.scrollState != nil else { return }
+                            appliedLandingToken = landing.id
+                            appliedLandingLayout = layout
+                            initialLanding = nil
+                            scroll.setContentOffset(CGPoint(x: scroll.contentOffset.x, y: snapshot.offsetY), animated: false)
+                            if currentPageIndex == model.pageIndex {
+                                DispatchQueue.main.async { model.acknowledgeVerticalLanding(landing) }
+                            }
+                            return
+                        }
                         switch landing.landing {
                         case .header:
                             appliedLandingToken = landing.id
+                            appliedLandingLayout = layout
+                            initialLanding = nil
                             proxy.scrollTo("reader.page.top.\(currentPageIndex)", anchor: .top)
                             DispatchQueue.main.async {
+                                guard currentPageIndex == model.pageIndex else { return }
                                 model.acknowledgeVerticalLanding(landing)
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                                     model.observeVisibleContent(hadiths: hadiths, frames: framesInReadingArea(liveAnchorFrames.value), viewport: readingHeight)
@@ -1325,6 +1394,8 @@ struct ReaderPageView: View {
                             else { return }
                             let target = hadiths[targetIndex]
                             appliedLandingToken = landing.id
+                            appliedLandingLayout = layout
+                            initialLanding = nil
                             if normalizedOffset == 0, chapterOpenings.contains(targetIndex) {
                                 proxy.scrollTo("reader.chapter.\(target.internalId)", anchor: .top)
                             } else {
@@ -1336,6 +1407,7 @@ struct ReaderPageView: View {
                                 proxy.scrollTo(target.internalId, anchor: UnitPoint(x: 0.5, y: anchorY))
                             }
                             DispatchQueue.main.async {
+                                guard currentPageIndex == model.pageIndex else { return }
                                 model.acknowledgeVerticalLanding(landing)
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                                     model.observeVisibleContent(hadiths: hadiths, frames: framesInReadingArea(liveAnchorFrames.value), viewport: readingHeight)
@@ -1348,21 +1420,31 @@ struct ReaderPageView: View {
                         }
                     }
 
+                    guard currentPageIndex == model.pageIndex else { return }
+                    if let landing = landingRequest, appliedLandingToken == landing.id {
+                        DispatchQueue.main.async { model.acknowledgeVerticalLanding(landing) }
+                        return
+                    }
                     if currentPageIndex == model.pageIndex {
                         model.observeVisibleContent(hadiths: hadiths, frames: readingFrames, viewport: readingHeight)
                     }
                     let indexed = hadiths.enumerated().compactMap { index, hadith in
                         readingFrames[hadith.internalId].map { (index, $0) }
                     }
-                    guard let leading = indexed.min(by: {
-                        abs(($0.1.minY + $0.1.height / 2) - readingHeight / 2)
-                        < abs(($1.1.minY + $1.1.height / 2) - readingHeight / 2)
-                    }) ?? indexed.first else { return }
+                    guard let leading = indexed.first(where: { $0.1.minY + $0.1.height > 0 }) ?? indexed.first else { return }
+#if DEBUG
+                    if ProcessInfo.processInfo.environment["PAGING_RECENT"] == "1" {
+                        let diagnostic = "\(leading.1.minY)|\(leading.1.height)"
+                        if diagnostic != debugViewport { DispatchQueue.main.async { debugViewport = diagnostic } }
+                    }
+#endif
                     model.captureStableScroll(
                         hadiths: hadiths,
                         leadingIndex: leading.0,
                         rawPageOffset: max(0, -leading.1.minY),
-                        normalizedOffset: max(0, -leading.1.minY) / max(1, leading.1.height)
+                        normalizedOffset: max(0, -leading.1.minY) / max(1, leading.1.height),
+                        atHeader: liveAnchorFrames.scrollState.map { topContentInset - $0.minY <= 1 } ?? false,
+                        viewport: liveAnchorFrames.scrollView.map { ReaderViewportSnapshot(layout: layout, offsetY: $0.contentOffset.y) }
                     )
 
                 }
@@ -1437,6 +1519,10 @@ struct ReaderPageView: View {
                         .padding(.top, 20)
                         .padding(.bottom, 80)
                         .coordinateSpace(name: "reader.content")
+                        .background(ReaderScrollLocator {
+                            liveAnchorFrames.scrollView = $0
+                            handleFrames(liveAnchorFrames.value)
+                        })
                         .background {
                             if #unavailable(iOS 18) {
                                 GeometryReader { content in
@@ -1463,7 +1549,22 @@ struct ReaderPageView: View {
                     liveAnchorFrames.contentFrames = frames
                     handleFrames(liveAnchorFrames.value)
                 }
+                .onAppear {
+                    if !initializedLanding {
+                        initialLanding = model.recentLandingForPage(currentPageIndex)
+                        initializedLanding = true
+                    }
+                    handleFrames(liveAnchorFrames.value)
+                }
+                .onChange(of: model.recentSessionGeneration) { _, _ in
+                    initialLanding = nil
+                    handleFrames(liveAnchorFrames.value)
+                }
                 .onChange(of: verticalLanding?.id) { _, _ in handleFrames(liveAnchorFrames.value) }
+                .onChange(of: currentPageIndex == model.pageIndex) { _, _ in handleFrames(liveAnchorFrames.value) }
+                .onChange(of: layout) { _, _ in
+                    DispatchQueue.main.async { handleFrames(liveAnchorFrames.value) }
+                }
                 .modifier(ReaderScrollActivityModifier(onActivityChanged: { active in
                     guard !active || currentPageIndex == model.pageIndex else { return }
                     model.setViewportActive(active, id: viewportMotionID)
@@ -1478,6 +1579,13 @@ struct ReaderPageView: View {
             chapterOpenings = ReaderChapterBoundaries.openingIndices(in: updated)
         }
         .accessibilityIdentifier("reader.page")
+#if DEBUG
+        .overlay(alignment: .bottomLeading) {
+            if ProcessInfo.processInfo.environment["PAGING_RECENT"] == "1", currentPageIndex == model.pageIndex {
+                Text(debugViewport).font(.caption2).accessibilityIdentifier("paging.viewport").allowsHitTesting(false)
+            }
+        }
+#endif
     }
 }
 
@@ -3459,12 +3567,14 @@ struct ChromeCopyAuditFixture: View {
 #if DEBUG
 @MainActor
 struct ContentsNavigationFixture: View {
+    @Environment(AppEnvironment.self) private var environment
     @State private var showReader = true
     @State private var model: ReaderModel
     @State private var library: UserLibraryModel
     @State private var release: (() -> Void)?
     @State private var releaseTarget: (() -> Void)?
     @State private var requests = ""
+    @State private var readerRevision = 0
 
     init() {
         let convex = ConvexClientWithAuth(deploymentUrl: "https://example.invalid", authProvider: ClerkConvexAuthProvider())
@@ -3473,7 +3583,21 @@ struct ContentsNavigationFixture: View {
         let model = ReaderModel(convex: convex, collectionSlug: "bukhari", collectionName: "Original %@ مصدر", language: "en", isSignedIn: { false }, library: library)
         _library = State(initialValue: library)
         model.seedForUITest(volumes: [OutlineVolume(volumeId: "1", title: "Original %@ مصدر", hadithCount: 100)], selectedVolumeId: "1")
-        if ProcessInfo.processInfo.environment["A5_CONTROLS_ONLY"] == "1" {
+        if ProcessInfo.processInfo.environment["PAGING_RECENT"] == "1" {
+            model.seedPagesForUITest((1...3).map { number in
+                let base = Self.page(String(number))
+                let original = base.items[0]
+                let long = ReaderHadith(_id: original.internalId, provider: original.provider,
+                    canonicalId: original.canonicalId, providerHadithId: original.providerHadithId,
+                    collectionSlug: original.collectionSlug, volumeId: original.volumeId, chapterId: nil,
+                    arabicText: String(repeating: "نَصّ الحديث الأصلي ", count: 110),
+                    englishText: String(repeating: "Original bilingual reading text. ", count: 90),
+                    narrator: nil, referenceDisplay: original.referenceDisplay, collectionName: original.collectionName,
+                    chapterName: nil, authenticity: original.authenticity)
+                return ReaderPageResult(items: [long], page: number, pageSize: 1, totalPages: 3, hasMore: number < 3,
+                    contentVersion: "cv1:paging", paginationVersion: 1, pageKey: "pg1:paging\(number)")
+            })
+        } else if ProcessInfo.processInfo.environment["A5_CONTROLS_ONLY"] == "1" {
             model.seedPagesForUITest([Self.page("1"), Self.page("2"), Self.page("57")])
             model.pageIndex = 2
             model.chromeVisible = true
@@ -3505,12 +3629,19 @@ struct ContentsNavigationFixture: View {
 
     private var reader: some View {
         ReaderView.fixture(model: model)
+            .id(readerRevision)
             .environment(library)
             .environment(\.locale, Locale(identifier: ProcessInfo.processInfo.environment["A5_LOCALE"] ?? "en"))
             .environment(\.layoutDirection, LocaleFallback.isRTL(ProcessInfo.processInfo.environment["A5_LOCALE"] ?? "en") ? .rightToLeft : .leftToRight)
             .dynamicTypeSize(ProcessInfo.processInfo.environment["A5_LARGE_TEXT"] == "1" ? .accessibility5 : .large)
             .overlay(alignment: .bottomTrailing) {
                 VStack {
+                    if ProcessInfo.processInfo.environment["PAGING_RECENT"] == "1" {
+                        Button("Recreate reader") { readerRevision += 1 }.accessibilityIdentifier("paging.recreate")
+                        Button("Larger text") { environment.preferences.setArabicFontSize(40); environment.preferences.setTranslationFontSize(22) }
+                            .accessibilityIdentifier("paging.grow")
+                    }
+                    Text(String(model.pageIndex)).accessibilityIdentifier("paging.page")
                     Text(requests).accessibilityIdentifier("a5.requests")
                     if ProcessInfo.processInfo.environment["A5_CORE_SAVED"] == "1" {
                         Text(verbatim: "b:\(library.bookmarks.count)|f:\(library.favorites.count)|n:\(library.notes.count)|rows:\(library.savedItems.count)|note:\(library.notes.first?.noteContent ?? "")").accessibilityIdentifier("a5.savedState")
@@ -3521,6 +3652,12 @@ struct ContentsNavigationFixture: View {
                 }.font(.caption2).dynamicTypeSize(.large).padding(.bottom, 160)
             }
             .task {
+                if ProcessInfo.processInfo.environment["PAGING_RECENT"] == "1" {
+                    environment.preferences.setReadingDirection(.ltr)
+                    environment.preferences.setTranslationLocale("en")
+                    environment.preferences.setArabicFontSize(26)
+                    environment.preferences.setTranslationFontSize(16)
+                }
                 model.navigationTraceForUITest = { requests += "|" + $0 }
                 model.pageFetchForUITest = { _, _, target in
                     requests += target ?? "prefetch"

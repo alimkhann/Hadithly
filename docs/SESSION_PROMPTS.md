@@ -15,14 +15,16 @@ default. NEXT_SESSION_PROMPT.md now selects page/volume transitions.
 ## Page and volume transitions
 
 Discovery and the owner interview are recorded in PAGE_TRANSITION_BASELINE.md
-and PAGE_TRANSITION_PLAN.md. Follow NEXT_SESSION_PROMPT.md for Unit 1 only:
+and PAGE_TRANSITION_PLAN.md. Unit 1 is now verified in PAGE_TRANSITION_VERIFICATION.md.
+The owner expanded this chat to all four units plus an Android scrolling audit.
+Follow NEXT_SESSION_PROMPT.md for Unit 2, then Units 3 and 4. The original Unit 1 scope was:
 restore recently visited pages during the current reader session and make the
 drag preview match the committed vertical landing on both apps. Reproduce the
 recorded A → B → A reset, then verify the repair on the same native journey.
 Keep one landing owner, explicit Continue/Saved/Contents targets, unseen-page
 headers, accepted scrolling, accessibility and recent Convex reductions. Commit
-the verified paired-platform unit without pushing and stop before Unit 2.
-The remaining plan and original acceptance gates stay open.
+each verified paired-platform unit without pushing. The original acceptance gates
+stay open. The older Unit 1 stop is superseded by the owner's expanded goal.
 
 ## Reader scrolling and floating controls
 

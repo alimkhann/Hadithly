@@ -11,6 +11,85 @@ final class ReaderR5UITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    func testRecentPageReturnKeepsRenderedPosition() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-A5ContentsNavigationFixture"]
+        app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "PAGING_RECENT": "1"]
+        app.launch()
+        defer { app.terminate() }
+        let arabic = app.staticTexts["reader.arabic"].firstMatch
+        XCTAssertTrue(arabic.waitForExistence(timeout: 10))
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.74))
+        let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3))
+        start.press(forDuration: 0.1, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0)
+        Thread.sleep(forTimeInterval: 1)
+        let before = arabic.frame.minY
+        XCTAssertLessThan(before, 0, "The actual reading text must have moved")
+        let original = XCTAttachment(screenshot: app.screenshot()); original.name = "page-A-scrolled"; original.lifetime = .keepAlways; add(original)
+        app.buttons["paging.recreate"].tap()
+        XCTAssertTrue(arabic.waitForExistence(timeout: 5))
+        Thread.sleep(forTimeInterval: 0.5)
+        XCTAssertEqual(arabic.frame.minY, before, accuracy: 3, "A recreated active page must retain its current-reader position")
+        app.swipeLeft()
+        XCTAssertTrue(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "1"), object: app.staticTexts["paging.page"])], timeout: 5) == .completed)
+        let unseen = element("reader.volumeCorner", in: app)
+        XCTAssertTrue(unseen.isHittable, "An unseen page starts at its header")
+        let unseenY = unseen.frame.minY
+        Thread.sleep(forTimeInterval: 0.6)
+        XCTAssertEqual(unseen.frame.minY, unseenY, accuracy: 1, "The incoming header cannot shift after landing")
+        app.swipeRight()
+        XCTAssertTrue(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "0"), object: app.staticTexts["paging.page"])], timeout: 5) == .completed)
+        Thread.sleep(forTimeInterval: 1)
+        XCTAssertEqual(arabic.frame.minY, before, accuracy: 3, "Final landing must retain A's rendered text position")
+        let returned = XCTAttachment(screenshot: app.screenshot()); returned.name = "page-A-returned"; returned.lifetime = .keepAlways; add(returned)
+        let left = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        let short = app.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.5))
+        left.press(forDuration: 0.1, thenDragTo: short, withVelocity: .slow, thenHoldForDuration: 0)
+        XCTAssertEqual(app.staticTexts["paging.page"].label, "0")
+        XCTAssertEqual(arabic.frame.minY, before, accuracy: 3, "A canceled turn retains the active position")
+    }
+
+    func testPartialHeaderReturnAndInactiveLayoutChange() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-A5ContentsNavigationFixture"]
+        app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "PAGING_RECENT": "1"]
+        app.launch()
+        defer { app.terminate() }
+        let header = element("reader.volumeHeader", in: app)
+        XCTAssertTrue(header.waitForExistence(timeout: 10))
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45))
+        start.press(forDuration: 0.1, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0)
+        Thread.sleep(forTimeInterval: 1)
+        let headerY = header.frame.minY
+        let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "partial-header-before"; capture.lifetime = .keepAlways; add(capture)
+        app.swipeLeft()
+        XCTAssertTrue(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "1"), object: app.staticTexts["paging.page"])], timeout: 5) == .completed)
+        app.swipeRight()
+        XCTAssertTrue(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "0"), object: app.staticTexts["paging.page"])], timeout: 5) == .completed)
+        XCTAssertEqual(header.frame.minY, headerY, accuracy: 3)
+        let returned = XCTAttachment(screenshot: app.screenshot()); returned.name = "partial-header-returned"; returned.lifetime = .keepAlways; add(returned)
+        start.press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.15)), withVelocity: .slow, thenHoldForDuration: 0)
+        Thread.sleep(forTimeInterval: 0.6)
+        func normalizedViewport() -> Double {
+            let values = app.staticTexts["paging.viewport"].label.split(separator: "|").compactMap { Double($0) }
+            XCTAssertEqual(values.count, 2)
+            return values.count == 2 ? -values[0] / values[1] : -1
+        }
+        let expectedOffset = normalizedViewport()
+        let beforeHeight = Double(app.staticTexts["paging.viewport"].label.split(separator: "|").last ?? "0") ?? 0
+        XCTAssertGreaterThan(expectedOffset, 0.01)
+        app.swipeLeft()
+        XCTAssertTrue(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "1"), object: app.staticTexts["paging.page"])], timeout: 5) == .completed)
+        app.buttons["paging.grow"].tap()
+        app.swipeRight()
+        XCTAssertTrue(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "0"), object: app.staticTexts["paging.page"])], timeout: 5) == .completed)
+        Thread.sleep(forTimeInterval: 0.6)
+        let afterHeight = Double(app.staticTexts["paging.viewport"].label.split(separator: "|").last ?? "0") ?? 0
+        XCTAssertGreaterThan(afterHeight, beforeHeight * 1.2, "The fixture must actually reflow to larger bilingual text")
+        XCTAssertEqual(normalizedViewport(), expectedOffset, accuracy: 0.005, "Large bilingual layout changes must preserve the semantic fraction, not stale pixels")
+    }
+
     func testGuestSavingNoteUndoAndSavedReaderReturn() {
         let app = XCUIApplication()
         app.launchArguments = ["-A5ContentsNavigationFixture", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]

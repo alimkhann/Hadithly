@@ -167,7 +167,7 @@ final class ReaderModel {
             guard oldValue != pageIndex else { return }
             endViewportInteractions()
             invalidateAutomaticTranslationVisibility()
-            requestHeaderLanding(for: pageIndex)
+            requestRecentLanding(for: pageIndex)
             collapseToFocused()
             lastCapturedAnchor = nil
             lastCapturedNormalizedOffset = nil
@@ -235,6 +235,79 @@ final class ReaderModel {
     /// matching rendered page acknowledges the command.
     private(set) var verticalLanding: ReaderVerticalLandingRequest?
     private var nextVerticalLandingToken = 0
+    @ObservationIgnored private var recentPositions: [RecentPagePosition] = []
+    private(set) var recentSessionGeneration = 0
+    @ObservationIgnored private var recentPositionToken = 0
+    @ObservationIgnored private var recentLayout: (layout: ReadingLayout, signature: String)?
+
+    private struct RecentPagePosition {
+        let volumeId: String
+        let pageIndex: Int
+        let pageKey: String?
+        let contentVersion: String?
+        let paginationVersion: Double?
+        let itemIDs: [String]
+        let position: ReadingPosition
+        let request: ReaderVerticalLandingRequest
+
+        func matches(_ page: ReaderPageResult, volume: String, index: Int) -> Bool {
+            volumeId == volume && pageIndex == index && pageKey == page.pageKey
+                && contentVersion == page.contentVersion && paginationVersion == page.paginationVersion
+                && itemIDs == page.items.map(\.internalId)
+        }
+    }
+
+    private func recentPosition(for index: Int) -> RecentPagePosition? {
+        guard let volume = selectedVolumeId, pages.indices.contains(index) else { return nil }
+        return recentPositions.last { $0.matches(pages[index], volume: volume, index: index) }
+    }
+
+    func landingForPage(_ index: Int) -> ReaderVerticalLandingRequest? {
+        if index == pageIndex { return verticalLanding }
+        if let recent = recentPosition(for: index) { return recent.request }
+        return ReaderVerticalLandingRequest(id: 0,
+            page: .init(volumeId: selectedVolumeId ?? "", pageIndex: index), landing: .header)
+    }
+
+    func recentLandingForPage(_ index: Int) -> ReaderVerticalLandingRequest? {
+        recentPosition(for: index)?.request
+    }
+
+    func clearRecentPositions() {
+        recentSessionGeneration += 1
+        recentPositions.removeAll()
+        if let landing = verticalLanding, landing.sessionGeneration != nil {
+            requestHeaderLanding(for: pageIndex)
+        }
+    }
+
+    private func requestRecentLanding(for index: Int) {
+        if let recent = recentPosition(for: index) {
+            verticalLanding = recent.request
+        } else {
+            requestHeaderLanding(for: index)
+        }
+    }
+
+    private func rememberPosition(anchor: ReaderHadith, page: ReaderPageResult, normalizedOffset: Double, atHeader: Bool, viewport: ReaderViewportSnapshot?) {
+        guard let volume = selectedVolumeId else { return }
+        recentPositionToken -= 1
+        let layout = readingLayout(page.paginationVersion ?? 1)
+        if recentLayout?.layout != layout { recentLayout = (layout, layout.signature) }
+        let position = ReadingPosition(anchor: .init(provider: anchor.provider, collectionSlug: anchor.collectionSlug,
+            providerHadithId: anchor.providerHadithId), contentVersion: page.contentVersion ?? "legacy",
+            volumeId: volume, chapterId: anchor.chapterId, pageKey: page.pageKey ?? "legacy",
+            displayPageIndex: Double(max(1, page.page)), rawPageOffset: 0, normalizedOffset: normalizedOffset,
+            layoutSignature: recentLayout!.signature, updatedAt: 0)
+        recentPositions.removeAll { $0.volumeId == volume && $0.pageIndex == pageIndex }
+        recentPositions.append(RecentPagePosition(volumeId: volume, pageIndex: pageIndex,
+            pageKey: page.pageKey, contentVersion: page.contentVersion, paginationVersion: page.paginationVersion,
+            itemIDs: page.items.map(\.internalId), position: position,
+            request: ReaderVerticalLandingRequest(id: recentPositionToken,
+                page: .init(volumeId: volume, pageIndex: pageIndex),
+                landing: atHeader ? .header : .semantic(providerHadithId: anchor.providerHadithId, normalizedOffset: normalizedOffset), viewport: viewport, sessionGeneration: recentSessionGeneration)))
+        if recentPositions.count > 32 { recentPositions.removeFirst(recentPositions.count - 32) }
+    }
 
     init(
         convex: ConvexClientWithAuth<String>,
@@ -575,7 +648,7 @@ final class ReaderModel {
                 pages = [first]
                 phase = .reading
                 pageIndex = 0
-                requestHeaderLanding(for: 0)
+                requestRecentLanding(for: 0)
                 shouldPrefetchNeighbor = true
             case .last:
                 let landingIndex = total - 1
@@ -591,7 +664,7 @@ final class ReaderModel {
                 }
                 phase = .reading
                 pageIndex = landingIndex
-                requestHeaderLanding(for: landingIndex)
+                requestRecentLanding(for: landingIndex)
             }
             scheduleTranslationsForCurrentPage()
             saveCurrentProgress()
@@ -1223,7 +1296,8 @@ final class ReaderModel {
         guard phase == .reading, pages.indices.contains(pageIndex) else { return }
         let page = pages[pageIndex]
         guard let first = page.items.first else { return }
-        let restoredHadith = restoredPosition.flatMap { position in
+        let effectivePosition = recentPosition(for: pageIndex)?.position ?? restoredPosition
+        let restoredHadith = effectivePosition.flatMap { position in
             page.items.first(where: {
                 $0.provider == position.anchor.provider
                     && $0.collectionSlug == position.anchor.collectionSlug
@@ -1242,8 +1316,8 @@ final class ReaderModel {
             rawPageOffset = lastStableRawPageOffset
             normalizedOffset = lastStableNormalizedOffset
         } else if restoredHadith != nil {
-            rawPageOffset = restoredPosition?.rawPageOffset ?? 0
-            normalizedOffset = restoredPosition?.normalizedOffset ?? 0
+            rawPageOffset = effectivePosition?.rawPageOffset ?? 0
+            normalizedOffset = effectivePosition?.normalizedOffset ?? 0
         } else {
             rawPageOffset = 0
             normalizedOffset = 0
@@ -1281,10 +1355,13 @@ final class ReaderModel {
         hadiths: [ReaderHadith],
         leadingIndex: Int,
         rawPageOffset: Double,
-        normalizedOffset: Double
+        normalizedOffset: Double,
+        atHeader: Bool = false,
+        viewport: ReaderViewportSnapshot? = nil
     ) {
         guard verticalLanding == nil else { return }
-        guard hadiths.indices.contains(leadingIndex), pages.indices.contains(pageIndex) else { return }
+        guard hadiths.indices.contains(leadingIndex), pages.indices.contains(pageIndex),
+              hadiths.map(\.internalId) == pages[pageIndex].items.map(\.internalId) else { return }
         lastViewportMotionUptime = ProcessInfo.processInfo.systemUptime
         library?.noteReaderViewportMotion(at: lastViewportMotionUptime)
         let anchor = hadiths[leadingIndex]
@@ -1292,6 +1369,7 @@ final class ReaderModel {
         lastStableAnchor = anchor
         lastStableRawPageOffset = max(0, rawPageOffset)
         lastStableNormalizedOffset = clamped
+        rememberPosition(anchor: anchor, page: pages[pageIndex], normalizedOffset: clamped, atHeader: atHeader, viewport: viewport)
         let capturedAt = nextPositionUpdatedAt()
         if pendingScrollSave != nil { pendingScrollSave?.updatedAt = capturedAt }
         if lastCapturedAnchor == anchor.internalId,
@@ -1322,12 +1400,12 @@ final class ReaderModel {
         requestVerticalLanding(.header, volumeId: volumeId, page: page)
     }
 
-    /// R1/R2 targets are resolved only at an explicit entry boundary. A later
-    /// manual return to this page cannot resurrect the original position.
+    /// Explicit entry targets take priority over temporary recent-page positions.
     private func requestEntryLanding(for page: Int) {
         guard let volumeId = selectedVolumeId,
               pages.indices.contains(page)
         else { return }
+        recentPositions.removeAll { $0.volumeId == volumeId && $0.pageIndex == page }
         let items = pages[page].items
         if let position = restoredPosition,
            items.contains(where: { $0.providerHadithId == position.anchor.providerHadithId }) {

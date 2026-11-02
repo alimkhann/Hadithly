@@ -138,10 +138,24 @@ enum ReaderVerticalLanding: Equatable {
     case semantic(providerHadithId: String, normalizedOffset: Double)
 }
 
+struct ReaderViewportLayout: Equatable {
+    let projection: String
+    let width: Double
+    let height: Double
+    let texts: [String]
+}
+
+struct ReaderViewportSnapshot: Equatable {
+    let layout: ReaderViewportLayout
+    let offsetY: Double
+}
+
 struct ReaderVerticalLandingRequest: Equatable, Identifiable {
     let id: Int
     let page: ReaderVerticalLandingPage
     let landing: ReaderVerticalLanding
+    var viewport: ReaderViewportSnapshot? = nil
+    var sessionGeneration: Int? = nil
 }
 
 // MARK: - 2. Arabic-only narrator line + volume/chapter display titles
