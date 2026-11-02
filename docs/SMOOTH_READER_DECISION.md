@@ -256,5 +256,7 @@ The first [matched physical repetition](smooth-reader-verification/phase-bounded
 measures 1.34 ms/s with two 12.50 ms hitches, so matrix expansion stops. Storage,
 projection and progress persistence again have zero active-scroll overlap.
 The associated app updates take 15.09 and 17.13 ms; attribute that remaining
-delay before changing another variable. Wider behavior checks are running.
-The owner's exact checkpoint remains unchanged.
+delay before changing another variable. Eight further simulator behavior checks
+pass, including Saved return, large text/growth, manual landing/revisits and
+focus-position stability. The phone is now occupied; wait for owner availability
+before the next diagnostic. The owner's exact checkpoint remains unchanged.

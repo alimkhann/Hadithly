@@ -42,8 +42,14 @@ account/storage/layout/position safety tests and the two reader UI checks pass.
 The new build is installed. Its first matched large-type run measures 1.34 ms/s
 with two 12.50 ms hitches. Storage/projection/persistence again have zero
 active-scroll overlap. Matrix expansion stopped; attribute the associated
-15.09 and 17.13 ms app updates next. Wider behavior checks are running.
-Full final matrix, behavior and owner acceptance remain open.
+15.09 and 17.13 ms app updates next. Eight wider simulator behavior checks also
+pass, covering Saved return, large text/growth, manual landing/revisits,
+vertical-scroll ownership and focus stability. The iPhone is now occupied in
+another app and reports local-network transport; inspection was detached and an
+availability question is pending. Two subsequent diagnostic attachment attempts
+produced no usable capture. Continue physical work when the phone is free.
+Full final matrix, physical VoiceOver/live restoration and owner acceptance
+remain open. The implementation and measured evidence are committed as `a6c3035`.
 
 Keep large diagnostic exports serial. Earlier parallel exports exhausted disk;
 only their owned terminal-process scratch was removed. Preserve incoming iOS

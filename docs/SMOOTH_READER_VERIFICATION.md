@@ -1,6 +1,6 @@
 # Consistently smooth iPhone reader
 
-Status: Initial 18-run baseline complete; controlled repair experiment prepared. The owner approved this continuation on November 1,
+Status: Baseline complete; measured interruption repairs committed, strict final acceptance open. The owner approved this continuation on November 1,
 2026. The earlier bounded repair remains verified only against its recorded
 5 ms/s mean target in `SCROLLING_VERIFICATION.md`.
 
@@ -185,15 +185,6 @@ It preserves capture/restoration math and the single native scroll writer.
 Persistence remains on the main actor in this candidate. Full physical acceptance
 and a causal result are still open.
 
-## Remaining proof
-
-- Verify the selected geometry repair against the attributed update bottleneck.
-- Matched post-change runs and owner confirmation.
-- Continue/Saved restoration, manual header landing, translation growth,
-  VoiceOver, account/lifecycle safety, repeated visits and Android parity.
-- Goal commits and current handoff updates. Preserve the incoming five iOS
-  project/scheme/catalog files and existing Python cache; never push unrequested.
-
 ## Quiet-period persistence repair
 
 Two geometry experiments failed to improve large type and were removed. Their
@@ -212,3 +203,52 @@ the baseline's 32.89–52.94 range. Geometry peaks at 0.42 ms; progress saves fa
 from 42 to 14. See [the portable record](smooth-reader-verification/quiet-persistence-experiment.json).
 The strict target still fails. A separate CPU diagnostic will attribute remaining
 work; the full final matrix and owner confirmation remain open.
+
+## Shared quiet scheduling and current proof
+
+Combined frame/CPU attribution identifies library/storage work in 16 of 19
+late-frame preparation windows. Commit `a6c3035` defers normal reconciliation,
+read-snapshot hydration and projection until the reader is quiet. Native scroll
+phase keeps that gate closed while a finger is held, during interaction and
+deceleration. Geometry remains the iOS 17 fallback. The latest full snapshot per
+stream replaces older queued reads. Durable mutations and accepted receipts
+retain ordering, account/deletion fences, rollback and late-settlement behavior.
+The next local position timestamp can see an already received deferred position.
+Explicit final/background saves still flush through the existing ordered store.
+
+The geometry-only gate measures 2.23 ms/s. The first native-phase candidate
+measures 0.67 ms/s. The bounded-read/ordering candidate measures **1.34 ms/s**
+with two 12.50 ms hitches, so the strict target still fails and matrix expansion
+stops. Storage, projection and persistence have zero active-scroll overlap in
+both native-phase runs. They also do not overlap either associated 15.09 or
+17.13 ms app-update interval in the latest run. Attribution of that remaining
+UI delay is next; a renderer replacement is not yet justified.
+See [the exact result](smooth-reader-verification/phase-bounded-quiet-experiment.json)
+and [implementation decision](SMOOTH_READER_DECISION.md).
+
+All 171 safety tests, two full-bleed/reanchor UI checks and 13 capture checks pass.
+Eight further [simulator behavior cases](smooth-reader-verification/phase-bounded-behavior.json)
+pass, including large RTL/long-locale source clearance and growth, guest Saved
+return, text resizing, manual header/revisit landing, vertical no-page-turn,
+language/accessibility structure and focus-position stability. These do not
+replace physical VoiceOver or owner confirmation. The existing eight unchanged
+Android parity cases retain their recorded scope; no Android product code changed.
+
+The owner-requested exact rollback remains commit `2ad8243`, local tag
+`reader-smooth-owner-20261102` and the signed bundle/source archive documented in
+[SMOOTH_READER_CHECKPOINT.md](SMOOTH_READER_CHECKPOINT.md).
+
+The iPhone became occupied in another app after the valid wired capture and now
+reports local-network transport. Phone inspection was detached. Two subsequent
+diagnostic attachment attempts produced no usable capture. Wait for the owner's
+availability response before further physical actions; local checks are complete.
+
+## Remaining proof
+
+- Attribute the remaining 15–17 ms app updates before changing another variable.
+- Complete the matched final three-run matrix and inspect individual stalls.
+- Verify remaining live Continue/Saved restoration and physical VoiceOver,
+  then obtain fresh owner confirmation on the optimized installed build.
+- Preserve incoming iOS project/scheme/catalog and Python cache bytes, all
+  original program gates, A2 row mode off and deferred page-cache/priority-4 work.
+  Commit completed logical units without pushing.

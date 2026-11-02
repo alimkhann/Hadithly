@@ -33,8 +33,11 @@ tests were red then green; all 171 safety tests and the two reader UI checks
 pass. The optimized development app is installed. Its first matched large-type
 run measures 1.34 ms/s with two 12.50 ms hitches, so matrix expansion stopped.
 Storage/projection/persistence again have zero active-scroll overlap. Attribute
-the associated 15.09 and 17.13 ms app updates next. Wider behavior checks are
-running. Inspect existing outputs before rerunning. Full final gates remain.
+the associated 15.09 and 17.13 ms app updates next. Eight wider simulator behavior
+checks also pass, including Saved return, large text/growth, manual landing and
+revisits, vertical-scroll ownership and focus stability. The repair and evidence
+are committed as a6c3035. Inspect existing outputs before rerunning. Full final
+matrix, physical VoiceOver/live restoration and owner confirmation remain open.
 
 Raw root is /tmp/hadithly-smooth-reader-20261101. The latest build manifest is
 phase-aware-bounded-sync-build/build-manifest.json, binary SHA-256
@@ -45,9 +48,12 @@ retry a failing score to select a pass. Inspect and attribute it first. Native
 validation must cover every gesture, actual movement, frames, power/thermal
 conditions and CPU/memory. Shared presentation counts are not whole-app FPS.
 
-The phone is wired and authorized for optimized development installation,
-profiling and scrolling, with generation off. Never install unchanged production
-Release, reset data or sign in. Coordinate only if occupied or locked. Preserve
+The iPhone is now occupied in another app and reports local-network transport.
+Phone inspection was detached and an availability question is pending. Wait for
+the owner to say it is free before further physical actions. Two app-only
+diagnostic attachment attempts produced no usable capture. It remains authorized
+for optimized development installation, profiling and scrolling, with generation
+off. Never install unchanged production Release, reset data or sign in. Preserve
 the five incoming iOS files and six prior Python cache files, all original gates,
 A2 row mode off and completed Convex/A5/B/C/D work. Commit completed logical
 units and verification without pushing. Keep acceptance open until the repeated

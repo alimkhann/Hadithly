@@ -1,0 +1,55 @@
+{
+  "scope": "Fresh simulator behavior verification on the native phase-aware/bounded-snapshot reader repair. These are behavior checks, not physical frame timing or full spoken VoiceOver acceptance.",
+  "implementation_commit": "a6c3035",
+  "tests": [
+    {
+      "case": "ReaderPagingUITests/testR4LanguageThemeAndAccessibilityMatrix",
+      "seconds": 133.216,
+      "passed": true
+    },
+    {
+      "case": "ReaderPagingUITests/testVerticalScrollOnLongPageDoesNotTurnPage",
+      "seconds": 24.325,
+      "passed": true
+    },
+    {
+      "case": "ReaderR5UITests/testGoAtLargeTextInRTLAndLongLocales",
+      "seconds": 138.992,
+      "passed": true
+    },
+    {
+      "case": "ReaderR5UITests/testGuestSavingNoteUndoAndSavedReaderReturn",
+      "seconds": 37.347,
+      "passed": true
+    },
+    {
+      "case": "ReaderR5UITests/testTopControlsDoNotOverlapAtLargeText",
+      "seconds": 32.738,
+      "passed": true
+    },
+    {
+      "case": "ReaderR5UITests/testTranslationSizeChangesActualReaderText",
+      "seconds": 9.205,
+      "passed": true
+    },
+    {
+      "case": "ReaderR6AUITests/testP1VerticalLandingMatrix",
+      "seconds": 24.046,
+      "passed": true
+    },
+    {
+      "case": "VisualPolishUITests/testProductionFocusRetainsThinProgressAndTextPosition",
+      "seconds": 15.047,
+      "passed": true
+    }
+  ],
+  "count": 8,
+  "failures": 0,
+  "remaining": [
+    "Matched final three-run slow/fast matrix across ordinary, long bilingual and large text",
+    "Attribute remaining app-update stalls after storage/projection isolation",
+    "Final installed-build owner confirmation",
+    "Physical VoiceOver and remaining live restoration acceptance"
+  ],
+  "device_status": "iPhone became occupied in another app and transport changed to localNetwork after the valid wired run. Released phone inspection; waiting for owner availability before further device work. Two app-only diagnostic attachment attempts produced no usable capture."
+}
