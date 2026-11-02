@@ -1,0 +1,111 @@
+{
+  "candidate": "Native phase-aware quiet scheduling with bounded read snapshots and preserved position ordering",
+  "build": {
+    "configuration": "Debug with optimized Swift and C compilation",
+    "swiftOptimization": "-O",
+    "swiftCompilation": "wholemodule",
+    "bundleIdentifier": "com.hadithly.app",
+    "developmentURL": "https://festive-cobra-664.eu-west-1.convex.cloud",
+    "diagnosticsEnvironment": "development",
+    "appAttestEnvironment": "development",
+    "debuggerAttachAllowed": true,
+    "binarySHA256": "996d4856538009af8f9c02584307ec0cf0e35ee158bfbdc49edbd0508a4b5b05",
+    "iosTrackedSourceSHA256": "2e4ba83c4f3f97e3bf3269c15a2636bb1290d041751a5c2c3213a3176b1572a8",
+    "gitHead": "2ad8243a111c72e60a224085c5eb7d180ba5b91e",
+    "note": "Retains DEBUG compilation conditions and development entitlements. No app installation or project regeneration."
+  },
+  "workload": {
+    "automaticGenerationEnabled": false,
+    "collection": "bukhari",
+    "contentVersion": "cv1:2fa67689c3fda0749574b5d2a2790f36778377446bc9f14b3cff0585dab44330",
+    "hadiths": [
+      "7188",
+      "7189",
+      "7190",
+      "7191",
+      "7192"
+    ],
+    "lowPowerMode": false,
+    "maximumFramesPerSecond": 120,
+    "pageIndex": 26,
+    "pageKey": "pg1:8d20cc6ff8d418d358aa7ecddf5102625c43b74500113ff2630119c90a53a09b",
+    "preferences": {
+      "appTheme": "system",
+      "arabicFont": "amiri",
+      "arabicFontSize": 40,
+      "arabicVisible": true,
+      "readerTheme": "system",
+      "readingDirection": "auto",
+      "schemaVersion": 2,
+      "translationFontSize": 22,
+      "translationLocale": "en",
+      "translationVisible": true,
+      "uiLocale": "en",
+      "usesSeparateReaderTheme": false
+    },
+    "textBytes": 5266,
+    "textSHA256": "70602abc1b4796922a8fd8f426ec3d10b682b37c8ea6e53fbe47d41fa96c91a1",
+    "thermalState": 0,
+    "volume": "97",
+    "connectionTransport": "wired"
+  },
+  "summary": {
+    "runs": [
+      {
+        "run": 0,
+        "clock_seconds": 30.446913,
+        "active_scroll_seconds": 18.662368584,
+        "display_presentations": 1694,
+        "app_frame_updates": 1722,
+        "verified_scroll_gestures": 14,
+        "active_hitch_ms_per_second": 1.3398218927814527,
+        "app_hitch_events": 2,
+        "active_hitch_union_ms": 25.00425,
+        "max_app_hitch_ms": 12.502125,
+        "hitch_intervals_ns": [
+          [
+            13393728000.0,
+            13406230125.0
+          ],
+          [
+            30417427916.0,
+            30429930041.0
+          ]
+        ],
+        "operations": {
+          "ReaderAnchorGeometry": {
+            "count": 1740,
+            "max_ms": 0.506416,
+            "overlaps_hitch": 2,
+            "overlaps_active_scroll": 1740
+          },
+          "ScrollProgressPersistence": {
+            "count": 14,
+            "max_ms": 5.182083,
+            "overlaps_hitch": 0,
+            "overlaps_active_scroll": 0
+          },
+          "AccountPartitionWork": {
+            "count": 95,
+            "max_ms": 7.088084,
+            "overlaps_hitch": 0,
+            "overlaps_active_scroll": 0
+          },
+          "LibraryProjectionRefresh": {
+            "count": 120,
+            "max_ms": 0.843875,
+            "overlaps_hitch": 0,
+            "overlaps_active_scroll": 0
+          }
+        },
+        "observed_cpu_seconds": 11.474859333,
+        "resource_sample_window_seconds": 28.702028792,
+        "peak_sampled_footprint_mib": 163.5333480834961
+      }
+    ],
+    "worst_hitch_ms_per_second": 1.3398218927814527,
+    "note": "App-attributed hitch intervals intersect native scrolling, with overlaps merged. Presentation counts describe the shared phone display, not app FPS. CPU and footprint are sampled within each run.",
+    "budget_passed": false
+  },
+  "decision": "Retain interruption repair and stop matrix expansion. Two remaining 12.50 ms hitches have associated app updates of 15.09 and 17.13 ms. Storage/projection/persistence has zero active-scroll overlap. Attribute remaining app-update delay before another change. Full target and owner gates remain open."
+}

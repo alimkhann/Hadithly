@@ -158,7 +158,10 @@ struct ReaderView: View {
             showQuotaPaywall = false
         }
         .onChange(of: scenePhase) { _, phase in
-            if phase != .active { model?.saveCurrentProgress() }
+            if phase != .active {
+                model?.endViewportInteractions()
+                model?.saveCurrentProgress()
+            }
         }
         .sheet(isPresented: $showIndex, onDismiss: {
 #if DEBUG
@@ -1109,17 +1112,31 @@ private final class ReaderActiveScrollProfile {
     }
 }
 
-private struct ReaderScrollProfileModifier: ViewModifier {
+private struct ReaderScrollActivityModifier: ViewModifier {
+    @Environment(\.scenePhase) private var scenePhase
     @State private var profile: ReaderActiveScrollProfile?
+    let onActivityChanged: (Bool) -> Void
 
     @ViewBuilder
     func body(content: Content) -> some View {
-        if #available(iOS 18, *), ReaderScrollProfile.enabled {
+        if #available(iOS 18, *) {
             content.onScrollPhaseChange { _, phase in
+                onActivityChanged(phase != .idle)
                 profile?.setActive(phase == .interacting || phase == .decelerating)
             }
-            .onAppear { if profile == nil { profile = ReaderActiveScrollProfile() } }
-            .onDisappear { profile?.setActive(false) }
+            .onAppear {
+                if ReaderScrollProfile.enabled, profile == nil { profile = ReaderActiveScrollProfile() }
+            }
+            .onDisappear {
+                profile?.setActive(false)
+                onActivityChanged(false)
+            }
+            .onChange(of: scenePhase) { _, phase in
+                if phase != .active {
+                    profile?.setActive(false)
+                    onActivityChanged(false)
+                }
+            }
         } else {
             content
         }
@@ -1179,6 +1196,7 @@ struct ReaderPageView: View {
     var onScrollFraction: ((Double) -> Void)? = nil
 
     @State private var appliedLandingToken: Int?
+    @State private var viewportMotionID = UUID()
     @State private var liveAnchorFrames = ReaderLiveAnchorFrames()
     @State private var inspectedEntry = false
     @State private var chapterOpenings: Set<Int> = []
@@ -1446,7 +1464,10 @@ struct ReaderPageView: View {
                     handleFrames(liveAnchorFrames.value)
                 }
                 .onChange(of: verticalLanding?.id) { _, _ in handleFrames(liveAnchorFrames.value) }
-                .modifier(ReaderScrollProfileModifier())
+                .modifier(ReaderScrollActivityModifier(onActivityChanged: { active in
+                    guard !active || currentPageIndex == model.pageIndex else { return }
+                    model.setViewportActive(active, id: viewportMotionID)
+                }))
 
             }
         }

@@ -53,7 +53,7 @@ def signpost_intervals(path, complete_only=False):
     opened = {}; completed = []
     for row in rows(path):
         name = label(row['name']); process = label(row['process'])
-        if name not in ['ReaderMeasuredRun', 'ReaderActiveScroll', 'ReaderAnchorGeometry', 'ScrollProgressPersistence']:
+        if name not in ['ReaderMeasuredRun', 'ReaderActiveScroll', 'ReaderAnchorGeometry', 'ScrollProgressPersistence', 'AccountPartitionWork', 'LibraryProjectionRefresh']:
             continue
         subsystem = label(row['subsystem'])
         expected_subsystem = 'com.hadithly.reader.driver' if name == 'ReaderMeasuredRun' else 'com.hadithly.app.reader'
@@ -126,13 +126,14 @@ def summarize(signposts, hitches, presentations, activity, updates, gesture_coun
         if resources['observed_cpu_seconds'] < 0 or resources['peak_sampled_footprint_mib'] <= 0:
             raise ValueError('Invalid app resource counters')
         operations = {}
-        for name in ['ReaderAnchorGeometry', 'ScrollProgressPersistence']:
+        for name in ['ReaderAnchorGeometry', 'ScrollProgressPersistence', 'AccountPartitionWork', 'LibraryProjectionRefresh']:
             spans = [(start, end) for process, event, start, end in intervals
                      if process == app_process and event == name
                      and start < bounds[1] and end > bounds[0]]
             durations = [(end - start) / 1e6 for start, end in spans]
             operations[name] = {'count': len(spans), 'max_ms': max(durations, default=0),
-                                'overlaps_hitch': sum(bool(intersection([span], relevant)) for span in spans)}
+                                'overlaps_hitch': sum(bool(intersection([span], relevant)) for span in spans),
+                                'overlaps_active_scroll': sum(bool(intersection([span], scrolling)) for span in spans)}
         result.append({
             'run': index, 'clock_seconds': (bounds[1] - bounds[0]) / 1e9,
             'active_scroll_seconds': seconds, 'display_presentations': len(frames),

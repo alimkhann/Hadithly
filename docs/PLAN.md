@@ -4,58 +4,53 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-## Current checkpoint: owner reports improvement and requests exact rollback, November 2
+## Current checkpoint: native scroll phase isolates sync work, November 2
 
-The owner approved implementing the stricter smooth-reader plan after the
-bounded repair below. Goal 1 baseline and decision are complete: optimized development builds, three
-30-second repetitions per workload, native hitch/frame attribution and a
-renderer decision before product changes. The new target is below 1 ms/s in
-every retained warm run plus owner confirmation. Follow
-[SMOOTH_READER_VERIFICATION.md](SMOOTH_READER_VERIFICATION.md).
+The owner-approved smooth-reader goal remains active. Goal 1 baseline and
+architecture decision are complete. Require strictly below 1 ms/s in every
+retained warm run, the full behavior checks and fresh owner confirmation on the
+optimized installed build. Page-transition caching and priority 4 remain later
+separate goals. See [SMOOTH_READER_VERIFICATION.md](SMOOTH_READER_VERIFICATION.md)
+and [SMOOTH_READER_DECISION.md](SMOOTH_READER_DECISION.md).
 
-The initial 18-run physical matrix is complete and every condition fails the
-1 ms/s target. Ordinary slow runs are 24.33–27.59 ms/s, long bilingual slow
-10.34–11.35, and large-type slow 32.89–52.94. Frame evidence covers every driven
-gesture. The controlled ordinary cohort at nominal temperature and a known header entry
-is also complete: slow 14.92–20.99 ms/s, fast 12.12–27.44. CPU/frame evidence
-attributes delays to app-update work, with SwiftUI graph and library storage hot
-paths. Sajda's scrolling, full-bleed pills and tap-to-hide controls were inspected;
-its private implementation and FPS are not claimed.
+Preserve the exact app the owner reports feels much better. Commit `2ad8243`,
+local tag `reader-smooth-owner-20261102` and
+[SMOOTH_READER_CHECKPOINT.md](SMOOTH_READER_CHECKPOINT.md) provide rollback without
+resetting app data or the worktree. The signed app, dSYMs and full tracked iOS
+source snapshot are archived outside /tmp. Its measured 8.94 ms/s does not close
+the stricter gate.
 
-[SMOOTH_READER_DECISION.md](SMOOTH_READER_DECISION.md) records two falsified
-geometry experiments. A non-observed dictionary measured 35.61 ms/s and bounded
-viewport tracking 35.13 on large type, within baseline variation; both were
-removed. Goal 2 now tests quiet-period persistence. Capture retains the latest
-semantic position cheaply and waits for 500 ms without viewport motion before
-running the existing ordered writer. Explicit final/lifecycle saves and account
-fences remain. This is idle deferral, not background execution.
+The initial 18-run baseline and the nominal-temperature ordinary replacement
+cohort all fail. Quiet progress persistence (`7774dcd`) improves the matched
+large-type run from 32.89–52.94 to 8.04 ms/s. Committed decoded reuse (`b9d8604`)
+reduces 20 real post-write reads from 177.53 to 20.21 ms, without a demonstrated
+hitch benefit. Isolated geometry changes do not establish a reduction; the
+owner checkpoint retains the installed bounded variant at the owner's request.
 
-The new real-path regression reproduced writes during continuous motion before
-the repair. The optimized installed candidate passes 161 iOS safety and two UI checks. Its
-first matched large-type run improves to 8.04 ms/s with 11 remaining hitches,
-still above the target. Geometry callbacks now peak at 0.42 ms and saves fall
-from 42 to 14. Retain this measured repair. Post-commit decoded reuse reduces 20 real reads
-from 177.53 to 20.21 ms and passes all 161 safety tests, but its first physical
-run remains 9.59 ms/s. A successful SwiftUI trace now implicates the scroll-state
-preference path, including a 7.24 ms update. Retest bounded viewport tracking
-with quiet-period persistence before expanding the full matrix. Owner acceptance remains open. Preparation also has
-eight unchanged-Android parity and twelve capture checks. Preserve incoming files, all original gates, A2 row mode off,
-and deferred page-cache/priority-4 work. Commit completed units without pushing.
+Combined frame-lifetime/CPU attribution identifies library/storage work in
+16 of 19 late-frame preparation windows. Shared geometry-based quiet scheduling
+measures 2.23 ms/s. Adding native scroll-phase activity through held-finger
+tracking, interaction and deceleration measures **0.67 ms/s** in the first valid
+large-type slow run. Storage, library projection and progress-save intervals
+have zero overlap with active scrolling. One disconnected capture was rejected.
+The renderer remains SwiftUI; no text renderer rewrite is justified by this data.
 
-The owner now reports that the current installed build feels much better and
-requests a checkpoint before further work. Preserve
-[SMOOTH_READER_CHECKPOINT.md](SMOOTH_READER_CHECKPOINT.md) and local tag
-`reader-smooth-owner-20261102`. Its exact signed app and matching complete iOS
-source snapshot are archived outside /tmp. It includes bounded tracking because
-that is what was installed when the owner reported improvement; the isolated
-tracking tests still do not show a hitch reduction. Its measured 8.94 ms/s fails
-the strict target. Continue attribution and verification; do not close the goal.
+The next optimized development candidate also coalesces authoritative read
+snapshots to the newest per stream and preserves the received position clock
+before deferred hydration. Two real-path tests were red then green. All 171
+account/storage/layout/position safety tests and the two reader UI checks pass.
+The new build is installed. Its first matched large-type run measures 1.34 ms/s
+with two 12.50 ms hitches. Storage/projection/persistence again have zero
+active-scroll overlap. Matrix expansion stopped; attribute the associated
+15.09 and 17.13 ms app updates next. Wider behavior checks are running.
+Full final matrix, behavior and owner acceptance remain open.
 
-Animation Hitches plus app-only Time Profiler captured the full workload.
-Parallel exports expanded scratch data and exhausted local disk; only the owned
-export scratch was removed, recovering about 17 GiB. The recorded trace remains.
-Export this large diagnostic once at a time, preferably multiple selected tables
-in one export. Attribute remaining stalls before further architecture changes.
+Keep large diagnostic exports serial. Earlier parallel exports exhausted disk;
+only their owned terminal-process scratch was removed. Preserve incoming iOS
+project/scheme/catalog and Python cache bytes, all original G01–G41 gates,
+A1/A3/A4 acceptance, A7/G38 deferral, E actual Linear/final audit, A2 row mode off,
+completed Convex/A5/B/C/D work and deferred page-cache/priority-4 scope. Commit
+completed logical units and evidence without pushing.
 
 ## Prior checkpoint: bounded reader scrolling goal verified, November 1
 

@@ -1,0 +1,108 @@
+{
+  "candidate": "Native scroll-phase-aware quiet period for synchronization, library hydration and progress persistence",
+  "build": {
+    "configuration": "Debug with optimized Swift and C compilation",
+    "swiftOptimization": "-O",
+    "swiftCompilation": "wholemodule",
+    "bundleIdentifier": "com.hadithly.app",
+    "developmentURL": "https://festive-cobra-664.eu-west-1.convex.cloud",
+    "diagnosticsEnvironment": "development",
+    "appAttestEnvironment": "development",
+    "debuggerAttachAllowed": true,
+    "binarySHA256": "8167782dd3980f31f362d9ae1347af571b20fdad00945cc474f471b6953f6d95",
+    "iosTrackedSourceSHA256": "532c68377245615a051d56202be802866282e29c8b37c323120ebcc26746bca5",
+    "gitHead": "2ad8243a111c72e60a224085c5eb7d180ba5b91e",
+    "note": "Retains DEBUG compilation conditions and development entitlements. No app installation or project regeneration."
+  },
+  "workload": {
+    "automaticGenerationEnabled": false,
+    "collection": "bukhari",
+    "contentVersion": "cv1:2fa67689c3fda0749574b5d2a2790f36778377446bc9f14b3cff0585dab44330",
+    "hadiths": [
+      "7188",
+      "7189",
+      "7190",
+      "7191",
+      "7192"
+    ],
+    "lowPowerMode": false,
+    "maximumFramesPerSecond": 120,
+    "pageIndex": 26,
+    "pageKey": "pg1:8d20cc6ff8d418d358aa7ecddf5102625c43b74500113ff2630119c90a53a09b",
+    "preferences": {
+      "appTheme": "system",
+      "arabicFont": "amiri",
+      "arabicFontSize": 40,
+      "arabicVisible": true,
+      "readerTheme": "system",
+      "readingDirection": "auto",
+      "schemaVersion": 2,
+      "translationFontSize": 22,
+      "translationLocale": "en",
+      "translationVisible": true,
+      "uiLocale": "en",
+      "usesSeparateReaderTheme": false
+    },
+    "textBytes": 5266,
+    "textSHA256": "70602abc1b4796922a8fd8f426ec3d10b682b37c8ea6e53fbe47d41fa96c91a1",
+    "thermalState": 0,
+    "volume": "97",
+    "connectionTransport": "wired"
+  },
+  "summary": {
+    "runs": [
+      {
+        "run": 0,
+        "clock_seconds": 30.999838875,
+        "active_scroll_seconds": 18.654284167,
+        "display_presentations": 1689,
+        "app_frame_updates": 1715,
+        "verified_scroll_gestures": 14,
+        "active_hitch_ms_per_second": 0.6702012732344156,
+        "app_hitch_events": 1,
+        "active_hitch_union_ms": 12.502125,
+        "max_app_hitch_ms": 12.502125,
+        "hitch_intervals_ns": [
+          [
+            35348517541.0,
+            35361019666.0
+          ]
+        ],
+        "operations": {
+          "ReaderAnchorGeometry": {
+            "count": 1732,
+            "max_ms": 0.444416,
+            "overlaps_hitch": 1,
+            "overlaps_active_scroll": 1732
+          },
+          "ScrollProgressPersistence": {
+            "count": 14,
+            "max_ms": 3.057541,
+            "overlaps_hitch": 0,
+            "overlaps_active_scroll": 0
+          },
+          "AccountPartitionWork": {
+            "count": 113,
+            "max_ms": 11.786125,
+            "overlaps_hitch": 0,
+            "overlaps_active_scroll": 0
+          },
+          "LibraryProjectionRefresh": {
+            "count": 139,
+            "max_ms": 1.813,
+            "overlaps_hitch": 0,
+            "overlaps_active_scroll": 0
+          }
+        },
+        "observed_cpu_seconds": 12.029671541,
+        "resource_sample_window_seconds": 29.79716375,
+        "peak_sampled_footprint_mib": 182.06464385986328
+      }
+    ],
+    "worst_hitch_ms_per_second": 0.6702012732344156,
+    "note": "App-attributed hitch intervals intersect native scrolling, with overlaps merged. Presentation counts describe the shared phone display, not app FPS. CPU and footprint are sampled within each run.",
+    "budget_passed": true
+  },
+  "scope": "One matched optimized physical large-type slow run. Full repeated matrix, final snapshot-safety changes, behavior and owner acceptance remain open.",
+  "rejected_capture": "First attempt lost its Instruments device connection. No frame result was accepted from it."
+}

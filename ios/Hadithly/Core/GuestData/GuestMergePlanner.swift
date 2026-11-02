@@ -998,6 +998,44 @@ struct LibrarySyncTransport {
 }
 
 @MainActor
+final class ReaderMotionGate {
+    private var lastMotionUptime = -Double.infinity
+    private var activeViewports: Set<UUID> = []
+
+    var isQuiet: Bool { remainingDelay <= 0 }
+
+    private var remainingDelay: Double {
+        activeViewports.isEmpty ? lastMotionUptime + 0.5 - ProcessInfo.processInfo.systemUptime : 0.5
+    }
+
+    func setActive(_ active: Bool, id: UUID) {
+        if active {
+            activeViewports.insert(id)
+        } else if activeViewports.remove(id) != nil {
+            noteMotion(at: ProcessInfo.processInfo.systemUptime)
+        }
+    }
+
+    func reset() {
+        activeViewports.removeAll()
+        lastMotionUptime = -Double.infinity
+    }
+
+    func noteMotion(at uptime: Double) {
+        lastMotionUptime = uptime
+    }
+
+    func waitForQuiet() async throws {
+        while true {
+            try Task.checkCancellation()
+            let delay = remainingDelay
+            guard delay > 0 else { return }
+            try await Task.sleep(for: .seconds(delay))
+        }
+    }
+}
+
+@MainActor
 @Observable
 final class LibrarySync {
     enum Status: Equatable { case idle, syncing, waitingForSaved, ready(recovered: Int), failed }
@@ -1005,6 +1043,7 @@ final class LibrarySync {
     private(set) var status = Status.idle
     var onOwnerChange: (LibrarySyncOwner?) -> Void = { _ in }
     var onPartitionChange: (LibrarySyncOwner) -> Void = { _ in }
+    let readerMotion = ReaderMotionGate()
     private let store: GuestDataStore
     private let transport: LibrarySyncTransport
     private let currentSession: () -> LibrarySyncSession?
@@ -1045,6 +1084,7 @@ final class LibrarySync {
     }
 
     func deactivate() {
+        readerMotion.reset()
         generation = UUID()
         worker?.cancel()
         retryTask?.cancel()
@@ -1241,9 +1281,12 @@ final class LibrarySync {
     private func run(_ session: LibrarySyncSession, epoch: UUID) async {
         do {
             try check(session, epoch: epoch)
+            if owner != nil { try await readerMotion.waitForQuiet() }
+            try check(session, epoch: epoch)
             guard try store.deletionPhase(subject: session.subject, namespace: transport.namespace) == nil else { throw LibrarySyncFailure.accountDeleting }
             if binding == nil || (binding?.validUntil ?? 0) <= now() + 1_000 {
                 let opened = try await transport.open()
+                if owner != nil { try await readerMotion.waitForQuiet() }
                 try check(session, epoch: epoch)
                 guard opened.subject == session.subject, opened.validUntil.isFinite, opened.validUntil > now() else { throw LibrarySyncFailure.ownerMismatch }
                 binding = opened
@@ -1256,12 +1299,18 @@ final class LibrarySync {
             guard let binding, let owner else { throw LibrarySyncFailure.ownerMismatch }
             for _ in 0..<8 {
                 try check(session, epoch: epoch)
+                try await readerMotion.waitForQuiet()
+                try check(session, epoch: epoch)
                 try store.claimGuestForSync(owner)
                 onPartitionChange(owner)
                 if let collection = try store.syncPartition(owner)?.collectingOutcome {
                     let checkpoint = try await store.collectOutcomeStep(collection.committed, owner: owner, isCurrent: {
                         (try? self.check(session, epoch: epoch)) != nil
-                    }, fetch: { request in try await self.transport.outcomePage(binding.capability, request) })
+                    }, fetch: { request in
+                        let page = try await self.transport.outcomePage(binding.capability, request)
+                        try await self.readerMotion.waitForQuiet()
+                        return page
+                    })
                     try check(session, epoch: epoch)
                     switch checkpoint.status {
                     case .collecting, .verifying: continue
@@ -1277,6 +1326,7 @@ final class LibrarySync {
                 }
                 if let waiting = try store.syncPartition(owner)?.pollRequest() {
                     let reply = try await transport.poll(binding.capability, waiting)
+                    await waitBeforeReceiptSettlement()
                     try store.settleSyncPending(reply, requested: waiting, owner: owner, now: now())
                     onPartitionChange(owner)
                     try check(session, epoch: epoch)
@@ -1288,6 +1338,7 @@ final class LibrarySync {
                 }
                 if let acknowledgement = try store.syncPartition(owner)?.acknowledgement {
                     let reply = try await transport.acknowledge(binding.capability, acknowledgement)
+                    await waitBeforeReceiptSettlement()
                     try store.settleSyncAcknowledgement(reply, requested: acknowledgement, owner: owner, now: now())
                     onPartitionChange(owner)
                     try check(session, epoch: epoch)
@@ -1299,6 +1350,8 @@ final class LibrarySync {
                     if state?.pending.isEmpty == false { continue }
                     var moreCleanup = false
                     for _ in 0..<4 {
+                        try check(session, epoch: epoch)
+                        try await readerMotion.waitForQuiet()
                         try check(session, epoch: epoch)
                         moreCleanup = try store.pruneOutcomeSuccessStep(owner, now: now())
                         if !moreCleanup { break }
@@ -1313,12 +1366,14 @@ final class LibrarySync {
                 guard let frozen = try store.syncPartition(owner)?.frozen else { throw LibrarySyncFailure.sessionChanged }
                 if !LibrarySyncAdmission.accepts(frozen, now: now()) {
                     let reply = try await transport.retireInvalid(binding.capability, frame)
+                    await waitBeforeReceiptSettlement()
                     try store.settleSyncRetirement(reply, requested: frame, owner: owner)
                     onPartitionChange(owner)
                     try check(session, epoch: epoch)
                     continue
                 }
                 let reply = try await transport.send(binding.capability, frame)
+                await waitBeforeReceiptSettlement()
                 // A late A receipt can settle only A's still-existing partition.
                 try store.settleSyncExchange(reply, requested: frame, owner: owner, now: now())
                 onPartitionChange(owner)
@@ -1344,6 +1399,11 @@ final class LibrarySync {
             schedule(session, epoch: epoch, after: retryDelay)
             retryDelay = min(30, retryDelay * 2)
         }
+    }
+
+    private func waitBeforeReceiptSettlement() async {
+        // Cancellation must not drop a late receipt for the captured owner's existing partition.
+        try? await readerMotion.waitForQuiet()
     }
 
     private func schedule(_ session: LibrarySyncSession, epoch: UUID, after seconds: Double) {

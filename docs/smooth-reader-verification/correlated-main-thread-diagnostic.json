@@ -1,0 +1,973 @@
+{
+  "acceptance_capture": false,
+  "reason": "Simultaneous Animation Hitches and Time Profiler diagnostic; installed owner-checkpoint binary, tracing overhead not an acceptance score",
+  "main_samples": 13738,
+  "main_state_labels": {
+    "Blocked": 12626,
+    "Runnable": 12572,
+    "Running": 57777,
+    "Interrupted": 37967,
+    "Preempted": 7182
+  },
+  "hitch_frames": [
+    {
+      "hitch_start_s": 8.296880416,
+      "hitch_ms": 12.502125,
+      "frame_begin_s": 8.26770125,
+      "commit_end_s": 8.286015957,
+      "preparation_ms": 18.314707,
+      "frame_lifetime_end_difference_ms": 0.0,
+      "main_state_ms": {
+        "Blocked": 11.086331,
+        "Runnable": 0.09500100000000002,
+        "Running": 6.218833,
+        "Interrupted": 0.18099900000000005,
+        "Preempted": 0.733543
+      },
+      "sampled_main_ms": 7.0,
+      "stack_group_ms": {
+        "other": 6.0,
+        "paging": 1.0
+      },
+      "app_functions": [
+        [
+          "specialized ReaderPagingPolicy.init(preferences:)",
+          1.0
+        ],
+        [
+          "partial apply for closure #3 in closure #5 in ReaderView.readingView(_:)",
+          1.0
+        ],
+        [
+          "@objc ReaderPagingPanHandler.handlePan(_:)",
+          1.0
+        ],
+        [
+          "ReaderPagingPanHandler.handle(state:translation:velocity:)",
+          1.0
+        ],
+        [
+          "ReaderView.dragProgress(_:offset:)",
+          1.0
+        ]
+      ]
+    },
+    {
+      "hitch_start_s": 8.60943325,
+      "hitch_ms": 16.6695,
+      "frame_begin_s": 8.584430416,
+      "commit_end_s": 8.609473999,
+      "preparation_ms": 25.043583,
+      "frame_lifetime_end_difference_ms": 1e-06,
+      "main_state_ms": {
+        "Running": 22.227624000000002,
+        "Interrupted": 0.21520899999999987,
+        "Blocked": 2.013998,
+        "Runnable": 0.065335,
+        "Preempted": 0.521417
+      },
+      "sampled_main_ms": 22.0,
+      "stack_group_ms": {
+        "library_storage": 20.0,
+        "other": 2.0
+      },
+      "app_functions": [
+        [
+          "LibrarySync.run(_:epoch:)",
+          11.0
+        ],
+        [
+          "specialized GuestDataStore.withAccount<A>(_:_:)",
+          10.0
+        ],
+        [
+          "specialized GuestDataStore.savedObservation(_:state:in:)",
+          7.0
+        ],
+        [
+          "GuestDataStore.libraryProjection(_:)",
+          6.0
+        ],
+        [
+          "UserLibraryModel.reloadAccount(_:)",
+          6.0
+        ],
+        [
+          "closure #2 in UserLibraryModel.subscribeAll(owner:session:epoch:)",
+          5.0
+        ],
+        [
+          "specialized GuestDataStore.currentSavedScope(_:in:)",
+          4.0
+        ],
+        [
+          "specialized GuestDataStore.assertOutcomeOwnerActive(_:in:)",
+          4.0
+        ]
+      ]
+    },
+    {
+      "hitch_start_s": 8.788629916,
+      "hitch_ms": 12.502125,
+      "frame_begin_s": 8.759459916,
+      "commit_end_s": 8.778286875,
+      "preparation_ms": 18.826959,
+      "frame_lifetime_end_difference_ms": 0.0,
+      "main_state_ms": {
+        "Running": 16.471669999999996,
+        "Interrupted": 0.220958,
+        "Preempted": 1.018623,
+        "Blocked": 1.048624,
+        "Runnable": 0.067084
+      },
+      "sampled_main_ms": 17.0,
+      "stack_group_ms": {
+        "library_storage": 15.0,
+        "other": 2.0
+      },
+      "app_functions": [
+        [
+          "LibrarySync.run(_:epoch:)",
+          15.0
+        ],
+        [
+          "specialized GuestDataStore.partitionRow(_:in:)",
+          5.0
+        ],
+        [
+          "GuestDataStore.syncPartition(_:in:)",
+          5.0
+        ],
+        [
+          "GuestDataStore.libraryProjection(_:)",
+          4.0
+        ],
+        [
+          "closure #14 in AppEnvironment.init(config:guestData:)",
+          4.0
+        ],
+        [
+          "UserLibraryModel.reloadAccount(_:)",
+          4.0
+        ],
+        [
+          "UserLibraryModel.partitionChanged(_:)",
+          4.0
+        ],
+        [
+          "specialized GuestDataStore.assertOutcomeOwnerActive(_:in:)",
+          3.0
+        ]
+      ]
+    },
+    {
+      "hitch_start_s": 10.622272041,
+      "hitch_ms": 12.502125,
+      "frame_begin_s": 10.593092208,
+      "commit_end_s": 10.610601249,
+      "preparation_ms": 17.509041,
+      "frame_lifetime_end_difference_ms": 0.0,
+      "main_state_ms": {
+        "Running": 16.284125999999993,
+        "Interrupted": 0.141582,
+        "Preempted": 0.044833,
+        "Blocked": 0.9833330000000001,
+        "Runnable": 0.05516700000000001
+      },
+      "sampled_main_ms": 18.0,
+      "stack_group_ms": {
+        "library_storage": 16.0,
+        "other": 2.0
+      },
+      "app_functions": [
+        [
+          "LibrarySync.run(_:epoch:)",
+          10.0
+        ],
+        [
+          "specialized GuestDataStore.withAccount<A>(_:_:)",
+          8.0
+        ],
+        [
+          "GuestDataStore.libraryProjection(_:)",
+          5.0
+        ],
+        [
+          "UserLibraryModel.reloadAccount(_:)",
+          5.0
+        ],
+        [
+          "specialized GuestDataStore.savedObservation(_:state:in:)",
+          4.0
+        ],
+        [
+          "specialized GuestDataStore.partitionRow(_:in:)",
+          4.0
+        ],
+        [
+          "closure #4 in UserLibraryModel.subscribeAll(owner:session:epoch:)",
+          4.0
+        ],
+        [
+          "specialized GuestDataStore.currentSavedScope(_:in:)",
+          3.0
+        ]
+      ]
+    },
+    {
+      "hitch_start_s": 10.793134291,
+      "hitch_ms": 16.6695,
+      "frame_begin_s": 10.772298666,
+      "commit_end_s": 10.788957207,
+      "preparation_ms": 16.658541,
+      "frame_lifetime_end_difference_ms": 0.0,
+      "main_state_ms": {
+        "Blocked": 0.908709,
+        "Runnable": 0.07087600000000001,
+        "Running": 15.111583,
+        "Interrupted": 0.15470699999999998,
+        "Preempted": 0.412666
+      },
+      "sampled_main_ms": 16.0,
+      "stack_group_ms": {
+        "library_storage": 14.0,
+        "other": 2.0
+      },
+      "app_functions": [
+        [
+          "LibrarySync.run(_:epoch:)",
+          14.0
+        ],
+        [
+          "GuestDataStore.libraryProjection(_:)",
+          4.0
+        ],
+        [
+          "closure #14 in AppEnvironment.init(config:guestData:)",
+          4.0
+        ],
+        [
+          "UserLibraryModel.reloadAccount(_:)",
+          4.0
+        ],
+        [
+          "UserLibraryModel.partitionChanged(_:)",
+          4.0
+        ],
+        [
+          "specialized GuestDataStore.savedObservation(_:state:in:)",
+          3.0
+        ],
+        [
+          "specialized GuestDataStore.assertOutcomeOwnerActive(_:in:)",
+          3.0
+        ],
+        [
+          "GuestDataStore.claimGuestForSync(_:)",
+          3.0
+        ]
+      ]
+    },
+    {
+      "hitch_start_s": 10.818138541,
+      "hitch_ms": 8.33475,
+      "frame_begin_s": 10.793134208,
+      "commit_end_s": 10.801010832,
+      "preparation_ms": 7.876624,
+      "frame_lifetime_end_difference_ms": 0.0,
+      "main_state_ms": {
+        "Running": 7.830502000000001,
+        "Interrupted": 0.04612200000000001
+      },
+      "sampled_main_ms": 7.0,
+      "stack_group_ms": {
+        "other": 1.0,
+        "library_storage": 6.0
+      },
+      "app_functions": [
+        [
+          "LibrarySync.run(_:epoch:)",
+          6.0
+        ],
+        [
+          "GuestDataStore.libraryProjection(_:)",
+          2.0
+        ],
+        [
+          "closure #14 in AppEnvironment.init(config:guestData:)",
+          2.0
+        ],
+        [
+          "UserLibraryModel.reloadAccount(_:)",
+          2.0
+        ],
+        [
+          "UserLibraryModel.partitionChanged(_:)",
+          2.0
+        ],
+        [
+          "GuestDataStore.claimGuestForSync(_:)",
+          1.0
+        ],
+        [
+          "specialized GuestDataStore.partitionRow(_:in:)",
+          1.0
+        ],
+        [
+          "GuestDataStore.syncPartition(_:in:)",
+          1.0
+        ]
+      ]
+    },
+    {
+      "hitch_start_s": 12.851814416,
+      "hitch_ms": 12.502125,
+      "frame_begin_s": 12.822634916,
+      "commit_end_s": 12.841556916,
+      "preparation_ms": 18.922,
+      "frame_lifetime_end_difference_ms": 0.0,
+      "main_state_ms": {
+        "Blocked": 1.810584,
+        "Runnable": 0.084792,
+        "Running": 15.760709,
+        "Interrupted": 0.23537199999999991,
+        "Preempted": 1.030543
+      },
+      "sampled_main_ms": 17.0,
+      "stack_group_ms": {
+        "library_storage": 16.0,
+        "other": 1.0
+      },
+      "app_functions": [
+        [
+          "LibrarySync.run(_:epoch:)",
+          16.0
+        ],
+        [
+          "specialized GuestDataStore.withAccount<A>(_:_:)",
+          10.0
+        ],
+        [
+          "specialized GuestDataStore.assertOutcomeOwnerActive(_:in:)",
+          5.0
+        ],
+        [
+          "specialized GuestDataStore.deletionRow(subject:namespace:in:)",
+          3.0
+        ],
+        [
+          "specialized GuestDataStore.partitionRow(_:in:)",
+          3.0
+        ],
+        [
+          "specialized GuestDataStore.savedObservation(_:state:in:)",
+          3.0
+        ],
+        [
+          "GuestDataStore.syncPartition(_:in:)",
+          2.0
+        ],
+        [
+          "GuestDataStore.libraryProjection(_:)",
+          2.0
+        ]
+      ]
+    },
+    {
+      "hitch_start_s": 15.298059416,
+      "hitch_ms": 12.502125,
+      "frame_begin_s": 15.268876875,
+      "commit_end_s": 15.287280291,
+      "preparation_ms": 18.403416,
+      "frame_lifetime_end_difference_ms": 0.0,
+      "main_state_ms": {
+        "Blocked": 11.315124,
+        "Runnable": 0.07708300000000001,
+        "Running": 6.0773329999999985,
+        "Interrupted": 0.12579200000000001,
+        "Preempted": 0.8080839999999998
+      },
+      "sampled_main_ms": 6.0,
+      "stack_group_ms": {
+        "other": 5.0,
+        "viewport_tracking": 1.0
+      },
+      "app_functions": [
+        [
+          "closure #2 in closure #1 in closure #1 in ReaderPageView.body.getter",
+          1.0
+        ],
+        [
+          "closure #1 in closure #1 in closure #1 in ReaderPageView.body.getter",
+          1.0
+        ],
+        [
+          "partial apply for closure #2 in ReaderViewportTracking.body(content:)",
+          1.0
+        ]
+      ]
+    },
+    {
+      "hitch_start_s": 17.669292208,
+      "hitch_ms": 12.502125,
+      "frame_begin_s": 17.640122,
+      "commit_end_s": 17.660258124,
+      "preparation_ms": 20.136124,
+      "frame_lifetime_end_difference_ms": 0.0,
+      "main_state_ms": {
+        "Running": 15.550789999999996,
+        "Blocked": 2.334708,
+        "Interrupted": 0.1543739999999999,
+        "Runnable": 1.236584,
+        "Preempted": 0.8596679999999999
+      },
+      "sampled_main_ms": 16.0,
+      "stack_group_ms": {
+        "library_storage": 15.0,
+        "other": 1.0
+      },
+      "app_functions": [
+        [
+          "LibrarySync.run(_:epoch:)",
+          15.0
+        ],
+        [
+          "GuestDataStore.libraryProjection(_:)",
+          5.0
+        ],
+        [
+          "closure #14 in AppEnvironment.init(config:guestData:)",
+          5.0
+        ],
+        [
+          "UserLibraryModel.reloadAccount(_:)",
+          5.0
+        ],
+        [
+          "UserLibraryModel.partitionChanged(_:)",
+          5.0
+        ],
+        [
+          "GuestDataStore.claimGuestForSync(_:)",
+          4.0
+        ],
+        [
+          "specialized GuestDataStore.partitionRow(_:in:)",
+          3.0
+        ],
+        [
+          "specialized GuestDataStore.savedObservation(_:state:in:)",
+          3.0
+        ]
+      ]
+    },
+    {
+      "hitch_start_s": 22.161715458,
+      "hitch_ms": 8.334666,
+      "frame_begin_s": 22.136710791,
+      "commit_end_s": 22.151759708,
+      "preparation_ms": 15.048917,
+      "frame_lifetime_end_difference_ms": 0.0,
+      "main_state_ms": {
+        "Running": 13.323044,
+        "Interrupted": 0.15478999999999993,
+        "Preempted": 0.6446660000000001,
+        "Blocked": 0.839917,
+        "Runnable": 0.08650000000000001
+      },
+      "sampled_main_ms": 12.0,
+      "stack_group_ms": {
+        "library_storage": 11.0,
+        "viewport_tracking": 1.0
+      },
+      "app_functions": [
+        [
+          "LibrarySync.run(_:epoch:)",
+          11.0
+        ],
+        [
+          "GuestDataStore.libraryProjection(_:)",
+          4.0
+        ],
+        [
+          "closure #14 in AppEnvironment.init(config:guestData:)",
+          4.0
+        ],
+        [
+          "UserLibraryModel.reloadAccount(_:)",
+          4.0
+        ],
+        [
+          "UserLibraryModel.partitionChanged(_:)",
+          4.0
+        ],
+        [
+          "specialized GuestDataStore.currentSavedScope(_:in:)",
+          3.0
+        ],
+        [
+          "specialized GuestDataStore.deletionRow(subject:namespace:in:)",
+          2.0
+        ],
+        [
+          "specialized GuestDataStore.savedAssembly(_:in:)",
+          2.0
+        ]
+      ]
+    },
+    {
+      "hitch_start_s": 22.174217458,
+      "hitch_ms": 16.6695,
+      "frame_begin_s": 22.153382041,
+      "commit_end_s": 22.173528791,
+      "preparation_ms": 20.14675,
+      "frame_lifetime_end_difference_ms": 1e-06,
+      "main_state_ms": {
+        "Running": 10.505791,
+        "Interrupted": 0.012709000000000002,
+        "Runnable": 0.05808400000000001,
+        "Blocked": 9.570166
+      },
+      "sampled_main_ms": 11.0,
+      "stack_group_ms": {
+        "library_storage": 8.0,
+        "other": 2.0,
+        "paging": 1.0
+      },
+      "app_functions": [
+        [
+          "LibrarySync.run(_:epoch:)",
+          6.0
+        ],
+        [
+          "specialized GuestDataStore.assertOutcomeOwnerActive(_:in:)",
+          4.0
+        ],
+        [
+          "specialized GuestDataStore.withAccount<A>(_:_:)",
+          3.0
+        ],
+        [
+          "specialized GuestDataStore.deletionRow(subject:namespace:in:)",
+          3.0
+        ],
+        [
+          "GuestDataStore.libraryProjection(_:)",
+          3.0
+        ],
+        [
+          "UserLibraryModel.reloadAccount(_:)",
+          3.0
+        ],
+        [
+          "closure #4 in UserLibraryModel.subscribeAll(owner:session:epoch:)",
+          2.0
+        ],
+        [
+          "GuestDataStore.claimGuestForSync(_:)",
+          2.0
+        ]
+      ]
+    },
+    {
+      "hitch_start_s": 28.387763833,
+      "hitch_ms": 12.502125,
+      "frame_begin_s": 28.358593791,
+      "commit_end_s": 28.379243499,
+      "preparation_ms": 20.649708,
+      "frame_lifetime_end_difference_ms": 1e-06,
+      "main_state_ms": {
+        "Blocked": 0.9215,
+        "Runnable": 0.086501,
+        "Running": 18.465948999999995,
+        "Interrupted": 0.4934649999999997,
+        "Preempted": 0.682293
+      },
+      "sampled_main_ms": 18.0,
+      "stack_group_ms": {
+        "library_storage": 16.0,
+        "other": 2.0
+      },
+      "app_functions": [
+        [
+          "LibrarySync.run(_:epoch:)",
+          12.0
+        ],
+        [
+          "specialized GuestDataStore.partitionRow(_:in:)",
+          7.0
+        ],
+        [
+          "GuestDataStore.libraryProjection(_:)",
+          6.0
+        ],
+        [
+          "UserLibraryModel.reloadAccount(_:)",
+          6.0
+        ],
+        [
+          "closure #14 in AppEnvironment.init(config:guestData:)",
+          4.0
+        ],
+        [
+          "UserLibraryModel.partitionChanged(_:)",
+          4.0
+        ],
+        [
+          "GuestDataStore.syncPartition(_:in:)",
+          4.0
+        ],
+        [
+          "specialized GuestDataStore.withAccount<A>(_:_:)",
+          4.0
+        ]
+      ]
+    },
+    {
+      "hitch_start_s": 30.800670125,
+      "hitch_ms": 8.33475,
+      "frame_begin_s": 30.775658875,
+      "commit_end_s": 30.792311791,
+      "preparation_ms": 16.652916,
+      "frame_lifetime_end_difference_ms": 0.0,
+      "main_state_ms": {
+        "Blocked": 0.570791,
+        "Runnable": 0.08929200000000001,
+        "Running": 15.297121999999998,
+        "Interrupted": 0.20387799999999992,
+        "Preempted": 0.49183299999999996
+      },
+      "sampled_main_ms": 15.0,
+      "stack_group_ms": {
+        "library_storage": 13.0,
+        "other": 2.0
+      },
+      "app_functions": [
+        [
+          "LibrarySync.run(_:epoch:)",
+          11.0
+        ],
+        [
+          "UserLibraryModel.reloadAccount(_:)",
+          6.0
+        ],
+        [
+          "GuestDataStore.libraryProjection(_:)",
+          5.0
+        ],
+        [
+          "closure #14 in AppEnvironment.init(config:guestData:)",
+          5.0
+        ],
+        [
+          "UserLibraryModel.partitionChanged(_:)",
+          5.0
+        ],
+        [
+          "specialized GuestDataStore.assertOutcomeOwnerActive(_:in:)",
+          3.0
+        ],
+        [
+          "specialized GuestDataStore.deletionRow(subject:namespace:in:)",
+          3.0
+        ],
+        [
+          "GuestDataStore.claimGuestForSync(_:)",
+          2.0
+        ]
+      ]
+    },
+    {
+      "hitch_start_s": 30.817339625,
+      "hitch_ms": 8.334791,
+      "frame_begin_s": 30.792328041,
+      "commit_end_s": 30.802350291,
+      "preparation_ms": 10.02225,
+      "frame_lifetime_end_difference_ms": 0.0,
+      "main_state_ms": {
+        "Running": 9.655544,
+        "Interrupted": 0.07491500000000001,
+        "Blocked": 0.269291,
+        "Runnable": 0.0225
+      },
+      "sampled_main_ms": 10.0,
+      "stack_group_ms": {
+        "library_storage": 8.0,
+        "other": 2.0
+      },
+      "app_functions": [
+        [
+          "LibrarySync.run(_:epoch:)",
+          6.0
+        ],
+        [
+          "specialized GuestDataStore.withAccount<A>(_:_:)",
+          3.0
+        ],
+        [
+          "specialized GuestDataStore.savedObservation(_:state:in:)",
+          3.0
+        ],
+        [
+          "GuestDataStore.libraryProjection(_:)",
+          3.0
+        ],
+        [
+          "specialized GuestDataStore.currentSavedScope(_:in:)",
+          3.0
+        ],
+        [
+          "UserLibraryModel.reloadAccount(_:)",
+          3.0
+        ],
+        [
+          "specialized GuestDataStore.partitionRow(_:in:)",
+          3.0
+        ],
+        [
+          "GuestDataStore.syncPartition(_:in:)",
+          3.0
+        ]
+      ]
+    },
+    {
+      "hitch_start_s": 32.60097325,
+      "hitch_ms": 12.502125,
+      "frame_begin_s": 32.571791875,
+      "commit_end_s": 32.579570249,
+      "preparation_ms": 7.778374,
+      "frame_lifetime_end_difference_ms": 0.0,
+      "main_state_ms": {
+        "Blocked": 3.203291,
+        "Runnable": 0.006625,
+        "Running": 4.015001,
+        "Interrupted": 0.009832,
+        "Preempted": 0.543625
+      },
+      "sampled_main_ms": 4.0,
+      "stack_group_ms": {
+        "other": 4.0
+      },
+      "app_functions": []
+    },
+    {
+      "hitch_start_s": 32.946864916,
+      "hitch_ms": 8.33475,
+      "frame_begin_s": 32.913527333,
+      "commit_end_s": 32.932502416,
+      "preparation_ms": 18.975083,
+      "frame_lifetime_end_difference_ms": 0.0,
+      "main_state_ms": {
+        "Running": 17.007625,
+        "Interrupted": 0.1559599999999999,
+        "Blocked": 0.932249,
+        "Runnable": 0.025875,
+        "Preempted": 0.8533739999999999
+      },
+      "sampled_main_ms": 19.0,
+      "stack_group_ms": {
+        "library_storage": 17.0,
+        "other": 2.0
+      },
+      "app_functions": [
+        [
+          "LibrarySync.run(_:epoch:)",
+          17.0
+        ],
+        [
+          "GuestDataStore.libraryProjection(_:)",
+          5.0
+        ],
+        [
+          "closure #14 in AppEnvironment.init(config:guestData:)",
+          5.0
+        ],
+        [
+          "UserLibraryModel.reloadAccount(_:)",
+          5.0
+        ],
+        [
+          "UserLibraryModel.partitionChanged(_:)",
+          5.0
+        ],
+        [
+          "specialized GuestDataStore.partitionRow(_:in:)",
+          3.0
+        ],
+        [
+          "GuestDataStore.syncPartition(_:in:)",
+          3.0
+        ],
+        [
+          "GuestDataStore.claimGuestForSync(_:)",
+          3.0
+        ]
+      ]
+    },
+    {
+      "hitch_start_s": 34.968038583,
+      "hitch_ms": 12.502125,
+      "frame_begin_s": 34.938868208,
+      "commit_end_s": 34.960553957,
+      "preparation_ms": 21.685749,
+      "frame_lifetime_end_difference_ms": 0.0,
+      "main_state_ms": {
+        "Interrupted": 0.32883799999999974,
+        "Running": 19.38874300000001,
+        "Blocked": 0.629125,
+        "Runnable": 0.596584,
+        "Preempted": 0.7424590000000001
+      },
+      "sampled_main_ms": 18.0,
+      "stack_group_ms": {
+        "library_storage": 16.0,
+        "viewport_tracking": 1.0,
+        "other": 1.0
+      },
+      "app_functions": [
+        [
+          "LibrarySync.run(_:epoch:)",
+          12.0
+        ],
+        [
+          "GuestDataStore.libraryProjection(_:)",
+          7.0
+        ],
+        [
+          "UserLibraryModel.reloadAccount(_:)",
+          7.0
+        ],
+        [
+          "closure #14 in AppEnvironment.init(config:guestData:)",
+          5.0
+        ],
+        [
+          "specialized GuestDataStore.currentSavedScope(_:in:)",
+          5.0
+        ],
+        [
+          "UserLibraryModel.partitionChanged(_:)",
+          5.0
+        ],
+        [
+          "specialized GuestDataStore.savedObservation(_:state:in:)",
+          4.0
+        ],
+        [
+          "specialized GuestDataStore.partitionRow(_:in:)",
+          3.0
+        ]
+      ]
+    },
+    {
+      "hitch_start_s": 37.51013325,
+      "hitch_ms": 25.00425,
+      "frame_begin_s": 37.480958416,
+      "commit_end_s": 37.513136208,
+      "preparation_ms": 32.177792,
+      "frame_lifetime_end_difference_ms": 1e-06,
+      "main_state_ms": {
+        "Blocked": 4.34925,
+        "Runnable": 0.081166,
+        "Running": 25.542747,
+        "Interrupted": 0.6654619999999996,
+        "Preempted": 1.539167
+      },
+      "sampled_main_ms": 28.0,
+      "stack_group_ms": {
+        "library_storage": 23.0,
+        "other": 5.0
+      },
+      "app_functions": [
+        [
+          "LibrarySync.run(_:epoch:)",
+          19.0
+        ],
+        [
+          "specialized GuestDataStore.assertOutcomeOwnerActive(_:in:)",
+          6.0
+        ],
+        [
+          "GuestDataStore.libraryProjection(_:)",
+          6.0
+        ],
+        [
+          "specialized GuestDataStore.savedObservation(_:state:in:)",
+          6.0
+        ],
+        [
+          "UserLibraryModel.reloadAccount(_:)",
+          6.0
+        ],
+        [
+          "specialized GuestDataStore.deletionRow(subject:namespace:in:)",
+          5.0
+        ],
+        [
+          "specialized GuestDataStore.partitionRow(_:in:)",
+          4.0
+        ],
+        [
+          "closure #14 in AppEnvironment.init(config:guestData:)",
+          4.0
+        ]
+      ]
+    },
+    {
+      "hitch_start_s": 39.16041125,
+      "hitch_ms": 12.502125,
+      "frame_begin_s": 39.131241041,
+      "commit_end_s": 39.149655083,
+      "preparation_ms": 18.414042,
+      "frame_lifetime_end_difference_ms": 1e-06,
+      "main_state_ms": {
+        "Running": 16.4855,
+        "Interrupted": 0.19491699999999995,
+        "Preempted": 0.629542,
+        "Blocked": 0.964416,
+        "Runnable": 0.13966699999999999
+      },
+      "sampled_main_ms": 17.0,
+      "stack_group_ms": {
+        "library_storage": 16.0,
+        "other": 1.0
+      },
+      "app_functions": [
+        [
+          "LibrarySync.run(_:epoch:)",
+          16.0
+        ],
+        [
+          "specialized GuestDataStore.partitionRow(_:in:)",
+          5.0
+        ],
+        [
+          "GuestDataStore.libraryProjection(_:)",
+          3.0
+        ],
+        [
+          "closure #14 in AppEnvironment.init(config:guestData:)",
+          3.0
+        ],
+        [
+          "UserLibraryModel.reloadAccount(_:)",
+          3.0
+        ],
+        [
+          "UserLibraryModel.partitionChanged(_:)",
+          3.0
+        ],
+        [
+          "GuestDataStore.syncPartition(_:in:)",
+          3.0
+        ],
+        [
+          "GuestDataStore.claimGuestForSync(_:)",
+          3.0
+        ]
+      ]
+    }
+  ],
+  "method": "Join app frame lifetimes and update records by display/swap/surface identity. Intersect main-thread state intervals and running CPU samples with each frame preparation window. Inclusive function times overlap; sampled weights are approximate.",
+  "storage_dominant_frames": 16
+}

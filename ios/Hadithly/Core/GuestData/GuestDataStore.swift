@@ -394,6 +394,8 @@ final class GuestDataStore {
         }
     }
     private func withAccount<T>(_ owner: LibrarySyncOwner, _ body: (inout LibraryPartitionState, ModelContext) throws -> T) throws -> T {
+        let interval = ReaderScrollProfile.begin("AccountPartitionWork")
+        defer { ReaderScrollProfile.end("AccountPartitionWork", interval) }
         let db = outcomeContext()
         try assertOutcomeOwnerActive(owner, in: db)
         guard var state = try syncPartition(owner, in: db), let row = try partitionRow(owner, in: db) else { throw LibrarySyncFailure.sessionChanged }

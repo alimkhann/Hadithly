@@ -144,6 +144,252 @@ final class GuestMergePlannerTests: XCTestCase {
         XCTAssertEqual(fixture.model.progress(for: "bukhari")?.position?.rawPageOffset, 600)
     }
 
+    @MainActor func testActiveReaderPhasePreventsWritesWithoutFurtherGeometryChanges() async throws {
+        let fixture = LibraryFacadeFixture(store: GuestDataStore(inMemory: true))
+        await fixture.start()
+        defer { fixture.stop() }
+        let owner = try XCTUnwrap(fixture.sync.owner)
+        let reader = scrollingReader(library: fixture.model)
+        defer { reader.stop() }
+        let viewport = UUID()
+        reader.setViewportActive(true, id: viewport)
+        reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0, rawPageOffset: 400, normalizedOffset: 0.4)
+        fixture.saved.send(fixture.snapshot(version: 1, note: "Held-finger original note"))
+        try await Task.sleep(for: .milliseconds(650))
+        XCTAssertNil(fixture.model.progress(for: "bukhari"))
+        XCTAssertNil(try fixture.store.syncPartition(owner)?.savedSnapshot)
+        reader.setViewportActive(false, id: viewport)
+        try await Task.sleep(for: .milliseconds(650))
+        XCTAssertEqual(fixture.model.progress(for: "bukhari")?.position?.rawPageOffset, 400)
+        XCTAssertEqual(try fixture.store.syncPartition(owner)?.savedSnapshot?.version, 1)
+    }
+
+    @MainActor func testEndingAnotherViewportDoesNotReleaseTheActiveReader() async throws {
+        let fixture = LibraryFacadeFixture(store: GuestDataStore(inMemory: true))
+        await fixture.start()
+        defer { fixture.stop() }
+        let reader = scrollingReader(library: fixture.model)
+        defer { reader.stop() }
+        let previous = UUID(), current = UUID()
+        reader.setViewportActive(true, id: previous)
+        reader.setViewportActive(true, id: current)
+        reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0, rawPageOffset: 500, normalizedOffset: 0.5)
+        reader.setViewportActive(false, id: previous)
+        try await Task.sleep(for: .milliseconds(650))
+        XCTAssertNil(fixture.model.progress(for: "bukhari"))
+        reader.setViewportActive(false, id: current)
+        try await Task.sleep(for: .milliseconds(650))
+        XCTAssertEqual(fixture.model.progress(for: "bukhari")?.position?.rawPageOffset, 500)
+    }
+
+    @MainActor func testEndingReaderInteractionsStillFlushesTheExactBackgroundPosition() async throws {
+        let fixture = LibraryFacadeFixture(store: GuestDataStore(inMemory: true))
+        await fixture.start()
+        defer { fixture.stop() }
+        let reader = scrollingReader(library: fixture.model)
+        defer { reader.stop() }
+        reader.setViewportActive(true, id: UUID())
+        reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0, rawPageOffset: 640, normalizedOffset: 0.64)
+        reader.endViewportInteractions()
+        reader.saveCurrentProgress()
+        let final = try XCTUnwrap(fixture.model.progress(for: "bukhari")?.position)
+        XCTAssertEqual(final.rawPageOffset, 640)
+        try await Task.sleep(for: .milliseconds(650))
+        XCTAssertEqual(fixture.model.progress(for: "bukhari")?.position, final)
+    }
+
+    @MainActor func testReaderMotionDefersSubscriptionStorageUntilQuiet() async throws {
+        let fixture = LibraryFacadeFixture(store: GuestDataStore(inMemory: true))
+        await fixture.start()
+        defer { fixture.stop() }
+        let owner = try XCTUnwrap(fixture.sync.owner)
+        let reader = scrollingReader(library: fixture.model)
+        defer { reader.stop() }
+        for step in 1...24 {
+            reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0,
+                rawPageOffset: Double(step * 20), normalizedOffset: Double(step) * 0.03)
+            if step == 1 { fixture.saved.send(fixture.snapshot(version: 1, note: "First original note")) }
+            if step == 12 { fixture.saved.send(fixture.snapshot(version: 2, note: "Latest original note")) }
+            try await Task.sleep(for: .milliseconds(40))
+        }
+        XCTAssertNil(try fixture.store.syncPartition(owner)?.savedSnapshot, "Subscription callbacks must not hydrate storage on the scrolling UI path")
+        try await Task.sleep(for: .milliseconds(650))
+        XCTAssertEqual(try fixture.store.syncPartition(owner)?.savedSnapshot?.version, 2)
+        XCTAssertEqual(fixture.model.notes.first?.noteContent, "Latest original note")
+    }
+
+    @MainActor func testDeferredFullSnapshotsPersistOnlyTheNewestVersion() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("deferred-snapshots.store")
+        let fixture = LibraryFacadeFixture(store: GuestDataStore(storeURL: url))
+        await fixture.start()
+        defer { fixture.stop() }
+        let key = try XCTUnwrap(fixture.sync.owner).storageKey
+        func revision() throws -> Int {
+            let container = try ModelContainer(for: GuestDataStore.schema, configurations: [ModelConfiguration(schema: GuestDataStore.schema, url: url)])
+            return try XCTUnwrap(ModelContext(container).fetch(FetchDescriptor<GuestLibraryPartition>(predicate: #Predicate { $0.ownerKey == key })).first).revision
+        }
+        let original = try revision()
+        let viewport = UUID()
+        fixture.model.setReaderViewportActive(true, id: viewport)
+        for version in 1...40 {
+            fixture.saved.send(fixture.snapshot(version: Double(version), note: "Latest original note \(version)"))
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        fixture.saved.send(fixture.snapshot(version: 2, note: "Stale original note"))
+        try await Task.sleep(for: .milliseconds(30))
+        XCTAssertEqual(try revision(), original)
+        fixture.model.setReaderViewportActive(false, id: viewport)
+        try await Task.sleep(for: .milliseconds(750))
+        XCTAssertEqual(fixture.model.notes.first?.noteContent, "Latest original note 40")
+        XCTAssertEqual(try revision(), original + 1, "Full authoritative read snapshots must not create a storage burst after scrolling")
+    }
+
+    @MainActor func testDeferredRemotePositionStillOrdersTheNextLocalCapture() async throws {
+        let fixture = LibraryFacadeFixture(store: GuestDataStore(inMemory: true))
+        await fixture.start()
+        defer { fixture.stop() }
+        let owner = try XCTUnwrap(fixture.sync.owner)
+        let reader = scrollingReader(library: fixture.model)
+        defer { reader.stop() }
+        let viewport = UUID()
+        reader.setViewportActive(true, id: viewport)
+        reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0, rawPageOffset: 0, normalizedOffset: 0)
+        let remoteTime = Date.now.millisecondsSinceEpoch + 30_000
+        let remote = try XCTUnwrap(ReadingPosition.legacy(collectionSlug: "bukhari", providerHadithId: "1", volumeId: "1", updatedAt: remoteTime))
+        let hadith = try XCTUnwrap(fixture.snapshot(version: 1, note: "Original").items.first?.hadith)
+        fixture.positions.send(.init(ownerKey: owner.key, version: 1, rows: [.init(collectionSlug: "bukhari", hadithId: hadith._id, updatedAt: remoteTime, position: remote, hadith: hadith)]))
+        try await Task.sleep(for: .milliseconds(40))
+        reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0, rawPageOffset: 400, normalizedOffset: 0.4)
+        reader.setViewportActive(false, id: viewport)
+        try await Task.sleep(for: .milliseconds(650))
+        let local = try XCTUnwrap(fixture.model.progress(for: "bukhari")?.position)
+        XCTAssertGreaterThan(local.updatedAt, remoteTime, "Deferral must preserve the clock of a remote position already received before this capture")
+        XCTAssertEqual(local.anchor.providerHadithId, "57")
+        XCTAssertEqual(local.rawPageOffset, 400)
+    }
+
+    @MainActor func testDeferredPositionClockRejectsStaleVersionsAndClearsWithItsOwner() async throws {
+        let fixture = LibraryFacadeFixture(store: GuestDataStore(inMemory: true))
+        await fixture.start()
+        defer { fixture.stop() }
+        let owner = try XCTUnwrap(fixture.sync.owner)
+        let hadith = try XCTUnwrap(fixture.snapshot(version: 1, note: "Original").items.first?.hadith)
+        func snapshot(_ version: Double, at timestamp: Double) throws -> SyncPositionsSnapshot {
+            let position = try XCTUnwrap(ReadingPosition.legacy(collectionSlug: "bukhari", providerHadithId: "1", volumeId: "1", updatedAt: timestamp))
+            return .init(ownerKey: owner.key, version: version, rows: [.init(collectionSlug: "bukhari", hadithId: hadith._id, updatedAt: timestamp, position: position, hadith: hadith)])
+        }
+        fixture.positions.send(try snapshot(10, at: 1_000))
+        try await Task.sleep(for: .milliseconds(40))
+        let viewport = UUID()
+        fixture.model.setReaderViewportActive(true, id: viewport)
+        fixture.positions.send(try snapshot(9, at: 9_000))
+        try await Task.sleep(for: .milliseconds(40))
+        XCTAssertEqual(fixture.model.latestPositionTimestamp(for: "bukhari"), 1_000)
+        fixture.positions.send(try snapshot(11, at: 2_000))
+        fixture.positions.send(try snapshot(8, at: 8_000))
+        fixture.positions.send(try snapshot(.nan, at: 7_000))
+        try await Task.sleep(for: .milliseconds(40))
+        XCTAssertEqual(fixture.model.latestPositionTimestamp(for: "bukhari"), 2_000)
+        XCTAssertEqual(fixture.model.loadState, .failed)
+        fixture.stop()
+        fixture.session.value = .init(id: "session-b", subject: "subject-b")
+        await fixture.start()
+        XCTAssertEqual(fixture.model.latestPositionTimestamp(for: "bukhari"), 0)
+        XCTAssertNil(try fixture.store.syncPartition(try XCTUnwrap(fixture.sync.owner))?.positionsSnapshot)
+    }
+
+    @MainActor func testInFlightSyncReceiptWaitsForReaderQuietBeforeSettling() async throws {
+        let fixture = LibraryFacadeFixture(store: GuestDataStore(inMemory: true))
+        await fixture.start()
+        defer { fixture.stop() }
+        fixture.server.failSends = false
+        fixture.server.replyDelay = .milliseconds(200)
+        let owner = try XCTUnwrap(fixture.sync.owner)
+        let context = try fixture.sync.captureWriteContext()
+        let change = LibraryLocalChange(command: .bookmarkAdd(.init(hadithId: fixture.reference.hadithId, createdAt: 1_000)), at: 1_000, source: .account(fixture.reference))
+        try fixture.sync.enqueue(change, context: context)
+        for _ in 0..<100 {
+            if !fixture.server.frames.isEmpty { break }
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        let initialFrame = try XCTUnwrap(fixture.server.frames.first)
+        let reader = scrollingReader(library: fixture.model)
+        defer { reader.stop() }
+        for step in 1...24 {
+            reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0,
+                rawPageOffset: Double(step * 20), normalizedOffset: Double(step) * 0.03)
+            try await Task.sleep(for: .milliseconds(40))
+        }
+        XCTAssertEqual(try fixture.store.syncPartition(owner)?.frozen?.batch.id, initialFrame.batch.id,
+            "A network response must not settle its account snapshot during continuous reader motion")
+        XCTAssertEqual(fixture.server.acknowledgements, 0)
+        try await Task.sleep(for: .milliseconds(650))
+        XCTAssertNotEqual(try fixture.store.syncPartition(owner)?.frozen?.batch.id, initialFrame.batch.id)
+        XCTAssertGreaterThanOrEqual(fixture.server.acknowledgements, 1)
+    }
+
+    @MainActor func testDeferredReaderSnapshotsAreDiscardedOnAccountChange() async throws {
+        let fixture = LibraryFacadeFixture(store: GuestDataStore(inMemory: true))
+        await fixture.start()
+        defer { fixture.stop() }
+        let ownerA = try XCTUnwrap(fixture.sync.owner)
+        let reader = scrollingReader(library: fixture.model)
+        defer { reader.stop() }
+        reader.setViewportActive(true, id: UUID())
+        reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0, rawPageOffset: 400, normalizedOffset: 0.4)
+        fixture.saved.send(fixture.snapshot(version: 1, note: "Account A original note"))
+        try await Task.sleep(for: .milliseconds(40))
+        XCTAssertNil(try fixture.store.syncPartition(ownerA)?.savedSnapshot)
+        fixture.stop()
+        fixture.session.value = .init(id: "session-b", subject: "subject-b")
+        await fixture.start()
+        try await Task.sleep(for: .milliseconds(650))
+        XCTAssertEqual(fixture.sync.owner?.subject, "subject-b")
+        XCTAssertTrue(fixture.model.notes.isEmpty)
+        XCTAssertNil(try fixture.store.syncPartition(ownerA)?.savedSnapshot)
+        XCTAssertNil(fixture.model.progress(for: "bukhari"))
+    }
+
+    @MainActor func testCancelledReceiptAfterReaderDeferralSettlesOnlyItsExistingOwner() async throws {
+        let fixture = LibraryFacadeFixture(store: GuestDataStore(inMemory: true))
+        await fixture.start()
+        defer { fixture.stop() }
+        fixture.server.failSends = false
+        fixture.server.replyDelay = .milliseconds(100)
+        let ownerA = try XCTUnwrap(fixture.sync.owner)
+        let context = try fixture.sync.captureWriteContext()
+        let change = LibraryLocalChange(command: .bookmarkAdd(.init(hadithId: fixture.reference.hadithId, createdAt: 1_000)), at: 1_000, source: .account(fixture.reference))
+        try fixture.sync.enqueue(change, context: context)
+        for _ in 0..<100 {
+            if !fixture.server.frames.isEmpty { break }
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        XCTAssertFalse(fixture.server.frames.isEmpty)
+        let reader = scrollingReader(library: fixture.model)
+        defer { reader.stop() }
+        reader.setViewportActive(true, id: UUID())
+        for step in 1...12 {
+            reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0,
+                rawPageOffset: Double(step * 20), normalizedOffset: Double(step) * 0.03)
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        XCTAssertGreaterThan(fixture.server.returnedReplies, 0)
+        XCTAssertEqual(fixture.server.acknowledgements, 0)
+        fixture.stop()
+        fixture.session.value = .init(id: "session-b", subject: "subject-b")
+        await fixture.start()
+        try await Task.sleep(for: .milliseconds(50))
+        let settledA = try XCTUnwrap(fixture.store.syncPartition(ownerA))
+        XCTAssertNil(settledA.frozen)
+        XCTAssertNotNil(settledA.acknowledgement, "An accepted late A receipt must remain durable for A's later acknowledgement")
+        XCTAssertEqual(fixture.sync.owner?.subject, "subject-b")
+        XCTAssertTrue(fixture.model.bookmarks.isEmpty)
+        XCTAssertNil(fixture.model.progress(for: "bukhari"))
+    }
+
     @MainActor func testPendingReaderScrollCannotFollowAnAccountSwitch() async throws {
         let fixture = LibraryFacadeFixture(store: GuestDataStore(inMemory: true))
         await fixture.start()
@@ -3375,9 +3621,12 @@ final class GuestMergePlannerTests: XCTestCase {
     var failAcknowledgements = false
     var acknowledgements = 0
     var revisions: [String: SyncRevision] = [:]
-    func send(_ capability: String, _ frame: SyncFrame) throws -> SyncExchange {
+    var replyDelay: Duration = .zero
+    var returnedReplies = 0
+    func send(_ capability: String, _ frame: SyncFrame) async throws -> SyncExchange {
         frames.append(frame)
         if failSends { throw Failure.offline }
+        if replyDelay != .zero { try await Task.sleep(for: replyDelay) }
         let owner = String(capability.dropFirst("fixture:".count))
         let old = revisions[owner] ?? .init(saved: 0, position: 0)
         let saved = frame.batch.operations.contains { !$0.command.isPositionChange }
@@ -3386,6 +3635,7 @@ final class GuestMergePlannerTests: XCTestCase {
         revisions[owner] = revision
         let outcome = nextOutcome ?? .preserved; nextOutcome = nil
         let receipts = frame.batch.operations.map { SyncReceipt(id: $0.id, revision: $0.revision, outcome: outcome) }
+        returnedReplies += 1
         return .accepted(.init(committed: .init(clientKey: frame.clientKey, sequence: frame.sequence, digest: "fixture-proof", revision: revision,
             reply: .init(ownerKey: owner, batchId: frame.batch.id, receipts: receipts))))
     }
@@ -3411,7 +3661,7 @@ final class GuestMergePlannerTests: XCTestCase {
             server.acknowledgements += 1
             if server.failAcknowledgements { throw LibraryFixtureServer.Failure.offline }
             return .init(ownerKey: String(capability.dropFirst("fixture:".count)), clientKey: value.clientKey, cursor: .init(closedThrough: value.sequence, outstanding: nil))
-        }, send: { capability, frame in try server.send(capability, frame) }), currentSession: { session.value })
+        }, send: { capability, frame in try await server.send(capability, frame) }), currentSession: { session.value })
         model = UserLibraryModel(reads: .init(saved: { saved.eraseToAnyPublisher() }, positions: { positions.eraseToAnyPublisher() }), guestData: store, sync: sync, currentSession: { session.value })
         let model = self.model
         sync.onOwnerChange = { [weak model] _ in model?.refresh() }

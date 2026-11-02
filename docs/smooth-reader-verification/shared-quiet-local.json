@@ -1,0 +1,54 @@
+{
+  "scope": "Shared reader quiet scheduling, phase lifetime, deferred authoritative reads and position ordering. Physical full matrix and owner acceptance remain open.",
+  "safety": {
+    "GuestMergePlannerTests": 148,
+    "ReaderR4Tests": 14,
+    "ReadingPositionTests": 9,
+    "total": 171,
+    "failures": 0
+  },
+  "ui": {
+    "count": 2,
+    "failures": 0,
+    "cases": [
+      "ReaderR6AUITests/testLoadedReaderScrollsBehindFloatingControls",
+      "ReaderR6AUITests/testLoadedReaderSemanticReanchorPreservesScrolledPosition"
+    ]
+  },
+  "regression_before_after": {
+    "full_snapshot_burst": {
+      "before_durable_revision_increments": 40,
+      "after_durable_revision_increments": 1,
+      "received_snapshots": 41
+    },
+    "deferred_remote_clock": "Failed next-local > already-received remote timestamp before repair; passes with deferred highest-version clock visible."
+  },
+  "additional_safety": [
+    "Continuous motion and held-finger phase defer storage/projections",
+    "Viewport release cannot end another active viewport",
+    "Explicit stop/background final position flushes immediately",
+    "Accepted canceled receipt settles captured existing owner only",
+    "Deferred snapshots and timestamp hints clear on account change",
+    "Stale/nonfinite snapshot versions cannot advance deferred position clock"
+  ],
+  "capture_checks": {
+    "trace_validation": 6,
+    "profile_config": 3,
+    "scroll_metrics": 4,
+    "failures": 0
+  },
+  "build": {
+    "configuration": "Debug with optimized Swift and C compilation",
+    "swiftOptimization": "-O",
+    "swiftCompilation": "wholemodule",
+    "bundleIdentifier": "com.hadithly.app",
+    "developmentURL": "https://festive-cobra-664.eu-west-1.convex.cloud",
+    "diagnosticsEnvironment": "development",
+    "appAttestEnvironment": "development",
+    "debuggerAttachAllowed": true,
+    "binarySHA256": "996d4856538009af8f9c02584307ec0cf0e35ee158bfbdc49edbd0508a4b5b05",
+    "iosTrackedSourceSHA256": "2e4ba83c4f3f97e3bf3269c15a2636bb1290d041751a5c2c3213a3176b1572a8",
+    "gitHead": "2ad8243a111c72e60a224085c5eb7d180ba5b91e",
+    "note": "Retains DEBUG compilation conditions and development entitlements. No app installation or project regeneration."
+  }
+}

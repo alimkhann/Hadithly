@@ -196,3 +196,65 @@ digest matches the build manifest, including incoming files left uncommitted.
 This preserves a known improved experience, while the strict 1 ms/s gate and the
 isolated geometry-benefit claim remain unproven. Further work continues from
 this rollback point rather than discarding the owner's observed improvement.
+
+## Correlated sync work and shared quiet period
+
+The successful combined capture joins frame lifetimes, update records, main-thread
+CPU samples and thread-state intervals by frame identity. Sixteen of its 19 late
+frames are dominated by library/storage samples in their preparation windows.
+Examples spend approximately 14–23 sampled milliseconds in `LibrarySync.run`,
+`GuestDataStore` and `UserLibraryModel.reloadAccount`. Every joined frame-lifetime
+end matches the hitch's final presentation time within exported timestamp precision.
+The [diagnostic record](smooth-reader-verification/correlated-main-thread-diagnostic.json)
+is not a performance acceptance score because CPU tracing changes the workload.
+
+The candidate shares reader motion timing with normal sync and subscription
+processing. A single existing ordered account writer waits for 500 ms of quiet
+before reconciliation and projection work. Received full snapshots wait for
+quiet, are checked again against owner/session/epoch, and are cleared on
+unsubscribe. There is no second writer and no background-executor
+claim. Initial owner binding remains available for local intent capture.
+
+Accepted late receipts keep the original settlement rule: cancellation does not
+drop a reply for the captured owner's still-existing partition. Session checks
+and deletion fences still reject unrelated or erased owners. Two real-path tests
+were red before this repair and pass after it; the expanded 165-test safety suite
+and both UI checks also pass, including deferred-snapshot account changes and
+late-receipt cancellation. The first geometry-only quiet candidate measures
+2.23 ms/s with three hitches. See
+[the matched result](smooth-reader-verification/shared-quiet-experiment.json).
+
+## Native phase closes the geometry quiet gap
+
+Geometry updates can stop while a finger remains down. On iOS 18 and later,
+the next candidate keeps a per-viewport activity token through native tracking,
+interaction, deceleration and animation. Work resumes 500 ms after all active
+viewports end. Geometry remains the iOS 17 fallback. Page/volume changes,
+disappearance and backgrounding release the reader's own tokens; explicit final
+position saves still flush immediately through the existing writer.
+
+All 168 safety tests and both UI checks pass. The first valid matched large-type
+slow run measures **0.67 ms/s**, with one 12.50 ms hitch. Storage, projection and
+progress-save intervals have zero overlaps with native active scrolling. Their
+respective maximum durations are 11.79, 1.81 and 3.06 ms. The 0.44 ms geometry
+callback overlaps the hitch; overlap alone does not attribute that hitch to
+geometry. CPU is 12.03 sampled seconds and peak sampled footprint 182.06 MiB.
+The first attempt disconnected and was rejected. See
+[the exact build and result](smooth-reader-verification/phase-aware-quiet-experiment.json).
+One passing run does not close the repeated matrix or owner gate.
+
+Two further real-path tests exposed issues before final installation: 40 full
+read snapshots caused 40 durable writes after quiet, and a received remote
+position's timestamp was invisible to the next local capture. Both tests were
+red, then green. The queue now retains at most one highest-version full snapshot
+per stream. Durable mutations and receipts retain their original order.
+The reader's ordering clock sees the deferred current Positions snapshot without
+hydrating storage or publishing UI changes. Stale versions cannot advance it,
+and owner changes clear it. All 171 safety tests and both reader UI checks pass
+on these additional changes. See [the local record](smooth-reader-verification/shared-quiet-local.json).
+The first [matched physical repetition](smooth-reader-verification/phase-bounded-quiet-experiment.json)
+measures 1.34 ms/s with two 12.50 ms hitches, so matrix expansion stops. Storage,
+projection and progress persistence again have zero active-scroll overlap.
+The associated app updates take 15.09 and 17.13 ms; attribute that remaining
+delay before changing another variable. Wider behavior checks are running.
+The owner's exact checkpoint remains unchanged.

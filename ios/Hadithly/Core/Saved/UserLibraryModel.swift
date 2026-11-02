@@ -116,6 +116,8 @@ final class UserLibraryModel {
 
     private let reads: LibraryReadTransport?
     private let sync: LibrarySync?
+    private let guestReaderMotion = ReaderMotionGate()
+    private var readerMotion: ReaderMotionGate { sync?.readerMotion ?? guestReaderMotion }
     private let guestData: GuestDataStore
     private let currentSession: () -> LibrarySyncSession?
     private var scopedOwner: LibrarySyncOwner?
@@ -123,6 +125,24 @@ final class UserLibraryModel {
     private var epoch = UUID()
     private var cancellables: Set<AnyCancellable> = []
     private var subscriptionsActive = false
+    private enum DeferredSnapshot {
+        case saved(SyncSavedSnapshot)
+        case positions(SyncPositionsSnapshot)
+
+        var version: Double {
+            switch self { case .saved(let value): value.version; case .positions(let value): value.version }
+        }
+
+        func replaces(_ other: Self) -> Bool {
+            switch (self, other) {
+            case (.saved, .saved), (.positions, .positions): true
+            default: false
+            }
+        }
+    }
+    @ObservationIgnored private var deferredSnapshots: [DeferredSnapshot] = []
+    @ObservationIgnored private var deferredSnapshotsTask: Task<Void, Never>?
+    @ObservationIgnored private var positionsSnapshotVersion = -1.0
     private var subscriptionRetriesLeft = 5
     private var retryTask: Task<Void, Never>?
     private var lastIntentAt = 0.0
@@ -144,6 +164,28 @@ final class UserLibraryModel {
         self.init(reads: .init(saved: { convex.subscribe(to: "librarySync:savedSnapshot", yielding: SyncSavedSnapshot.self).mapError { value -> Error in value }.eraseToAnyPublisher() },
                                positions: { convex.subscribe(to: "librarySync:positionsSnapshot", yielding: SyncPositionsSnapshot.self).mapError { value -> Error in value }.eraseToAnyPublisher() }),
                   guestData: guestData, sync: sync, currentSession: currentSession)
+    }
+
+    func noteReaderViewportMotion(at uptime: Double) {
+        readerMotion.noteMotion(at: uptime)
+    }
+
+    func setReaderViewportActive(_ active: Bool, id: UUID) {
+        readerMotion.setActive(active, id: id)
+    }
+
+    func waitForReaderQuiet() async throws {
+        try await readerMotion.waitForQuiet()
+    }
+
+    func latestPositionTimestamp(for collection: String) -> Double {
+        let projected = progress(for: collection)?.position?.updatedAt ?? 0
+        guard let snapshot = deferredSnapshots.compactMap({ value -> SyncPositionsSnapshot? in
+            if case .positions(let snapshot) = value { return snapshot }
+            return nil
+        }).first, snapshot.version >= positionsSnapshotVersion else { return projected }
+        let received = snapshot.rows.first { $0.collectionSlug == collection }?.position?.updatedAt ?? 0
+        return received.isFinite ? max(projected, received) : projected
     }
 
     var actionScope: UUID { epoch }
@@ -177,8 +219,11 @@ final class UserLibraryModel {
 
     private func reloadAccount(_ owner: LibrarySyncOwner) {
         guard currentSession() == scopedSession, scopedOwner == owner else { return }
+        let interval = ReaderScrollProfile.begin("LibraryProjectionRefresh")
+        defer { ReaderScrollProfile.end("LibraryProjectionRefresh", interval) }
         do {
             let value = try guestData.libraryProjection(owner)
+            positionsSnapshotVersion = value.positionsSnapshotVersion
             savedItems = value.items; folders = value.folders; progress = value.progress
             bookmarks = value.items.compactMap { item in item.bookmarkCreatedAt.map { .init(rowId: item.hadithId, createdAt: $0, hadith: item.hadith) } }
             favorites = value.items.compactMap { item in item.favoriteCreatedAt.map { .init(rowId: item.hadithId, createdAt: $0, hadith: item.hadith) } }
@@ -453,16 +498,56 @@ final class UserLibraryModel {
             if case .failure = completion { self?.subscriptionFailed(owner: owner, session: session, epoch: epoch) }
         }, receiveValue: { [weak self] snapshot in
             guard let self, matches(owner, session: session, epoch: epoch), snapshot.ownerKey == owner.key else { return }
-            do { try guestData.cacheSavedSnapshot(snapshot, owner: owner); reloadAccount(owner); sync?.wake() }
-            catch { loadState = .failed }
+            receiveSnapshot(.saved(snapshot), owner: owner, session: session, epoch: epoch)
         }).store(in: &cancellables)
         reads.positions().receive(on: DispatchQueue.main).sink(receiveCompletion: { [weak self] completion in
             if case .failure = completion { self?.subscriptionFailed(owner: owner, session: session, epoch: epoch) }
         }, receiveValue: { [weak self] snapshot in
             guard let self, matches(owner, session: session, epoch: epoch), snapshot.ownerKey == owner.key else { return }
-            do { try guestData.cachePositionsSnapshot(snapshot, owner: owner); reloadAccount(owner) }
-            catch { loadState = .failed }
+            receiveSnapshot(.positions(snapshot), owner: owner, session: session, epoch: epoch)
         }).store(in: &cancellables)
+    }
+
+    private func receiveSnapshot(_ snapshot: DeferredSnapshot, owner: LibrarySyncOwner, session: LibrarySyncSession, epoch: UUID) {
+        guard snapshot.version.isFinite, snapshot.version >= 0, snapshot.version.rounded(.down) == snapshot.version else {
+            loadState = .failed
+            return
+        }
+        if readerMotion.isQuiet, deferredSnapshots.isEmpty, deferredSnapshotsTask == nil {
+            applySnapshot(snapshot, owner: owner)
+            return
+        }
+        if let index = deferredSnapshots.firstIndex(where: { snapshot.replaces($0) }) {
+            guard snapshot.version >= deferredSnapshots[index].version else { return }
+            deferredSnapshots.remove(at: index)
+        }
+        deferredSnapshots.append(snapshot)
+        guard deferredSnapshotsTask == nil else { return }
+        deferredSnapshotsTask = Task { [weak self] in
+            guard let self else { return }
+            defer { if self.epoch == epoch { deferredSnapshotsTask = nil } }
+            while !Task.isCancelled, matches(owner, session: session, epoch: epoch) {
+                do { try await readerMotion.waitForQuiet() } catch { return }
+                guard !Task.isCancelled, matches(owner, session: session, epoch: epoch), !deferredSnapshots.isEmpty else { return }
+                applySnapshot(deferredSnapshots.removeFirst(), owner: owner)
+                guard !deferredSnapshots.isEmpty else { return }
+                await Task.yield()
+            }
+        }
+    }
+
+    private func applySnapshot(_ snapshot: DeferredSnapshot, owner: LibrarySyncOwner) {
+        do {
+            switch snapshot {
+            case .saved(let value):
+                try guestData.cacheSavedSnapshot(value, owner: owner)
+                reloadAccount(owner)
+                sync?.wake()
+            case .positions(let value):
+                try guestData.cachePositionsSnapshot(value, owner: owner)
+                reloadAccount(owner)
+            }
+        } catch { loadState = .failed }
     }
 
     private func subscriptionFailed(owner: LibrarySyncOwner, session: LibrarySyncSession, epoch: UUID) {
@@ -480,6 +565,10 @@ final class UserLibraryModel {
     }
 
     private func unsubscribe() {
+        guestReaderMotion.reset()
+        deferredSnapshotsTask?.cancel(); deferredSnapshotsTask = nil
+        deferredSnapshots.removeAll()
+        positionsSnapshotVersion = -1
         guestData.discardDecodedPartitions()
         epoch = UUID(); retryTask?.cancel(); retryTask = nil
         cancellables.removeAll(); subscriptionsActive = false
@@ -621,11 +710,13 @@ extension LibraryLocalSource {
 @MainActor
 struct LibraryProjection {
     let hasSavedBase: Bool
+    let positionsSnapshotVersion: Double
     let items: [SavedItemEntry]
     let folders: [SavedFolder]
     let progress: [ProgressEntry]
 
     init(_ state: LibraryPartitionState, owner: LibrarySyncOwner, observed: LibrarySavedObservation) throws {
+        positionsSnapshotVersion = state.positionsSnapshot?.version ?? -1
         hasSavedBase = state.savedSnapshot != nil
         func date(_ value: Double) -> Date { Date(timeIntervalSince1970: value / 1_000) }
         func reference(_ value: SyncHadithSummary) -> HadithRef {

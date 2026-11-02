@@ -158,11 +158,14 @@ final class ReaderModel {
     }
     private(set) var volumes: [OutlineVolume] = []
     private(set) var pages: [ReaderPageResult] = []
-    private(set) var selectedVolumeId: String?
+    private(set) var selectedVolumeId: String? {
+        didSet { if oldValue != selectedVolumeId { endViewportInteractions() } }
+    }
     private(set) var isLoadingPage = false
     var pageIndex = 0 {
         didSet {
             guard oldValue != pageIndex else { return }
+            endViewportInteractions()
             invalidateAutomaticTranslationVisibility()
             requestHeaderLanding(for: pageIndex)
             collapseToFocused()
@@ -203,6 +206,7 @@ final class ReaderModel {
     @ObservationIgnored private var scrollProgressTask: Task<Void, Never>?
     @ObservationIgnored private var pendingScrollSave: (scope: UUID, updatedAt: Double)?
     @ObservationIgnored private var lastViewportMotionUptime = -Double.infinity
+    @ObservationIgnored private var activeViewportIDs: Set<UUID> = []
     private var lastPositionUpdatedAt = 0.0
     private var lastCapturedAnchor: String?
     private var lastCapturedNormalizedOffset: Double?
@@ -297,6 +301,7 @@ final class ReaderModel {
     }
 
     func stop() {
+        endViewportInteractions()
         flushScrollProgress()
         pageGeneration += 1
         isLoadingPage = false
@@ -1252,6 +1257,24 @@ final class ReaderModel {
         )
     }
 
+    func setViewportActive(_ active: Bool, id: UUID) {
+        if active {
+            activeViewportIDs.insert(id)
+            library?.setReaderViewportActive(true, id: id)
+        } else if activeViewportIDs.remove(id) != nil {
+            lastViewportMotionUptime = ProcessInfo.processInfo.systemUptime
+            library?.setReaderViewportActive(false, id: id)
+        }
+    }
+
+    func endViewportInteractions() {
+        guard !activeViewportIDs.isEmpty else { return }
+        let active = activeViewportIDs
+        activeViewportIDs.removeAll()
+        lastViewportMotionUptime = ProcessInfo.processInfo.systemUptime
+        for id in active { library?.setReaderViewportActive(false, id: id) }
+    }
+
     /// The scroll view reports its leading visible hadith after it has settled.
     /// Tiny layout updates are ignored so reading does not create a write storm.
     func captureStableScroll(
@@ -1263,6 +1286,7 @@ final class ReaderModel {
         guard verticalLanding == nil else { return }
         guard hadiths.indices.contains(leadingIndex), pages.indices.contains(pageIndex) else { return }
         lastViewportMotionUptime = ProcessInfo.processInfo.systemUptime
+        library?.noteReaderViewportMotion(at: lastViewportMotionUptime)
         let anchor = hadiths[leadingIndex]
         let clamped = min(1, max(0, normalizedOffset))
         lastStableAnchor = anchor
@@ -1431,12 +1455,22 @@ final class ReaderModel {
             if scrollProgressTask == nil {
                 scrollProgressTask = Task { [weak self] in
                     while let self {
-                        let delay = lastViewportMotionUptime + 0.5 - ProcessInfo.processInfo.systemUptime
+                        guard let pendingScrollSave, library.isActionCurrent(pendingScrollSave.scope) else {
+                            cancelScrollProgress()
+                            return
+                        }
+                        let delay = activeViewportIDs.isEmpty
+                            ? lastViewportMotionUptime + 0.5 - ProcessInfo.processInfo.systemUptime : 0.5
                         if delay > 0 {
                             do { try await Task.sleep(for: .seconds(delay)) } catch { return }
                         } else {
-                            flushScrollProgress()
-                            return
+                            do { try await library.waitForReaderQuiet() } catch { return }
+                            guard !Task.isCancelled else { return }
+                            if activeViewportIDs.isEmpty,
+                               ProcessInfo.processInfo.systemUptime >= lastViewportMotionUptime + 0.5 {
+                                flushScrollProgress()
+                                return
+                            }
                         }
                     }
                 }
@@ -1465,7 +1499,7 @@ final class ReaderModel {
     }
 
     private func nextPositionUpdatedAt() -> Double {
-        let storedUpdatedAt = library?.progress(for: collectionSlug)?.position?.updatedAt ?? 0
+        let storedUpdatedAt = library?.latestPositionTimestamp(for: collectionSlug) ?? 0
         let updatedAt = max(Date.now.millisecondsSinceEpoch, max(storedUpdatedAt + 1, lastPositionUpdatedAt + 1))
         lastPositionUpdatedAt = updatedAt
         return updatedAt
