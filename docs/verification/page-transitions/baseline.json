@@ -1,0 +1,300 @@
+{
+  "date": "2026-11-02",
+  "scope": "Planning and physical iPhone discovery; no product repair or Android runtime claim",
+  "source_commit": "cffd6dc",
+  "raw_artifact_directory": "/Users/alim/Developer/Artifacts/Hadithly/page-transitions-20261102",
+  "capture_dimensions": [
+    1206,
+    2622
+  ],
+  "capture_method": "QuickTime native iPhone screen stream; source presentation timestamps; no interpolated frames",
+  "gesture_sequence": [
+    "slow-right",
+    "fast-left",
+    "fast-right",
+    "slow-left",
+    "vertical-up",
+    "fast-right",
+    "fast-left"
+  ],
+  "horizontal_normalized_endpoints": [
+    [
+      0.18,
+      0.5
+    ],
+    [
+      0.82,
+      0.5
+    ]
+  ],
+  "slow_velocity_points_per_second": 120,
+  "fast_velocity_points_per_second": 1400,
+  "capture_is_not_app_frame_rate_or_gesture_latency": true,
+  "captures": [
+    {
+      "app": "sajda",
+      "file": "sajda-controlled.mov",
+      "sha256": "8feccad578937841e646dd5387bfe20d8205047167372205f3c359a4f3327f69",
+      "decoded_frame_count": 2781,
+      "first_timestamp_seconds": 0.0,
+      "last_timestamp_seconds": 49.239883,
+      "observed_average_fps": 56.45829824575335,
+      "frame_interval_seconds_quantiles": {
+        "min": 0.016016000000000474,
+        "p05": 0.016665999999999848,
+        "p50": 0.01666699999999821,
+        "p95": 0.016683000000000447,
+        "p99": 0.050016000000000144,
+        "max": 0.06668399999999863
+      },
+      "selected_original_frames": [
+        {
+          "timestamp_seconds": 15.519567,
+          "frame_index": 923
+        },
+        {
+          "timestamp_seconds": 15.6029,
+          "frame_index": 928
+        },
+        {
+          "timestamp_seconds": 15.736267,
+          "frame_index": 934
+        },
+        {
+          "timestamp_seconds": 15.836283,
+          "frame_index": 938
+        },
+        {
+          "timestamp_seconds": 15.969633,
+          "frame_index": 944
+        },
+        {
+          "timestamp_seconds": 16.06965,
+          "frame_index": 949
+        },
+        {
+          "timestamp_seconds": 16.186333,
+          "frame_index": 954
+        },
+        {
+          "timestamp_seconds": 16.303017,
+          "frame_index": 959
+        },
+        {
+          "timestamp_seconds": 17.352983,
+          "frame_index": 1007
+        },
+        {
+          "timestamp_seconds": 17.453,
+          "frame_index": 1011
+        },
+        {
+          "timestamp_seconds": 17.586367,
+          "frame_index": 1017
+        },
+        {
+          "timestamp_seconds": 17.6697,
+          "frame_index": 1022
+        },
+        {
+          "timestamp_seconds": 17.786383,
+          "frame_index": 1027
+        },
+        {
+          "timestamp_seconds": 17.8864,
+          "frame_index": 1031
+        },
+        {
+          "timestamp_seconds": 17.986417,
+          "frame_index": 1036
+        },
+        {
+          "timestamp_seconds": 18.1031,
+          "frame_index": 1041
+        },
+        {
+          "timestamp_seconds": 20.353183,
+          "frame_index": 1168
+        },
+        {
+          "timestamp_seconds": 20.461867,
+          "frame_index": 1173
+        },
+        {
+          "timestamp_seconds": 20.570217,
+          "frame_index": 1178
+        },
+        {
+          "timestamp_seconds": 20.653567,
+          "frame_index": 1182
+        },
+        {
+          "timestamp_seconds": 20.753583,
+          "frame_index": 1186
+        },
+        {
+          "timestamp_seconds": 20.8536,
+          "frame_index": 1191
+        },
+        {
+          "timestamp_seconds": 20.9536,
+          "frame_index": 1196
+        },
+        {
+          "timestamp_seconds": 21.0536,
+          "frame_index": 1202
+        }
+      ]
+    },
+    {
+      "app": "hadithly",
+      "file": "hadithly-controlled.mov",
+      "sha256": "b0d3cdf762e442522fb5ff71206270e66ae21992bae3c7f9364ce2425cad8d9b",
+      "decoded_frame_count": 2775,
+      "first_timestamp_seconds": 0.0,
+      "last_timestamp_seconds": 52.025067,
+      "observed_average_fps": 53.32045031292319,
+      "frame_interval_seconds_quantiles": {
+        "min": 0.01666599999999363,
+        "p05": 0.016665999999999535,
+        "p50": 0.01666699999999821,
+        "p95": 0.033350000000005764,
+        "p99": 0.050017000000003975,
+        "max": 0.08335000000000292
+      },
+      "selected_original_frames": [
+        {
+          "timestamp_seconds": 20.90345,
+          "frame_index": 1215
+        },
+        {
+          "timestamp_seconds": 21.086817,
+          "frame_index": 1225
+        },
+        {
+          "timestamp_seconds": 21.253517,
+          "frame_index": 1233
+        },
+        {
+          "timestamp_seconds": 21.4202,
+          "frame_index": 1241
+        },
+        {
+          "timestamp_seconds": 21.6119,
+          "frame_index": 1249
+        },
+        {
+          "timestamp_seconds": 21.786933,
+          "frame_index": 1258
+        },
+        {
+          "timestamp_seconds": 21.9703,
+          "frame_index": 1266
+        },
+        {
+          "timestamp_seconds": 22.170333,
+          "frame_index": 1274
+        },
+        {
+          "timestamp_seconds": 27.304117,
+          "frame_index": 1553
+        },
+        {
+          "timestamp_seconds": 27.471217,
+          "frame_index": 1562
+        },
+        {
+          "timestamp_seconds": 27.6379,
+          "frame_index": 1569
+        },
+        {
+          "timestamp_seconds": 27.8046,
+          "frame_index": 1576
+        },
+        {
+          "timestamp_seconds": 27.987983,
+          "frame_index": 1585
+        },
+        {
+          "timestamp_seconds": 28.15465,
+          "frame_index": 1595
+        },
+        {
+          "timestamp_seconds": 28.321317,
+          "frame_index": 1605
+        },
+        {
+          "timestamp_seconds": 28.50465,
+          "frame_index": 1616
+        },
+        {
+          "timestamp_seconds": 43.890367,
+          "frame_index": 2370
+        },
+        {
+          "timestamp_seconds": 44.073733,
+          "frame_index": 2376
+        },
+        {
+          "timestamp_seconds": 44.265433,
+          "frame_index": 2385
+        },
+        {
+          "timestamp_seconds": 44.432117,
+          "frame_index": 2392
+        },
+        {
+          "timestamp_seconds": 44.623817,
+          "frame_index": 2401
+        },
+        {
+          "timestamp_seconds": 44.790517,
+          "frame_index": 2407
+        },
+        {
+          "timestamp_seconds": 44.973883,
+          "frame_index": 2414
+        },
+        {
+          "timestamp_seconds": 45.157233,
+          "frame_index": 2424
+        }
+      ]
+    }
+  ],
+  "observations": [
+    {
+      "case": "recent-page-return",
+      "app": "hadithly",
+      "scrolled_preview_visible_seconds": [
+        44.265433,
+        44.432117
+      ],
+      "header_visible_by_seconds": 44.623817,
+      "outcome": "Preview at prior position followed by header reset after horizontal landing"
+    },
+    {
+      "case": "first-previous-unloaded",
+      "app": "hadithly",
+      "full_loading_visible_by_seconds": 21.6119,
+      "still_loading_sample_seconds": 22.654,
+      "content_visible_sample_seconds": 22.97,
+      "outcome": "Skeleton neighbor, full loading page, then content; sampled bounds are not exact durations"
+    },
+    {
+      "case": "recent-page-return",
+      "app": "sajda",
+      "outcome": "After-case screenshot retains scrolled Ibrahim 14:45-47 position"
+    }
+  ],
+  "remaining": [
+    "controlled cancel/reverse and repeated-input cases",
+    "both Hadithly volume edges",
+    "RTL",
+    "verified offline content",
+    "translation growth",
+    "accessibility",
+    "Android runtime",
+    "matched Convex request and cost evidence"
+  ]
+}

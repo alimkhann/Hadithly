@@ -14,12 +14,15 @@ default. NEXT_SESSION_PROMPT.md now selects page/volume transitions.
 
 ## Page and volume transitions
 
-Follow NEXT_SESSION_PROMPT.md and the November 2 POST_GOAL_BACKLOG.md sequence.
-Inspect Sajda on the actual iPhone with timestamped motion evidence, derive the
-case matrix and reproduce Hadithly jumps/loaders before one bounded repair.
-Preserve semantic landing, accessibility and the Convex cost reductions. Keep
-fast fetching, screenshot sharing, floating-pill navigation and simulator
-consolidation as their recorded later units.
+Discovery and the owner interview are recorded in PAGE_TRANSITION_BASELINE.md
+and PAGE_TRANSITION_PLAN.md. Follow NEXT_SESSION_PROMPT.md for Unit 1 only:
+restore recently visited pages during the current reader session and make the
+drag preview match the committed vertical landing on both apps. Reproduce the
+recorded A → B → A reset, then verify the repair on the same native journey.
+Keep one landing owner, explicit Continue/Saved/Contents targets, unseen-page
+headers, accepted scrolling, accessibility and recent Convex reductions. Commit
+the verified paired-platform unit without pushing and stop before Unit 2.
+The remaining plan and original acceptance gates stay open.
 
 ## Reader scrolling and floating controls
 

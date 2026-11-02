@@ -4,7 +4,36 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-## Current checkpoint: scrolling accepted and feature audit complete, November 2
+## Current checkpoint: page-transition discovery and plan, November 2
+
+The owner completed the planning interview and authorized live Sajda/Hadithly
+inspection on the available iPhone. Matched controlled gestures and native video
+reproduce an iOS returning-page preview that then resets to the header, and an
+unloaded previous-page turn that lands on a skeleton. Sajda retains the scrolled
+position in the matched immediate-neighbor return. See
+[PAGE_TRANSITION_BASELINE.md](PAGE_TRANSITION_BASELINE.md) for timestamps, capture
+cadence, source evidence and untested cases. These recordings are not app-FPS proof.
+
+[PAGE_TRANSITION_PLAN.md](PAGE_TRANSITION_PLAN.md) records the owner decisions:
+follow Sajda closely, restore recently visited pages during the current reader
+session, keep configurable/language-based direction, and keep current text visible
+with a quiet cue until an unavailable target is ready. Keep loading presentation
+easy to change. Reuse fetched content and deduplicate requests before considering
+two-page lookahead. Chosen-language offline translation packs need a separate
+rights/revocation-aware contract; existing v1 packs remain blocked.
+
+This is a completed planning/discovery unit, not a product repair. Next is Unit 1
+only: recent-page restoration and identical preview/committed landing on both
+native apps, with one scroll owner and explicit Continue/Saved/Contents targets
+preserved. The following plan units cover content reuse, pending-target handling
+and surrounding layout/motion. General opening latency, durable translation packs,
+sharing, pill navigation and simulator cleanup keep their separate scopes.
+The physical capture driver is local outside the checkout; only its test runner
+was installed. No Hadithly reinstall/reset, backend/cloud/model/deployment change
+or Android runtime verification occurred. Preserve the incoming iOS files and
+Python caches, accepted scrolling, recent Convex reductions and all original gates.
+
+## Prior checkpoint: scrolling accepted and feature audit complete, November 2
 
 The owner tried the restored optimized development build and confirmed:
 "Yes, scrolling is good enough now." Close this scrolling round under that

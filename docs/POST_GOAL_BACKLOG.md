@@ -70,6 +70,16 @@ Carry these reliability findings forward rather than claiming perfection:
 
 ### Next session: page and volume swiping
 
+The November 2 interview and matched physical-iPhone discovery are complete.
+[PAGE_TRANSITION_PLAN.md](PAGE_TRANSITION_PLAN.md) is the implementation sequence;
+[PAGE_TRANSITION_BASELINE.md](PAGE_TRANSITION_BASELINE.md) records the direct
+reposition/loader evidence and remaining cases. Product repairs have not started.
+The owner chose temporary recent-page restoration, retained direction settings
+and current-text-visible waiting. Reuse/deduplication comes before wider prefetch.
+The next bounded unit is recent-page restoration on both apps. The later request
+for chosen-language offline translations remains explicit; v1 packs are blocked
+and need a separate rights/publication-aware contract rather than reactivation.
+
 The owner reports jitters, jumps, frequent loaders and incorrect gesture cases,
 including with offline collections installed. The agent should derive the
 interaction matrix rather than require the owner to enumerate every bug.
@@ -84,9 +94,10 @@ interaction matrix rather than require the owner to enumerate every bug.
 - Reproduce Hadithly with cold/warm content, verified offline data, long bilingual
   and large text, RTL/LTR and translation growth. Write the motion/landing/cache
   contract before implementation and compare the same cases afterward.
-- Preserve one native vertical-scroll owner. Content caching must not revive
-  competing old scroll offsets: manual turns land at headers; Continue/Saved
-  use semantic restoration. Preserve accessible controls and platform meaning.
+- Preserve one native vertical-scroll owner. Explicit Continue/Saved/Contents
+  targets take priority, valid session recent-page positions come next, and unseen
+  pages land at headers. Content caching must not add a competing offset writer.
+  Preserve accessible controls and platform meaning.
 - Target the quality of Sajda or better, while retaining Hadithly typography,
   source actions, privacy and cost controls. Do not mask an incorrect state
   transition with animation or assume Sajda's internal renderer.
