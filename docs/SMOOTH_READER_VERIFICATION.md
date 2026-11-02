@@ -1,10 +1,12 @@
 # Consistently smooth iPhone reader
 
-Status: Baseline complete; measured interruption repairs committed, strict final acceptance open. The owner approved this continuation on November 1,
-2026. The earlier bounded repair remains verified only against its recorded
-5 ms/s mean target in `SCROLLING_VERIFICATION.md`.
+Status: Owner accepted the restored installed build on November 2 and closed
+this round at the retained 1.34 ms/s result. The original strict below-1-ms/s
+target was not achieved. The feature/saving audit is complete; see
+[READER_FEATURE_PRESERVATION_AUDIT.md](READER_FEATURE_PRESERVATION_AUDIT.md).
+The earlier bounded repair retains only its recorded mean-5-ms/s scope.
 
-## Contract and ordered goals
+## Original contract and ordered goals
 
 Preserve typography, floating controls, safe-area text, gestures, source actions,
 accessibility and semantic reading positions. Work iPhone-first, with Android
@@ -19,7 +21,7 @@ work. Keep A2 row mode off and all original product acceptance gates open.
    UIKit/TextKit 2 rendering. Keep SwiftUI if both pass. Replace only the text
    surface if UIKit alone passes the performance and behavioral requirements.
 
-The warm scrolling target is strictly below **1 ms/s in every retained run**,
+The original warm scrolling target was strictly below **1 ms/s in every retained run**,
 three 30-second repetitions for each slow/flick workload and content condition.
 This is a project quality target, not an Apple threshold. Report individual
 hitches and investigate recurring stalls. Owner confirmation on the optimized
@@ -244,17 +246,27 @@ The owner-requested exact rollback remains commit `2ad8243`, local tag
 `reader-smooth-owner-20261102` and the signed bundle/source archive documented in
 [SMOOTH_READER_CHECKPOINT.md](SMOOTH_READER_CHECKPOINT.md).
 
-The iPhone became occupied in another app after the valid wired capture and now
-reports local-network transport. Phone inspection was detached. Two subsequent
-diagnostic attachment attempts produced no usable capture. Wait for the owner's
-availability response before further physical actions; local checks are complete.
+The phone was subsequently made available again. Fresh diagnostics and the
+failed early-axis experiment are documented in SMOOTH_READER_DECISION.md and
+portable records. That experiment measured 2.68 ms/s and was reverted. The
+retained development build was restored and launched on the iPhone.
 
-## Remaining proof
+On November 2 the owner tried that restored installed app and confirmed,
+"Yes, scrolling is good enough now." This supersedes chasing the original
+fractional target; it does not make the missing strict matrix a pass. The new
+feature/saving audit includes two on-disk reopen tests, both passing, plus two
+existing lifecycle/account cases. Local persistence and cloud upload remain
+distinct. All later requests are recorded in POST_GOAL_BACKLOG.md.
 
-- Attribute the remaining 15–17 ms app updates before changing another variable.
-- Complete the matched final three-run matrix and inspect individual stalls.
-- Verify remaining live Continue/Saved restoration and physical VoiceOver,
-  then obtain fresh owner confirmation on the optimized installed build.
-- Preserve incoming iOS project/scheme/catalog and Python cache bytes, all
-  original program gates, A2 row mode off and deferred page-cache/priority-4 work.
-  Commit completed logical units without pushing.
+## Follow-up evidence retained
+
+- The final three-run strict matrix was not completed and the below-1 target was
+  not achieved. Reopen only for a meaningful user-visible regression or a newly
+  selected measurement goal, rather than routine marginal tuning.
+- Live Continue/Saved and physical VoiceOver/release accessibility evidence
+  retain their original program gates. This round does not close them.
+- Continuous-scroll crash-safe durable checkpointing and background upload
+  guarantees need a separate bounded reliability unit; see the feature audit.
+- Page/volume transitions are next. Preserve incoming iOS files/cache, original
+  gates, A2 row mode off and the Convex cost reductions. Keep the other new
+  backlog requests separate and commit completed units without pushing.

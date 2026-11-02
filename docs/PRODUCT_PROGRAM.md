@@ -8,7 +8,17 @@ for this program, not session names supplied by the owner.
 Their checksums and every research URL are recorded in
 `product-program/research-manifest.json`. No later phase replaces unfinished work.
 
-## Current owner priority: reader scrolling, November 1
+## Current owner decision: scrolling accepted, November 2
+
+The owner accepted the restored optimized development reader as good enough and
+chose page/volume transitions next. The retained large-type run is 1.34 ms/s;
+the stricter below-1 target was not achieved and is not claimed as passing.
+READER_FEATURE_PRESERVATION_AUDIT.md records capabilities, local/cloud saving
+guarantees and unfinished caching/lifecycle work. The next-session order and
+new later requests are in POST_GOAL_BACKLOG.md and NEXT_SESSION_PROMPT.md.
+This closure does not close the original release, accessibility or other gates.
+
+## Prior owner priority: reader scrolling, November 1
 
 Priority-2 verification passed 19 native cases and was committed as `85adf64`.
 The owner started the next goal, approved a physical iPhone trace and latest-build

@@ -6,11 +6,20 @@ Never use Relay.
 
 ## Optimized iPhone reader smoothness
 
-The owner approved the stricter smooth-reader plan. Goal 1 baseline and decision are complete; use the
-current `NEXT_SESSION_PROMPT.md` and `SMOOTH_READER_VERIFICATION.md`. Require
-valid optimized physical frame measurements and attribution before selecting a
-repair. The below-1-ms/s-per-run target and owner confirmation supersede the
-earlier bounded goal's mean-5-ms/s acceptance for this continuation only.
+The owner accepted the restored installed build on November 2 and stopped
+marginal tuning at the retained 1.34 ms/s result. The strict below-1 target was
+not achieved. See READER_FEATURE_PRESERVATION_AUDIT.md for capabilities, saving
+guarantees, cache limits and follow-ups. Do not reopen this investigation by
+default. NEXT_SESSION_PROMPT.md now selects page/volume transitions.
+
+## Page and volume transitions
+
+Follow NEXT_SESSION_PROMPT.md and the November 2 POST_GOAL_BACKLOG.md sequence.
+Inspect Sajda on the actual iPhone with timestamped motion evidence, derive the
+case matrix and reproduce Hadithly jumps/loaders before one bounded repair.
+Preserve semantic landing, accessibility and the Convex cost reductions. Keep
+fast fetching, screenshot sharing, floating-pill navigation and simulator
+consolidation as their recorded later units.
 
 ## Reader scrolling and floating controls
 

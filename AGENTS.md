@@ -26,7 +26,7 @@ npm run typecheck     # tsc --noEmit
 # ios (regenerate project after adding files or changing project.yml)
 cd ios && xcodegen generate
 xcodebuild -project Hadithly.xcodeproj -scheme Hadithly \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
+  -destination 'platform=iOS Simulator,name=iPhone 18 Pro' build
 
 # android (JDK 21; secrets in android/secrets.properties, see .example)
 cd android
@@ -39,6 +39,12 @@ Run connected Android UI checks from the repository root with
 The runner rejects physical targets and pins Gradle's serial. For physical-device
 work, follow that session's device gate and select the device explicitly. Never
 use an implicit all-devices run.
+
+Reuse the installed iOS runtime and existing **iPhone 18 Pro** simulator, selected
+explicitly. Do not download another runtime or create another simulator when the
+existing one can run the check. The owner's one-time consolidation of duplicate
+devices is recorded in `docs/POST_GOAL_BACKLOG.md`; preserve the retained device's
+data and finish active tests before that cleanup.
 
 ## Non-negotiable rules
 

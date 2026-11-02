@@ -144,6 +144,55 @@ final class GuestMergePlannerTests: XCTestCase {
         XCTAssertEqual(fixture.model.progress(for: "bukhari")?.position?.rawPageOffset, 600)
     }
 
+    @MainActor func testReaderBackgroundFlushSurvivesAccountStoreReopenWithoutNetwork() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("reader-background.store")
+        let fixture = LibraryFacadeFixture(store: GuestDataStore(storeURL: url))
+        await fixture.start()
+        defer { fixture.stop() }
+        let owner = try XCTUnwrap(fixture.sync.owner)
+        let reader = scrollingReader(library: fixture.model)
+        reader.setViewportActive(true, id: UUID())
+        reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0,
+            rawPageOffset: 640, normalizedOffset: 0.64)
+        reader.endViewportInteractions()
+        reader.saveCurrentProgress()
+        let expected = try XCTUnwrap(fixture.model.progress(for: "bukhari")?.position)
+        reader.stop()
+        fixture.stop()
+
+        let reopened = GuestDataStore(storeURL: url)
+        let recovered = try reopened.libraryProjection(owner).progress.first { $0.collectionSlug == "bukhari" }?.position
+        XCTAssertEqual(recovered, expected)
+        XCTAssertEqual(recovered?.rawPageOffset, 640)
+        XCTAssertEqual(recovered?.normalizedOffset, 0.64)
+        XCTAssertTrue(try XCTUnwrap(reopened.syncPartition(owner)).pending.contains { change in
+            if case .positionPut(let value) = change.operation.command { return value.position == expected }
+            return false
+        }, "The exact position must be durably queued even when no account upload can complete")
+    }
+
+    @MainActor func testGuestReaderStopSurvivesStoreReopen() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("reader-guest-exit.store")
+        let store = GuestDataStore(storeURL: url)
+        let library = UserLibraryModel(guestData: store)
+        library.refresh()
+        let reader = scrollingReader(library: library)
+        reader.setViewportActive(true, id: UUID())
+        reader.captureStableScroll(hadiths: reader.currentPageHadiths, leadingIndex: 0,
+            rawPageOffset: 475, normalizedOffset: 0.475)
+        reader.stop()
+        let recovered = GuestDataStore(storeURL: url).progressDrafts().first { $0.collectionSlug == "bukhari" }?.readingPosition
+        XCTAssertEqual(recovered?.anchor.providerHadithId, "57")
+        XCTAssertEqual(recovered?.rawPageOffset, 475)
+        XCTAssertEqual(recovered?.normalizedOffset, 0.475)
+    }
+
     @MainActor func testActiveReaderPhasePreventsWritesWithoutFurtherGeometryChanges() async throws {
         let fixture = LibraryFacadeFixture(store: GuestDataStore(inMemory: true))
         await fixture.start()

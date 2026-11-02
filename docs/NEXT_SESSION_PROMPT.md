@@ -1,70 +1,70 @@
-# Continue the measured reader interruption repair
+# Next session: page and volume transitions
 
-Read PLAN.md, SMOOTH_READER_CHECKPOINT.md, SMOOTH_READER_VERIFICATION.md and
-SMOOTH_READER_DECISION.md. The complete smooth-reader goal remains active. The
-strict target is below 1 ms/s in every retained warm run, plus full behavior
-checks and fresh owner confirmation on the final optimized installed build.
-Page-transition caching and priority 4 remain separate later goals.
+Read PLAN.md, the November 2 section of POST_GOAL_BACKLOG.md,
+READER_FEATURE_PRESERVATION_AUDIT.md and the matching SESSION_PROMPTS entry.
+The owner explicitly accepted the restored optimized scrolling build and chose
+page/volume swiping next. Do not reopen fractional scrolling tuning by default.
+The original strict below-1-ms/s target was not achieved. This is owner-approved
+closure at the retained 1.34 ms/s result, not a retroactive strict pass.
 
-Preserve owner checkpoint commit 2ad8243 and tag reader-smooth-owner-20261102.
-The exact signed app, dSYMs and complete tracked iOS source snapshot are under
+## Ready task
+
+Outcome: establish the page/volume interaction and caching contract from live
+Sajda comparison and reproduced Hadithly cases, then implement only a bounded
+repair supported by that evidence. Do not require the owner to list every case.
+
+Use the actual iPhone when free. Prior authorization covers reading/scrolling,
+Sajda inspection and development profiling/installation; coordinate availability
+if unclear, and keep accounts, paid generation, app reset and cloud changes
+behind their existing gates. Do not assume the phone is free from this handoff.
+
+Capture local native video with actual frame timestamps so small animations can
+be inspected roughly every 10–100 ms as the capture supports. Report true frame
+rate. Slow screenshots or invented intermediate frames do not prove fidelity.
+Compare slow/fast forward/backward, canceled/reversed drags, repeated gestures,
+page/volume ends, unloaded targets, focus, RTL/LTR, large/bilingual text and
+verified offline content. Reproduce jumps/loaders before repair. Preserve one
+native vertical landing writer: manual turns show headers, Continue/Saved restore
+semantic positions, and a content cache must not revive old competing offsets.
+
+Stop at the next reviewable, verified unit and commit without pushing. Fast
+collection/page opening and fetch latency are a following separate session.
+Screenshot sharing, interactive floating pills and simulator cleanup are later
+requests, not part of this transition unit. Preserve prior translation-reliability
+and Free–Pro testing goals rather than dropping them from the backlog.
+
+## What is preserved
+
+Scrolling repairs are 7774dcd, b9d8604 and a6c3035. Diagnostics/rejected early-axis
+experiment are in cbd1376. No experimental gesture policy remains. The restored
+optimized development app is installed, binary
+17e3b4fda5021ccaf2dbda5b80a63758d79114f42df3c34fe7dc17da657a94df.
+The owner confirmed this installed build is good enough. The stricter final
+18-run below-1 matrix was not completed. Physical VoiceOver and original
+release/accessibility gates remain separate unpassed evidence.
+
+Owner-preferred older checkpoint 2ad8243/tag reader-smooth-owner-20261102 has its
+signed app, dSYMs and full tracked iOS source snapshot at
 /Users/alim/Developer/Artifacts/Hadithly/reader-smooth-owner-20261102-1fb14968.
-The owner reports that exact app feels much better; rollback uses its bundle
-without data reset or overwriting incoming files. Its 8.94 ms/s is above target.
+Keep it unchanged; restore by installing its bundle, without data reset or
+worktree overwrite. Incoming project/scheme/catalog bytes remain uncommitted.
 
-Goal 1 is complete. The controlled baseline matrix is retained. Quiet progress
-persistence and committed decoded reuse are committed as 7774dcd and b9d8604.
-Combined Animation Hitches/Time Profiler data attributes library/storage work in
-16 of 19 late-frame preparation windows. Do not repeat that diagnostic or start
-a renderer rewrite without new evidence. A fresh diagnostic on the current
-candidate is needed for its residual cause. Keep large exports serial; parallel
-exports previously exhausted scratch space, then owned scratch was recovered.
+The feature audit confirms local quiet/exit/background saves, durable account
+queueing and fresh on-disk reopen tests. Cloud upload before suspension is not
+guaranteed. Continuous scrolling can defer durable saving until quiet or an
+explicit lifecycle flush; bounded crash-safe checkpointing is a recorded follow-up.
+Current page loading is normally network-first and adjacent warming discards
+payloads, so downloaded collections do not yet guarantee instant online opening.
+Inspect that distinction when designing content reuse. Keep the recent Convex
+notification/outline/read cost reductions and the sole-Convex API boundary.
 
-Shared quiet scheduling measures 2.23 ms/s using geometry alone. The native
-scroll-phase-aware candidate measures 0.67 ms/s in the first valid large-type
-slow run, with one 12.50 ms hitch. Account work, library projection and progress
-saves have zero active-scroll overlap. One disconnected capture was rejected.
-This proves one run only, not the full acceptance gate.
+Reuse the existing iPhone 18 Pro simulator/runtime per AGENTS.md. Consolidation
+of the duplicate Convex Cost/LA2 devices is a later maintenance task; preserve
+the retained device and needed evidence. No extra runtime/device download.
 
-The latest candidate additionally bounds received full read snapshots to one
-newest version per stream, leaving durable mutation/receipt ordering intact.
-The next local position timestamp includes an already received deferred remote
-position. Stale versions and owner changes cannot leak that clock. Two real-path
-tests were red then green; all 171 safety tests and the two reader UI checks
-pass. The optimized development app is installed. Its first matched large-type
-run measures 1.34 ms/s with two 12.50 ms hitches, so matrix expansion stopped.
-Storage/projection/persistence again have zero active-scroll overlap. Attribute
-the associated 15.09 and 17.13 ms app updates next. Eight wider simulator behavior
-checks also pass, including Saved return, large text/growth, manual landing and
-revisits, vertical-scroll ownership and focus stability. The repair and evidence
-are committed as a6c3035. Inspect existing outputs before rerunning. Full final
-matrix, physical VoiceOver/live restoration and owner confirmation remain open.
-
-Offline frame-phase export from that same retained failing run is complete.
-remaining-phase-quiet-frame-phases.json records joined GPU phases of 1.10 and
-1.11 ms, render phases of 3.21 and 3.29 ms, and maximum app commit calls below
-1 ms. Both associated app updates begin about 36.6 ms into native scrolling,
-without storage/projection/persistence overlap across their whole windows.
-Distinguish early-scroll UI/gesture work from blocked/runnable main-thread time
-using a new simultaneous frame/CPU capture on this candidate. The old binary's
-CPU trace cannot establish this cause. No further product change was made.
-
-Raw root is /tmp/hadithly-smooth-reader-20261101. The latest build manifest is
-phase-aware-bounded-sync-build/build-manifest.json, binary SHA-256
-996d4856538009af8f9c02584307ec0cf0e35ee158bfbdc49edbd0508a4b5b05.
-The batch log is phase-bounded-large-matrix.log. Each capture name begins
-phase-bounded-large-. The batch stops on an invalid or valid failing run; do not
-retry a failing score to select a pass. Inspect and attribute it first. Native
-validation must cover every gesture, actual movement, frames, power/thermal
-conditions and CPU/memory. Shared presentation counts are not whole-app FPS.
-
-The iPhone is now occupied in another app and reports local-network transport.
-Phone inspection was detached and an availability question is pending. Wait for
-the owner to say it is free before further physical actions. Two app-only
-diagnostic attachment attempts produced no usable capture. It remains authorized
-for optimized development installation, profiling and scrolling, with generation
-off. Never install unchanged production Release, reset data or sign in. Preserve
-the five incoming iOS files and six prior Python cache files, all original gates,
-A2 row mode off and completed Convex/A5/B/C/D work. Commit completed logical
-units and verification without pushing. Keep acceptance open until the repeated
-physical and behavior gates pass and the owner confirms the installed build.
+Raw reader evidence remains under /tmp/hadithly-smooth-reader-20261101; portable
+records are in docs/smooth-reader-verification. Large exports must be serial.
+Preserve incoming iOS files and six prior Python cache files, G01–G41,
+A1/A3/A4 acceptance, A7/G38 deferral, E actual Linear/final audit, A2 row mode off,
+and completed Convex/A5/B/C/D work. Do not install unchanged production Release,
+sign in/reset data or make a paid/cloud/deployment change without its action gate.

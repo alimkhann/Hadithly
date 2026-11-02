@@ -1,0 +1,57 @@
+{
+  "scope": "Fresh local integration verification of the actual reader/library/SwiftData path. New tests reopen on-disk stores. This is not a live account upload, arbitrary crash, physical background-suspension or force-quit guarantee.",
+  "tests": [
+    {
+      "case": "GuestMergePlannerTests/testGuestReaderStopSurvivesStoreReopen",
+      "passed": true,
+      "seconds": 0.057
+    },
+    {
+      "case": "GuestMergePlannerTests/testPendingReaderScrollCannotFollowAnAccountSwitch",
+      "passed": true,
+      "seconds": 0.782
+    },
+    {
+      "case": "GuestMergePlannerTests/testReaderBackgroundFlushSurvivesAccountStoreReopenWithoutNetwork",
+      "passed": true,
+      "seconds": 0.068
+    },
+    {
+      "case": "GuestMergePlannerTests/testReaderScrollFlushesAfterQuietAndOnStop",
+      "passed": true,
+      "seconds": 0.693
+    }
+  ],
+  "count": 4,
+  "failures": 0,
+  "new_proof": [
+    "Exact account position and pending upload command survive background-style explicit flush and fresh store reopen without network",
+    "Guest position survives reader.stop and fresh store reopen"
+  ],
+  "existing_behavior_rechecked": [
+    "Quiet-period/stop flushing",
+    "Pending account A capture cannot enter account B"
+  ],
+  "installed_retained_build": {
+    "configuration": "Debug with optimized Swift and C compilation",
+    "swiftOptimization": "-O",
+    "swiftCompilation": "wholemodule",
+    "bundleIdentifier": "com.hadithly.app",
+    "developmentURL": "https://festive-cobra-664.eu-west-1.convex.cloud",
+    "diagnosticsEnvironment": "development",
+    "appAttestEnvironment": "development",
+    "debuggerAttachAllowed": true,
+    "binarySHA256": "17e3b4fda5021ccaf2dbda5b80a63758d79114f42df3c34fe7dc17da657a94df",
+    "iosTrackedSourceSHA256": "2e4ba83c4f3f97e3bf3269c15a2636bb1290d041751a5c2c3213a3176b1572a8",
+    "gitHead": "57ca23da4fb40a9a72c3d7009f102b5ab145be88",
+    "note": "Retains DEBUG compilation conditions and development entitlements. No app installation or project regeneration."
+  },
+  "phone_readback": "Restored development app installed and launched; failed early-axis experiment removed. Production source matches retained source. Two additional unit tests were added after this build.",
+  "limitations": [
+    "Latest continuous-scroll capture is memory-only until quiet or explicit lifecycle flush",
+    "No guaranteed final callback for arbitrary abrupt process termination",
+    "Local persistence does not guarantee cloud upload before OS suspension or force quit",
+    "Full strict below-1-ms/s matrix was not achieved; owner has asked to prioritize useful work over fractional gains"
+  ],
+  "owner_confirmation": "Owner tried the restored optimized build and confirmed scrolling is good enough to close this round, November 2. Strict below-1-ms/s target was not achieved and is not claimed."
+}

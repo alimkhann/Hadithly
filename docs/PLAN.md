@@ -4,67 +4,50 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-## Current checkpoint: native scroll phase isolates sync work, November 2
+## Current checkpoint: scrolling accepted and feature audit complete, November 2
 
-The owner-approved smooth-reader goal remains active. Goal 1 baseline and
-architecture decision are complete. Require strictly below 1 ms/s in every
-retained warm run, the full behavior checks and fresh owner confirmation on the
-optimized installed build. Page-transition caching and priority 4 remain later
-separate goals. See [SMOOTH_READER_VERIFICATION.md](SMOOTH_READER_VERIFICATION.md)
-and [SMOOTH_READER_DECISION.md](SMOOTH_READER_DECISION.md).
+The owner tried the restored optimized development build and confirmed:
+"Yes, scrolling is good enough now." Close this scrolling round under that
+revised product decision. The original strict below-1-ms/s-per-run target was
+**not achieved**; the retained matched large-type run is 1.34 ms/s with two
+12.50 ms hitches. Do not relabel the missing final strict matrix as passing.
+The owner prefers useful next work over marginal tuning or speculative rewrites.
 
-Preserve the exact app the owner reports feels much better. Commit `2ad8243`,
-local tag `reader-smooth-owner-20261102` and
-[SMOOTH_READER_CHECKPOINT.md](SMOOTH_READER_CHECKPOINT.md) provide rollback without
-resetting app data or the worktree. The signed app, dSYMs and full tracked iOS
-source snapshot are archived outside /tmp. Its measured 8.94 ms/s does not close
-the stricter gate.
+[READER_FEATURE_PRESERVATION_AUDIT.md](READER_FEATURE_PRESERVATION_AUDIT.md)
+answers what changed, what remains, caching limits and local saving versus cloud
+upload. No core reader capability was removed. The latest capture stays in
+memory until quiet or an explicit exit/inactive/background save. Two new tests
+reopen on-disk stores and prove guest exit and offline-account queued progress
+survive those flushes; four fresh lifecycle/account cases pass. Continuous-scroll
+crash-safe checkpointing and guaranteed cloud upload before suspension are not
+claimed. Existing 171 safety/ten UI and eight unchanged-Android parity checks
+retain their recorded scopes. Original release/accessibility gates stay open.
 
-The initial 18-run baseline and the nominal-temperature ordinary replacement
-cohort all fail. Quiet progress persistence (`7774dcd`) improves the matched
-large-type run from 32.89–52.94 to 8.04 ms/s. Committed decoded reuse (`b9d8604`)
-reduces 20 real post-write reads from 177.53 to 20.21 ms, without a demonstrated
-hitch benefit. Isolated geometry changes do not establish a reduction; the
-owner checkpoint retains the installed bounded variant at the owner's request.
+Retained repairs are 7774dcd, b9d8604 and a6c3035. The resumed CPU diagnostics and
+rejected early-axis experiment are recorded in cbd1376. That experiment passed
+behavior checks but measured 2.68 ms/s and was removed. The restored development
+app is installed and launched on the iPhone, binary
+17e3b4fda5021ccaf2dbda5b80a63758d79114f42df3c34fe7dc17da657a94df.
+Its production source matches the retained measured implementation; only two
+audit tests were added afterward. No further renderer rewrite is justified.
 
-Combined frame-lifetime/CPU attribution identifies library/storage work in
-16 of 19 late-frame preparation windows. Shared geometry-based quiet scheduling
-measures 2.23 ms/s. Adding native scroll-phase activity through held-finger
-tracking, interaction and deceleration measures **0.67 ms/s** in the first valid
-large-type slow run. Storage, library projection and progress-save intervals
-have zero overlap with active scrolling. One disconnected capture was rejected.
-The renderer remains SwiftUI; no text renderer rewrite is justified by this data.
+Preserve owner checkpoint 2ad8243, tag reader-smooth-owner-20261102 and the exact
+signed app/source archive in SMOOTH_READER_CHECKPOINT.md. It remains available
+without resetting app data or the worktree.
 
-The next optimized development candidate also coalesces authoritative read
-snapshots to the newest per stream and preserves the received position clock
-before deferred hydration. Two real-path tests were red then green. All 171
-account/storage/layout/position safety tests and the two reader UI checks pass.
-The new build is installed. Its first matched large-type run measures 1.34 ms/s
-with two 12.50 ms hitches. Storage/projection/persistence again have zero
-active-scroll overlap. Matrix expansion stopped; attribute the associated
-15.09 and 17.13 ms app updates next. Eight wider simulator behavior checks also
-pass, covering Saved return, large text/growth, manual landing/revisits,
-vertical-scroll ownership and focus stability. The iPhone is now occupied in
-another app and reports local-network transport; inspection was detached and an
-availability question is pending. Two subsequent diagnostic attachment attempts
-produced no usable capture. Continue physical work when the phone is free.
-Full final matrix, physical VoiceOver/live restoration and owner acceptance
-remain open. The implementation and measured evidence are committed as `a6c3035`.
+The next session is page/volume transitions. Use POST_GOAL_BACKLOG.md's November
+2 owner sequence: inspect Sajda on the actual iPhone, capture timestamped motion
+and derive the case matrix before repair. Later sessions cover fast opening/
+fetching with the Convex cost improvements preserved, screenshot-aware sharing,
+functional floating progress pills and simulator consolidation. Those requests
+are recorded, not implemented now. AGENTS.md now requires reusing the existing
+iPhone 18 Pro/runtime; no simulator was downloaded, created or deleted here.
 
-Offline export of the retained failing run joins both frames to short GPU phases
-of 1.10–1.11 ms and individual app commits below 1 ms. Both app updates begin
-about 36.6 ms after native scrolling starts. See the new frame record linked in
-SMOOTH_READER_DECISION.md. The next profile must distinguish early-scroll UI
-work from main-thread waiting on the latest candidate. No further product change
-is supported until that attribution; the old owner-checkpoint CPU samples cannot
-prove the residual cause in the repaired build.
-
-Keep large diagnostic exports serial. Earlier parallel exports exhausted disk;
-only their owned terminal-process scratch was removed. Preserve incoming iOS
-project/scheme/catalog and Python cache bytes, all original G01–G41 gates,
-A1/A3/A4 acceptance, A7/G38 deferral, E actual Linear/final audit, A2 row mode off,
-completed Convex/A5/B/C/D work and deferred page-cache/priority-4 scope. Commit
-completed logical units and evidence without pushing.
+Preserve the original G01–G41 gates, A1/A3/A4 acceptance, A7/G38 deferral, E actual
+Linear/final audit, A2 row mode off, completed Convex/A5/B/C/D work and the later
+translation-reliability/Free–Pro contract. Preserve incoming iOS project/scheme/
+catalog and prior Python cache bytes. Keep large trace exports serial. Commit
+completed logical units without pushing; do not start the next session here.
 
 ## Prior checkpoint: bounded reader scrolling goal verified, November 1
 
