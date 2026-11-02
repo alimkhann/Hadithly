@@ -295,3 +295,58 @@ The owner-checkpoint CPU trace predates the shared gate; do not use its samples
 to claim the new candidate's residual cause. Capture the latest installed
 candidate after the owner says the phone is free. Keep the failed 1.34 ms/s run,
 the strict metric and owner acceptance gate unchanged.
+
+## Resumed diagnostics and early axis-rejection experiment
+
+The owner made the phone available again, open and wired. Preparation confirms
+the same passage, Arabic 40/English 22 pt, generation off, Low Power Mode off
+and nominal thermal state. The installed measured binary is unchanged.
+
+The first [resumed CPU/frame diagnostic](smooth-reader-verification/resumed-phase-diagnostic.json)
+contains 1,969 active app updates including preflight, with median 3.74 ms,
+p95 5.55 ms and maximum 12.44 ms. It has no hitch rows. This is a valid
+diagnostic that did not reproduce the stalls, not an acceptance replacement for
+the retained 1.34 ms/s failure.
+
+The second [waiting-thread diagnostic](smooth-reader-verification/resumed-waiting-diagnostic.json)
+catches three late frames in measured native scrolling and one additional frame
+outside native active intervals. Scheduler intervals show approximately 12–15 ms
+blocked and 3–8 ms running in their preparation windows. Stack examples in the
+measured frames contain UIKit gesture/container traversal and SwiftUI graph
+resolution, rather than library storage or text layout. They do not identify a
+specific blocking call as the complete cause. The extra inactive frame includes
+Clerk device-ID/receipt synchronous XPC; it is not an active-scroll result and
+no authentication change is proposed.
+
+Instruments warns that the requested 5 ms sampling period differs from its
+configured 1 ms period. Sample weights/percentages are therefore omitted from
+the portable record; stack identities and separately recorded scheduler
+intervals remain diagnostic evidence only. Only the completed recorder's owned
+temporary directory was cleared after its saved trace was verified, recovering
+3.88 GiB. The saved capture remains available.
+
+The paging recognizer currently begins on vertical input and remains a
+simultaneous window recognizer throughout scrolling. The next bounded experiment
+rejects clearly vertical input in
+[`gestureRecognizerShouldBegin`](https://developer.apple.com/documentation/uikit/uigesturerecognizerdelegate/gesturerecognizershouldbegin%28_%3A%29).
+Apple documents that returning false moves that recognizer to failed before it
+begins. Existing horizontal/ambiguous input, page-turn mapping and native scroll
+ownership remain. This tests whether removing the redundant paging participant
+reduces the gesture/graph traversal associated with the remaining frames.
+
+Two real delegate-seam tests were red before the change, with five failed
+assertions. The candidate passes all 41 paging/round-3 unit checks and three
+gesture UI cases for fast/canceled, vertical and horizontal input. The optimized
+development app passed its behavior checks, but the
+[matched timing run](smooth-reader-verification/early-axis-experiment.json)
+measures 2.68 ms/s with four 12.50 ms hitches. CPU is lower, but that does not
+establish a hitch benefit. Reject the experiment: both production and test
+changes were restored, and the retained development build was rebuilt and
+installed. The owner's exact rollback bundle/tag remain unchanged.
+
+On November 2 the owner accepted the restored installed reader as good enough
+and chose page/volume transitions for the next session. Stop the marginal
+sub-1-ms investigation under that revised product decision. The original strict
+target was not achieved; neither the diagnostic with no hitches nor the owner's
+acceptance is a retroactive passing result for that target. Remaining storage,
+transition/cache and lifecycle findings are carried into the next-session records.

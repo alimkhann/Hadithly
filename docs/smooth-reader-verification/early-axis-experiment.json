@@ -1,0 +1,119 @@
+{
+  "candidate": "Reject clearly vertical input before horizontal paging recognizer begins",
+  "build": {
+    "configuration": "Debug with optimized Swift and C compilation",
+    "swiftOptimization": "-O",
+    "swiftCompilation": "wholemodule",
+    "bundleIdentifier": "com.hadithly.app",
+    "developmentURL": "https://festive-cobra-664.eu-west-1.convex.cloud",
+    "diagnosticsEnvironment": "development",
+    "appAttestEnvironment": "development",
+    "debuggerAttachAllowed": true,
+    "binarySHA256": "f51dfb80029ad9967ad09231bfd512432c2927d7df850724fc79238fb4cd635f",
+    "iosTrackedSourceSHA256": "bcba3383c1a2d5c3ac87e55883867e91bf53f22beb15cb3b66d07d8be71c509d",
+    "gitHead": "57ca23da4fb40a9a72c3d7009f102b5ab145be88",
+    "note": "Retains DEBUG compilation conditions and development entitlements. No app installation or project regeneration."
+  },
+  "workload": {
+    "automaticGenerationEnabled": false,
+    "collection": "bukhari",
+    "contentVersion": "cv1:2fa67689c3fda0749574b5d2a2790f36778377446bc9f14b3cff0585dab44330",
+    "hadiths": [
+      "7188",
+      "7189",
+      "7190",
+      "7191",
+      "7192"
+    ],
+    "lowPowerMode": false,
+    "maximumFramesPerSecond": 120,
+    "pageIndex": 26,
+    "pageKey": "pg1:8d20cc6ff8d418d358aa7ecddf5102625c43b74500113ff2630119c90a53a09b",
+    "preferences": {
+      "appTheme": "system",
+      "arabicFont": "amiri",
+      "arabicFontSize": 40,
+      "arabicVisible": true,
+      "readerTheme": "system",
+      "readingDirection": "auto",
+      "schemaVersion": 2,
+      "translationFontSize": 22,
+      "translationLocale": "en",
+      "translationVisible": true,
+      "uiLocale": "en",
+      "usesSeparateReaderTheme": false
+    },
+    "textBytes": 5266,
+    "textSHA256": "70602abc1b4796922a8fd8f426ec3d10b682b37c8ea6e53fbe47d41fa96c91a1",
+    "thermalState": 0,
+    "volume": "97",
+    "connectionTransport": "wired"
+  },
+  "summary": {
+    "runs": [
+      {
+        "run": 0,
+        "clock_seconds": 30.385239709,
+        "active_scroll_seconds": 18.651806709,
+        "display_presentations": 1685,
+        "app_frame_updates": 1715,
+        "verified_scroll_gestures": 14,
+        "active_hitch_ms_per_second": 2.681161175440959,
+        "app_hitch_events": 4,
+        "active_hitch_union_ms": 50.0085,
+        "max_app_hitch_ms": 12.502125,
+        "hitch_intervals_ns": [
+          [
+            10543783625.0,
+            10556285750.0
+          ],
+          [
+            15119554208.0,
+            15132056333.0
+          ],
+          [
+            21395610875.0,
+            21408113000.0
+          ],
+          [
+            23483462458.0,
+            23495964583.0
+          ]
+        ],
+        "operations": {
+          "ReaderAnchorGeometry": {
+            "count": 1735,
+            "max_ms": 0.525708,
+            "overlaps_hitch": 4,
+            "overlaps_active_scroll": 1735
+          },
+          "ScrollProgressPersistence": {
+            "count": 14,
+            "max_ms": 2.817708,
+            "overlaps_hitch": 0,
+            "overlaps_active_scroll": 0
+          },
+          "AccountPartitionWork": {
+            "count": 92,
+            "max_ms": 6.464208,
+            "overlaps_hitch": 0,
+            "overlaps_active_scroll": 0
+          },
+          "LibraryProjectionRefresh": {
+            "count": 117,
+            "max_ms": 1.049,
+            "overlaps_hitch": 0,
+            "overlaps_active_scroll": 0
+          }
+        },
+        "observed_cpu_seconds": 10.702998334,
+        "resource_sample_window_seconds": 28.735035667,
+        "peak_sampled_footprint_mib": 163.0177230834961
+      }
+    ],
+    "worst_hitch_ms_per_second": 2.681161175440959,
+    "note": "App-attributed hitch intervals intersect native scrolling, with overlaps merged. Presentation counts describe the shared phone display, not app FPS. CPU and footprint are sampled within each run.",
+    "budget_passed": false
+  },
+  "decision": "Reject experiment and restore owned source/test changes. Gesture tests pass, but matched scrolling is 2.68 ms/s with four hitches versus the retained 1.34 ms/s run. Lower sampled CPU does not establish hitch benefit. No strict-target pass or renderer cause is claimed."
+}

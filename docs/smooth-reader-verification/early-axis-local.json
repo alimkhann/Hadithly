@@ -1,0 +1,30 @@
+{
+  "scope": "Historical early-axis experiment; production and experiment tests reverted after failed matched timing.",
+  "before": "Two delegate-seam tests fail on five assertions because UIKit defaults to allowing the paging recognizer to begin on vertical/disabled input.",
+  "after": {
+    "paging_unit_tests": 8,
+    "round3_unit_tests": 33,
+    "unit_failures": 0,
+    "gesture_ui_tests": [
+      "ReaderPagingUITests/testFastSwipeAndCancelledGestureContract",
+      "ReaderPagingUITests/testVerticalScrollOnLongPageDoesNotTurnPage",
+      "ReaderR6AUITests/testHorizontalDragTurnsPage"
+    ],
+    "ui_failures": 0
+  },
+  "build": {
+    "configuration": "Debug with optimized Swift and C compilation",
+    "swiftOptimization": "-O",
+    "swiftCompilation": "wholemodule",
+    "bundleIdentifier": "com.hadithly.app",
+    "developmentURL": "https://festive-cobra-664.eu-west-1.convex.cloud",
+    "diagnosticsEnvironment": "development",
+    "appAttestEnvironment": "development",
+    "debuggerAttachAllowed": true,
+    "binarySHA256": "f51dfb80029ad9967ad09231bfd512432c2927d7df850724fc79238fb4cd635f",
+    "iosTrackedSourceSHA256": "bcba3383c1a2d5c3ac87e55883867e91bf53f22beb15cb3b66d07d8be71c509d",
+    "gitHead": "57ca23da4fb40a9a72c3d7009f102b5ab145be88",
+    "note": "Retains DEBUG compilation conditions and development entitlements. No app installation or project regeneration."
+  },
+  "physical_acceptance": "Failed at 2.68 ms/s with four hitches; experiment not retained."
+}

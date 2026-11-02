@@ -1,0 +1,421 @@
+{
+  "acceptance_capture": false,
+  "reason": "CPU/waiting-thread stack diagnostic. Instruments warns requested 5 ms sampling differs from configured 1 ms. Sample weights and percentages are not used; scheduler intervals are reported separately.",
+  "binarySHA256": "996d4856538009af8f9c02584307ec0cf0e35ee158bfbdc49edbd0508a4b5b05",
+  "same_large_workload": true,
+  "driven_gestures": 14,
+  "native_intervals_including_preflight": 16,
+  "frames": [
+    {
+      "hitch_start_s": 8.604064916,
+      "hitch_ms": 16.6695,
+      "frame_begin_s": 8.570725458,
+      "commit_end_s": 8.593962374,
+      "preparation_ms": 23.236916,
+      "frame_lifetime_end_difference_ms": 0.0,
+      "main_state_ms": {
+        "Blocked": 14.904292000000002,
+        "Runnable": 0.25437599999999994,
+        "Running": 7.970870999999999,
+        "Interrupted": 0.08983500000000003,
+        "Preempted": 0.017542000000000002
+      },
+      "native_scroll_interval_indices": [],
+      "stack_examples": [
+        {
+          "sample_count": 1,
+          "frames": [
+            "0x1858297a5",
+            "0x18585b6db",
+            "SessionService.fetchToken(sessionId:template:params:)",
+            "<deduplicated_symbol>",
+            "specialized SessionTokenFetcher.fetchToken(_:options:runtime:cacheGeneration:)",
+            "closure #1 in SessionTokenFetcher.getToken(_:options:)",
+            "<deduplicated_symbol>",
+            "completeTaskWithClosure(swift::AsyncContext*, swift::SwiftError*)"
+          ]
+        },
+        {
+          "sample_count": 1,
+          "frames": [
+            "0x1b268ebad",
+            "0x1b268ece7",
+            "xpc_connection_send_message_with_reply_sync",
+            "__NSXPCCONNECTION_IS_WAITING_FOR_A_SYNCHRONOUS_REPLY__",
+            "-[NSXPCConnection _sendInvocation:orArguments:count:methodSignature:selector:withProxy:]",
+            "0x1841ce99b",
+            "0x1841cebaf",
+            "__51-[LSApplicationWorkspace deviceIdentifierForVendor]_block_invoke",
+            "_LSRetryForConnectionInterrupted",
+            "-[LSApplicationWorkspace deviceIdentifierForVendor]",
+            "-[UIDevice identifierForVendor]",
+            "specialized static DeviceHelper.deviceID.getter",
+            "ClerkHeaderRequestMiddleware.prepare(_:)",
+            "<deduplicated_symbol>"
+          ]
+        },
+        {
+          "sample_count": 1,
+          "frames": [
+            "0x184186319",
+            "_getStringAtMarker",
+            "_NSXPCSerializationStringForObject",
+            "_decodeObject",
+            "__44-[NSXPCDecoder _decodeArrayOfObjectsForKey:]_block_invoke",
+            "_NSXPCSerializationIterateArrayObject",
+            "-[NSXPCDecoder _decodeArrayOfObjectsForKey:]",
+            "-[NSDictionary(NSDictionary) initWithCoder:]",
+            "_decodeObject",
+            "__44-[NSXPCDecoder _decodeArrayOfObjectsForKey:]_block_invoke",
+            "_NSXPCSerializationIterateArrayObject",
+            "-[NSXPCDecoder _decodeArrayOfObjectsForKey:]",
+            "-[NSDictionary(NSDictionary) initWithCoder:]",
+            "_decodeObject"
+          ]
+        },
+        {
+          "sample_count": 1,
+          "frames": [
+            "0x184186891",
+            "specialized static NSURL.__swiftParseSmall(_:into:allowEncoding:)",
+            "@objc static NSURL.__swiftParseSmall(_:into:allowEncoding:)",
+            "0x1841c299b",
+            "0x1841cb14b",
+            "-[NSURL(NSURLPathUtilities) URLByAppendingPathComponent:isDirectory:]",
+            "-[LSBundleProxy appStoreReceiptURL]",
+            "specialized static DeviceHelper.isSandbox.getter",
+            "ClerkHeaderRequestMiddleware.prepare(_:)",
+            "<deduplicated_symbol>",
+            "specialized NetworkingPipeline.prepareClerkRequest(_:)",
+            "specialized APIClient.executeAttempts<A>(_:uploadBody:startupClientRefreshTakeoverID:)",
+            "SessionService.fetchToken(sessionId:template:params:)",
+            "<deduplicated_symbol>"
+          ]
+        },
+        {
+          "sample_count": 1,
+          "frames": [
+            "0x18bcd5d41",
+            "_UIGestureRecognizerContainerCompare",
+            "-[UIView _compareGestureRecognizerContainer:]",
+            "-[UIGestureRecognizer _depthFirstCompare:]",
+            "-[UIGestureRecognizer isDeeperThanContainer:referenceNode:]",
+            "0x18dd35928",
+            "0x18dd3510c",
+            "0x18dd2bf0c",
+            "0x18dd28a8c",
+            "0x18dd28970",
+            "0x18dd288e4",
+            "0x18dd1ddd0",
+            "0x18dd2e578",
+            "-[UIGestureEnvironment _updateForEvent:window:]"
+          ]
+        }
+      ]
+    },
+    {
+      "hitch_start_s": 11.775432333,
+      "hitch_ms": 12.502125,
+      "frame_begin_s": 11.746252666,
+      "commit_end_s": 11.764858332,
+      "preparation_ms": 18.605666,
+      "frame_lifetime_end_difference_ms": 1e-06,
+      "main_state_ms": {
+        "Blocked": 11.961418,
+        "Runnable": 0.032916,
+        "Running": 6.376376,
+        "Interrupted": 0.234956
+      },
+      "native_scroll_interval_indices": [
+        2
+      ],
+      "stack_examples": [
+        {
+          "sample_count": 1,
+          "frames": [
+            "0x18c358aa1",
+            "0x18c358513",
+            "0x18c3585ff",
+            "AG::Graph::UpdateStack::update()",
+            "AG::Graph::update_attribute(AG::data::ptr<AG::Node>, unsigned int)",
+            "AG::Graph::value_ref(AG::AttributeID, unsigned int, AGSwiftMetadata const*, unsigned char&)",
+            "AGGraphGetWeakValue",
+            "0x18c36249b",
+            "0x18bfaa95b",
+            "0x18c359a2f",
+            "0x18c3598d3",
+            "0x18c3db2d3",
+            "0x188c261cc",
+            "isDescendantOfContainer"
+          ]
+        },
+        {
+          "sample_count": 1,
+          "frames": [
+            "0x185847781",
+            "0x18bfee2d3",
+            "0x18bfa3a7b",
+            "0x18bfa35a7",
+            "0x18bfa3697",
+            "0x18c0f3783",
+            "0x18bff3ffb",
+            "0x18bff468f",
+            "0x18bff47c7",
+            "0x18bff4b93",
+            "AG::Graph::UpdateStack::update()",
+            "AG::Subgraph::update(unsigned int)",
+            "0x18bf9694f",
+            "0x18bf9764b"
+          ]
+        },
+        {
+          "sample_count": 1,
+          "frames": [
+            "0x18bbccc31",
+            "0x18e49f017",
+            "0x18e49d197",
+            "0x18e49d76f",
+            "0x18e50ad1b",
+            "0x18e49f7c3",
+            "0x18e46dd3b",
+            "0x18c022f57",
+            "0x18bfaad27",
+            "0x18bf977cb",
+            "0x18bfab47b",
+            "0x18c19d26f",
+            "0x18c082347",
+            "0x18c19d54b"
+          ]
+        },
+        {
+          "sample_count": 1,
+          "frames": [
+            "-[_UIUpdateHIDDigitizerInput stopEventForModelTime:alignment:]",
+            "__27-[_UIEventBus drainEvents:]_block_invoke",
+            "_UIUpdateInputGroupBatchChanges",
+            "-[_UIEventBus drainEvents:]",
+            "updateCycleEntry",
+            "_UIUpdateSequenceRunNext",
+            "schedulerStepScheduledMainSectionContinue",
+            "UC::DriverCore::continueProcessing()",
+            "0x1841a17cb",
+            "0x1841c524b",
+            "0x1841c545b",
+            "0x1841b5633",
+            "0x1841b67f3",
+            "GSEventRunModal"
+          ]
+        },
+        {
+          "sample_count": 1,
+          "frames": [
+            "0x185829645",
+            "0x18c04bfbf",
+            "0x18bf9a347",
+            "0x18c09256b",
+            "0x18bf98693",
+            "AG::Graph::UpdateStack::update()",
+            "AG::Subgraph::update(unsigned int)",
+            "0x18bf9694f",
+            "0x18bf9764b",
+            "0x18bfab47b",
+            "0x18c19d26f",
+            "0x18c082347",
+            "0x18c19d54b",
+            "CA::Display::DisplayLinkItem::dispatch_(CA::SignPost::Interval<(CA::SignPost::CAEventCode)835322056>&)"
+          ]
+        }
+      ]
+    },
+    {
+      "hitch_start_s": 31.628775541,
+      "hitch_ms": 12.502125,
+      "frame_begin_s": 31.599595333,
+      "commit_end_s": 31.616811457,
+      "preparation_ms": 17.216124,
+      "frame_lifetime_end_difference_ms": 0.0,
+      "main_state_ms": {
+        "Blocked": 14.254624,
+        "Runnable": 0.075,
+        "Running": 2.8620419999999993,
+        "Interrupted": 0.024458
+      },
+      "native_scroll_interval_indices": [
+        11
+      ],
+      "stack_examples": [
+        {
+          "sample_count": 1,
+          "frames": [
+            "AG::Graph::UpdateStack::update()",
+            "AG::Graph::update_attribute(AG::data::ptr<AG::Node>, unsigned int)",
+            "AG::Graph::value_ref(AG::AttributeID, unsigned int, AGSwiftMetadata const*, unsigned char&)",
+            "AGGraphGetWeakValue",
+            "0x18c36249b",
+            "0x18bfaa95b",
+            "0x18c359a2f",
+            "0x18c3598d3",
+            "0x18c3db2d3",
+            "0x188c261cc",
+            "isDescendantOfContainer",
+            "_UIGestureRecognizerContainerCompare",
+            "-[UIView _compareGestureRecognizerContainer:]",
+            "-[UIGestureRecognizer _depthFirstCompare:]"
+          ]
+        },
+        {
+          "sample_count": 1,
+          "frames": [
+            "0x23ba78cd5",
+            "0x23ba7c227",
+            "0x23ba7c073",
+            "CA::Render::Message::send_message()",
+            "CA::Render::Encoder::send_message(unsigned int, unsigned int, unsigned int*, unsigned long)",
+            "CA::Context::commit_transaction(CA::Transaction*, double, double*)",
+            "CA::Transaction::commit()",
+            "CA::Transaction::flush()",
+            "___UIUpdateCycleNotifyIdle_block_invoke",
+            "0x1b2672ccb",
+            "0x1b268cfb3",
+            "0x1b2682373",
+            "0x1b2682043",
+            "0x1841c479f"
+          ]
+        },
+        {
+          "sample_count": 1,
+          "frames": [
+            "AG::Graph::propagate_dirty(AG::AttributeID)",
+            "0x18c0ed2eb",
+            "0x18bf9688f",
+            "0x18e46bb2b",
+            "0x18bfb35ff",
+            "0x18bfaa95b",
+            "0x18bfb3383",
+            "0x18e46bafb",
+            "0x18840b128",
+            "0x1885bac80",
+            "0x18840a370",
+            "0x18bf9b3ab",
+            "0x18c0eeee3",
+            "0x188458078"
+          ]
+        }
+      ]
+    },
+    {
+      "hitch_start_s": 40.04685975,
+      "hitch_ms": 12.502125,
+      "frame_begin_s": 40.017680708,
+      "commit_end_s": 40.037000707,
+      "preparation_ms": 19.319999,
+      "frame_lifetime_end_difference_ms": 1e-06,
+      "main_state_ms": {
+        "Blocked": 12.399376,
+        "Runnable": 0.063123,
+        "Running": 6.585586999999999,
+        "Interrupted": 0.271913
+      },
+      "native_scroll_interval_indices": [
+        15
+      ],
+      "stack_examples": [
+        {
+          "sample_count": 1,
+          "frames": [
+            "0x23ba78cd5",
+            "0x23ba7c227",
+            "0x23ba7c073",
+            "0x1841b646b",
+            "0x1841b5437",
+            "0x1841b67f3",
+            "GSEventRunModal",
+            "UIApplicationMain",
+            "0x18e483403",
+            "0x18e47cb4f",
+            "0x18e47ca0f",
+            "main",
+            "start"
+          ]
+        },
+        {
+          "sample_count": 1,
+          "frames": [
+            "AG::Graph::resolve_offset(AG::AttributeID, AGSwiftMetadata const*, unsigned int) const",
+            "AGGraphGetValue",
+            "0x18c006427",
+            "AG::Graph::UpdateStack::update()",
+            "AG::Subgraph::update(unsigned int)",
+            "0x18bf9694f",
+            "0x18bf9764b",
+            "0x18bfab47b",
+            "0x18c19d26f",
+            "0x18c082347",
+            "0x18c19d54b",
+            "CA::Display::DisplayLinkItem::dispatch_(CA::SignPost::Interval<(CA::SignPost::CAEventCode)835322056>&)",
+            "CA::Display::DisplayLink::dispatch_items(unsigned long long, unsigned long long, unsigned long long)",
+            "CA::Display::DisplayLink::callback(_CADisplayTimer*, unsigned long long, unsigned long long, unsigned long long, bool, void*)"
+          ]
+        },
+        {
+          "sample_count": 1,
+          "frames": [
+            "0x18c025d91",
+            "0x18c04eca7",
+            "0x18bfc1b83",
+            "AG::Graph::UpdateStack::update()",
+            "AG::Graph::update_attribute(AG::data::ptr<AG::Node>, unsigned int)",
+            "AG::Graph::value_ref(AG::AttributeID, unsigned int, AGSwiftMetadata const*, unsigned char&)",
+            "AGGraphGetWeakValue",
+            "0x18bf97803",
+            "0x18bfab47b",
+            "0x18c19d26f",
+            "0x18c082347",
+            "0x18c19d54b",
+            "CA::Display::DisplayLinkItem::dispatch_(CA::SignPost::Interval<(CA::SignPost::CAEventCode)835322056>&)",
+            "CA::Display::DisplayLink::dispatch_items(unsigned long long, unsigned long long, unsigned long long)"
+          ]
+        },
+        {
+          "sample_count": 1,
+          "frames": [
+            "CA::Layer::map_geometry(CALayer*, CALayer*, void (*)(void*, CA::Mat4<double> const&), void (*)(void*, CA::Mat4<double> const&), void*)",
+            "-[CALayer convertPoint:fromLayer:]",
+            "-[UIView(Geometry) convertPoint:fromView:]",
+            "-[UIPanGestureRecognizer _convertPoint:fromSceneReferenceCoordinatesToView:]",
+            "-[UIScrollViewPanGestureRecognizer _convertPoint:fromSceneReferenceCoordinatesToView:]",
+            "-[UIPanGestureRecognizer _convertVelocitySample:fromSceneReferenceCoordinatesToView:]",
+            "-[UIPanGestureRecognizer velocityInView:]",
+            "-[UIScrollViewPanGestureRecognizer velocityInView:]",
+            "-[UIScrollView _updatePanGesture]",
+            "-[UIScrollView handlePan:]",
+            "-[UIGestureRecognizerTarget _sendActionWithGestureRecognizer:]",
+            "_UIGestureRecognizerSendTargetActions",
+            "_UIGestureRecognizerSendActions",
+            "-[UIGestureRecognizer _updateGestureForActiveEvents]"
+          ]
+        },
+        {
+          "sample_count": 1,
+          "frames": [
+            "AG::Graph::propagate_dirty(AG::AttributeID)",
+            "0x18c0ed2eb",
+            "0x18bf9688f",
+            "0x18e46bb2b",
+            "0x18bfb35ff",
+            "0x18bfaa95b",
+            "0x18bfb3383",
+            "0x18e46bafb",
+            "0x18840b128",
+            "0x1885bac80",
+            "0x18840a370",
+            "0x18bf9b3ab",
+            "0x18c0eeee3",
+            "0x188458078"
+          ]
+        }
+      ]
+    }
+  ],
+  "decision": "Three measured frames contain UIKit gesture traversal/SwiftUI graph resolution or pan/commit work, with no library/storage frame examples. One additional frame outside native active scrolling includes Clerk device identifier/receipt synchronous XPC. Test early native rejection of clearly vertical pans in the horizontal paging recognizer; do not infer TextKit layout cost or claim strict acceptance."
+}
