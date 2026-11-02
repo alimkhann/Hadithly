@@ -55,11 +55,16 @@ object ReaderPrefetch {
     suspend fun warmEntryCache(
         repository: ConvexRepository,
         progress: List<ProgressEntry>,
+        pages: ReaderPageContentStore? = null,
     ) = withContext(Dispatchers.IO) {
+        val context = pages?.contextVersion()
         executePlan(
             plan = entryPlan(progress),
             fetchOutline = { slug -> repository.getCollectionOutline(slug) },
-            fetchPage = { slug, volumeId -> repository.getReaderPage(slug, volumeId, 0) },
+            fetchPage = { slug, volumeId ->
+                if (pages != null) pages.load(ReaderPageContentStore.Request(slug, volumeId, 0), expectedVersion = context)
+                else repository.getReaderPage(slug, volumeId, 0)
+            },
         )
     }
 

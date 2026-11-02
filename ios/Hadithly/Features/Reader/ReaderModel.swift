@@ -64,6 +64,7 @@ final class ReaderModel {
     private let targetSource: ReaderTargetSource
     private let currentPreferences: () -> ReaderPreferences
     private let widthClass: ReadingWidthClass
+    private let pageStore: ReaderPageContentStore
     /// O2 offline fallback. Set by the hosting view from AppEnvironment;
     /// nil in tests and previews that drive the model with fixtures.
     var automaticTranslationEnabled: () -> Bool = { false }
@@ -167,7 +168,9 @@ final class ReaderModel {
             guard oldValue != pageIndex else { return }
             endViewportInteractions()
             invalidateAutomaticTranslationVisibility()
+            restoreCachedNeighbors()
             requestRecentLanding(for: pageIndex)
+            trimPageSlots()
             collapseToFocused()
             lastCapturedAnchor = nil
             lastCapturedNormalizedOffset = nil
@@ -198,7 +201,14 @@ final class ReaderModel {
 
     private var outlineTask: Task<Void, Never>?
     private var pageTask: Task<Void, Never>?
+    private var warmingTask: Task<Void, Never>?
+    private var warmingGeneration = 0
     private var pageGeneration = 0
+    private enum PageLoadOperation {
+        case page(Int, String, String?)
+        case edge(String, VolumeEdge)
+    }
+    private var pageLoadOperation: PageLoadOperation?
     private var translationTask: Task<Void, Never>?
     private var publicationTask: Task<Void, Never>?
     private var publicationDeadlineTask: Task<Void, Never>?
@@ -211,9 +221,6 @@ final class ReaderModel {
     private var lastCapturedAnchor: String?
     private var lastCapturedNormalizedOffset: Double?
     private var lastStableAnchor: ReaderHadith?
-    /// Volumes whose first page was already background-cached since the
-    /// outline loaded (R6 round 3 adjacent prefetch).
-    private var warmedVolumeIds: Set<String> = []
     private var lastStableRawPageOffset: Double = 0
     private var lastStableNormalizedOffset: Double = 0
     private(set) var restoredPosition: ReadingPosition?
@@ -269,15 +276,38 @@ final class ReaderModel {
             page: .init(volumeId: selectedVolumeId ?? "", pageIndex: index), landing: .header)
     }
 
+    var knownVolumeRange: (first: String, last: String)? {
+        guard let volume = selectedVolumeId else { return nil }
+        return pageStore.knownRange(collection: collectionSlug, volume: volume)
+    }
+
     func recentLandingForPage(_ index: Int) -> ReaderVerticalLandingRequest? {
         recentPosition(for: index)?.request
     }
 
-    func clearRecentPositions() {
+    func clearRecentPositions(restartLoading: Bool = false) {
+        let resumeLoad = restartLoading && isLoadingPage ? pageLoadOperation : nil
+        warmingTask?.cancel()
+        warmingGeneration += 1
+        warmingTask = nil
+        pageStore.clear()
+        if restartLoading { pageStore.beginReading() }
+        pageGeneration += 1
+        pageTask?.cancel()
+        isLoadingPage = false
         recentSessionGeneration += 1
         recentPositions.removeAll()
         if let landing = verticalLanding, landing.sessionGeneration != nil {
             requestHeaderLanding(for: pageIndex)
+        }
+        pageLoadOperation = nil
+        if let resumeLoad {
+            pageTask = Task {
+                switch resumeLoad {
+                case .page(let index, let volume, let target): await loadPage(index, volumeId: volume, jumpToHadithNumber: target)
+                case .edge(let volume, let edge): await loadVolumeEdge(volume, edge: edge)
+                }
+            }
         }
     }
 
@@ -321,7 +351,8 @@ final class ReaderModel {
         openPosition: ReadingPosition? = nil,
         targetSource: ReaderTargetSource = .collection,
         currentPreferences: @escaping () -> ReaderPreferences = { ReaderPreferences() },
-        widthClass: ReadingWidthClass = .compact
+        widthClass: ReadingWidthClass = .compact,
+        pageStore: ReaderPageContentStore? = nil
     ) {
         self.convex = convex
         self.collectionSlug = collectionSlug
@@ -335,6 +366,8 @@ final class ReaderModel {
         self.targetSource = targetSource
         self.currentPreferences = currentPreferences
         self.widthClass = widthClass
+        self.pageStore = pageStore ?? ReaderPageContentStore(convex: convex)
+        self.pageStore.beginReading()
     }
 
     var currentPages: [ReaderPageResult] { pages }
@@ -437,7 +470,6 @@ final class ReaderModel {
                 )
             }
             volumes = result.volumes
-            warmedVolumeIds = []
             // Explicit deep links (Today/Saved) name a volume; a canonical
             // link carries only the hadith number, so the volume holding it
             // comes from the outline's source-provided counts. Unknown or
@@ -486,7 +518,6 @@ final class ReaderModel {
               !outline.volumes.isEmpty
         else { return false }
         volumes = outline.volumes
-        warmedVolumeIds = []
         let target = ReaderTargetResolver.resolve(.init(
             source: targetSource,
             collectionSlug: collectionSlug,
@@ -629,18 +660,25 @@ final class ReaderModel {
     /// published together so no intermediate page flashes.
     private func loadVolumeEdge(_ volumeId: String, edge: VolumeEdge) async {
         if isLoadingPage { return }
+        pageLoadOperation = .edge(volumeId, edge)
         isLoadingPage = true
         let generation = pageGeneration
         var shouldPrefetchNeighbor = false
         defer {
             if generation == pageGeneration {
+                pageLoadOperation = nil
                 isLoadingPage = false
                 // Prefetch only after this request releases its loading state.
                 if shouldPrefetchNeighbor { prefetchForwardIfNeeded() }
             }
         }
         do {
-            let first = try await fetchReaderPage(0, volumeId: volumeId)
+            let first: ReaderPageResult
+            if edge == .last, let cached = pageStore.peekLast(collection: collectionSlug, volume: volumeId) {
+                first = cached
+            } else {
+                first = try await fetchReaderPage(0, volumeId: volumeId)
+            }
             guard generation == pageGeneration, !Task.isCancelled else { return }
             let total = max(1, first.totalPages)
             switch edge {
@@ -678,27 +716,31 @@ final class ReaderModel {
         }
     }
 
-    private func timedReaderPage(_ index: Int, volumeId: String, targetHadithNumber: String?) async throws -> ReaderPageResult {
+    private func fetchReaderPage(_ index: Int, volumeId: String, targetHadithNumber: String? = nil) async throws -> ReaderPageResult {
+        let request = ReaderPageContentStore.Request(collection: collectionSlug, volume: volumeId,
+            index: index, target: targetHadithNumber)
 #if DEBUG
-        if let pageFetchForUITest { return try await pageFetchForUITest(index, volumeId, targetHadithNumber) }
+        if let pageFetchForUITest {
+            return try await pageStore.load(request, fetch: { request in
+                try await pageFetchForUITest(request.index, request.volume, request.target)
+            })
+        }
 #endif
-        return try await OfflineModels.withFetchTimeout(seconds: Self.fetchTimeoutSeconds) {
-            try await self.fetchReaderPage(index, volumeId: volumeId, targetHadithNumber: targetHadithNumber)
+        return try await pageStore.load(request)
+    }
+
+    private func restoreCachedNeighbors() {
+        guard let volume = selectedVolumeId else { return }
+        for index in [pageIndex - 1, pageIndex, pageIndex + 1] where pages.indices.contains(index) {
+            if !pageStore.isCompatible(pages[index], collection: collectionSlug) { pages[index] = emptyPage() }
+            guard pages[index].isPlaceholder else { continue }
+            if let page = pageStore.peek(collection: collectionSlug, volume: volume, index: index) { pages[index] = page }
         }
     }
 
-    /// Fetches a page without publishing reader state.
-    private func fetchReaderPage(_ index: Int, volumeId: String, targetHadithNumber: String? = nil) async throws -> ReaderPageResult {
-#if DEBUG
-        if let pageFetchForUITest { return try await pageFetchForUITest(index, volumeId, targetHadithNumber) }
-#endif
-        var args: [String: ConvexEncodable?] = [
-            "collectionSlug": collectionSlug as ConvexEncodable?,
-            "volumeId": volumeId as ConvexEncodable?,
-            "page": Double(index + 1) as ConvexEncodable?,
-        ]
-        if let targetHadithNumber { args["targetHadithNumber"] = targetHadithNumber as ConvexEncodable? }
-        return try await convex.action("actions/hadithData:getReaderPage", with: args)
+    private func trimPageSlots() {
+        let pinned = Set([pageIndex - 1, pageIndex, pageIndex + 1, pages.count - 1])
+        for index in pages.indices where !pinned.contains(index) { pages[index] = emptyPage() }
     }
 
 #if DEBUG
@@ -879,11 +921,13 @@ final class ReaderModel {
     /// contains that hadith and it is placed at its true position.
     private func loadPage(_ index: Int, volumeId: String, jumpToHadithNumber: String? = nil) async {
         if isLoadingPage { return }
+        pageLoadOperation = .page(index, volumeId, jumpToHadithNumber)
         isLoadingPage = true
         let generation = pageGeneration
         var shouldPrefetchNeighbor = false
         defer {
             if generation == pageGeneration {
+                pageLoadOperation = nil
                 isLoadingPage = false
                 if shouldPrefetchNeighbor { prefetchForwardIfNeeded() }
             }
@@ -904,7 +948,7 @@ final class ReaderModel {
                 }
                 return
             }
-            let result = try await timedReaderPage(index, volumeId: volumeId, targetHadithNumber: jumpToHadithNumber)
+            let result = try await fetchReaderPage(index, volumeId: volumeId, targetHadithNumber: jumpToHadithNumber)
             guard generation == pageGeneration, !Task.isCancelled else { return }
             if jumpToHadithNumber != nil {
                 // The server picked the page; slot it at its real position
@@ -920,6 +964,8 @@ final class ReaderModel {
                 phase = .reading
                 pageIndex = landingIndex
                 requestEntryLanding(for: landingIndex)
+                restoreCachedNeighbors()
+                trimPageSlots()
                 warmAdjacentVolumes()
                 shouldPrefetchNeighbor = true
             } else {
@@ -931,15 +977,18 @@ final class ReaderModel {
                 }
                 phase = .reading
                 if pageIndex == index {
-                    if verticalLanding == nil {
-                        requestHeaderLanding(for: index)
+                    if verticalLanding == nil || verticalLanding?.landing == .header {
+                        requestRecentLanding(for: index)
                     }
+                    restoreCachedNeighbors()
+                    trimPageSlots()
                     scheduleTranslationsForCurrentPage()
                     saveCurrentProgress()
                     warmAdjacentVolumes()
                     shouldPrefetchNeighbor = true
                 }
             }
+            trimPageSlots()
         } catch {
             guard generation == pageGeneration, !Task.isCancelled else { return }
             if !useOfflinePage(index, volumeId: volumeId, jumpToHadithNumber: jumpToHadithNumber),
@@ -1031,20 +1080,23 @@ final class ReaderModel {
 
     /// Background-caches the first page of the adjacent volumes so
     /// page/volume switches never wait. Bounded to the nearest neighbors,
-    /// silent (no loading state, results discarded — the server action is
-    /// cache-first), offline-tolerant (errors swallowed), and skipped for
-    /// volumes already warmed since the outline loaded.
+    /// silent and offline-tolerant. Successful public payloads are retained
+    /// in the same bounded store used by foreground page requests.
     func warmAdjacentVolumes() {
         let targets = ReaderPrefetchTargets.adjacentVolumeIds(
             volumes: volumes,
             selectedVolumeId: selectedVolumeId
-        ).filter { !warmedVolumeIds.contains($0) }
+        )
         guard !targets.isEmpty else { return }
-        for volumeId in targets { warmedVolumeIds.insert(volumeId) }
-        Task { [weak self] in
+        guard warmingTask == nil else { return }
+        warmingGeneration += 1
+        let generation = warmingGeneration
+        warmingTask = Task { [weak self] in
             guard let self else { return }
+            defer { if generation == self.warmingGeneration { self.warmingTask = nil } }
             for volumeId in targets {
-                _ = try? await self.fetchReaderPage(0, volumeId: volumeId) as ReaderPageResult
+                guard !Task.isCancelled else { return }
+                _ = try? await self.fetchReaderPage(0, volumeId: volumeId)
             }
         }
     }
@@ -1597,4 +1649,221 @@ final class ReaderModel {
         defer { ReaderScrollProfile.end("ScrollProgressPersistence", interval) }
         saveCurrentProgress(capturedAt: pending.updatedAt)
     }
+}
+
+
+@MainActor
+final class ReaderPageContentStore {
+    struct Request: Hashable {
+        let collection: String
+        let volume: String
+        let index: Int
+        var target: String? = nil
+    }
+
+    private struct Slot: Hashable {
+        let collection: String
+        let volume: String
+        let index: Int
+    }
+
+    private struct Identity: Equatable {
+        let key: String
+        let version: String
+        let pagination: Double
+        let providers: [String]
+    }
+
+    private struct Entry {
+        let identity: Identity
+        let page: ReaderPageResult
+        let sequence: Int
+        let storedAt: Date
+    }
+
+    private struct Flight {
+        let task: Task<ReaderPageResult, Error>
+        let sequence: Int
+        let generation: Int
+    }
+
+    typealias Fetch = (Request) async throws -> ReaderPageResult
+    private let fetch: Fetch
+    private let capacity: Int
+    private var entries: [Slot: Entry] = [:]
+    private var order: [Slot] = []
+    private var flights: [Request: Flight] = [:]
+    private var latestSequences: [Slot: Int] = [:]
+    private var sequenceOrder: [Slot] = []
+    private var oldestAcceptedSequence = 0
+    private var sequence = 0
+    private var generation = 0
+    private var reading = false
+    private struct Volume: Hashable { let collection: String; let volume: String }
+    private struct Coverage {
+        var loaded = IndexSet()
+        let total: Int
+        var first: String?
+        var last: String?
+    }
+    private var coverage: [Volume: Coverage] = [:]
+    private var paginationByCollection: [String: (version: Double, sequence: Int)] = [:]
+    private(set) var observedIdentityChanges = 0
+
+    init(capacity: Int = 28, fetch: @escaping Fetch) {
+        self.capacity = max(1, capacity)
+        self.fetch = fetch
+    }
+
+    convenience init(convex: ConvexClientWithAuth<String>) {
+        self.init { request in
+            var arguments: [String: ConvexEncodable?] = [
+                "collectionSlug": request.collection as ConvexEncodable?,
+                "volumeId": request.volume as ConvexEncodable?,
+                "page": Double(request.index + 1) as ConvexEncodable?,
+            ]
+            if let target = request.target { arguments["targetHadithNumber"] = target as ConvexEncodable? }
+            return try await convex.action("actions/hadithData:getReaderPage", with: arguments)
+        }
+    }
+
+    func beginReading() {
+        if !reading { expireEntryWarmth() }
+        reading = true
+    }
+
+    func clear() {
+        generation += 1
+        for flight in flights.values { flight.task.cancel() }
+        flights.removeAll()
+        entries.removeAll()
+        order.removeAll()
+        latestSequences.removeAll()
+        sequenceOrder.removeAll()
+        paginationByCollection.removeAll()
+        coverage.removeAll()
+        reading = false
+    }
+
+    private func expireEntryWarmth() {
+        let expired = entries.filter { Date().timeIntervalSince($0.value.storedAt) > 120 }.map(\.key)
+        for key in expired { entries[key] = nil; order.removeAll { $0 == key } }
+    }
+
+    func knownRange(collection: String, volume: String) -> (first: String, last: String)? {
+        guard let known = coverage[Volume(collection: collection, volume: volume)],
+              known.loaded.count == known.total, let first = known.first, let last = known.last else { return nil }
+        return (first, last)
+    }
+
+    private func rememberCoverage(_ page: ReaderPageResult, request: Request) {
+        let index = page.page - 1
+        guard index >= 0, index < page.totalPages, !page.items.isEmpty else { return }
+        let key = Volume(collection: request.collection, volume: request.volume)
+        var known = coverage[key].flatMap { $0.total == page.totalPages ? $0 : nil } ?? Coverage(total: page.totalPages)
+        known.loaded.insert(index)
+        if index == 0 { known.first = page.items.first?.providerHadithId }
+        if index == page.totalPages - 1 { known.last = page.items.last?.providerHadithId }
+        coverage[key] = known
+    }
+
+    func isCompatible(_ page: ReaderPageResult, collection: String) -> Bool {
+        paginationByCollection[collection].map { $0.version == page.paginationVersion } ?? true
+    }
+
+    func peek(collection: String, volume: String, index: Int) -> ReaderPageResult? {
+        if !reading { expireEntryWarmth() }
+        let slot = Slot(collection: collection, volume: volume, index: index)
+        guard let entry = entries[slot] else { return nil }
+        touch(slot)
+        return entry.page
+    }
+
+    func peekLast(collection: String, volume: String) -> ReaderPageResult? {
+        guard let slot = entries.filter({ $0.key.collection == collection && $0.key.volume == volume
+            && $0.key.index == $0.value.page.totalPages - 1 }).max(by: { $0.value.sequence < $1.value.sequence })?.key else { return nil }
+        return peek(collection: collection, volume: volume, index: slot.index)
+    }
+
+    var contextVersion: Int { generation }
+
+    func load(_ request: Request, fetch override: Fetch? = nil, expectedVersion: Int? = nil) async throws -> ReaderPageResult {
+        try Task.checkCancellation()
+        guard expectedVersion == nil || expectedVersion == generation else { throw CancellationError() }
+        if !reading { expireEntryWarmth() }
+        if let target = request.target {
+            if let hit = entries.filter({ $0.key.collection == request.collection && $0.key.volume == request.volume
+                && $0.value.page.items.contains { $0.providerHadithId == target } }).max(by: { $0.value.sequence < $1.value.sequence }) {
+                touch(hit.key)
+                try Task.checkCancellation()
+                return hit.value.page
+            }
+        } else if let hit = peek(collection: request.collection, volume: request.volume, index: request.index) {
+            try Task.checkCancellation()
+            return hit
+        }
+        let flight: Flight
+        if let existing = flights[request] { flight = existing }
+        else {
+            if flights.count >= 4 {
+                let waitingGeneration = generation
+                try await Task.sleep(for: .milliseconds(25))
+                return try await load(request, fetch: override, expectedVersion: waitingGeneration)
+            }
+            sequence += 1
+            let loader = override ?? fetch
+            let task = Task { try await OfflineModels.withFetchTimeout(seconds: 10) { try await loader(request) } }
+            flight = Flight(task: task, sequence: sequence, generation: generation)
+            flights[request] = flight
+        }
+        do {
+            let page = try await flight.task.value
+            guard flight.generation == generation, !flight.task.isCancelled,
+                  flight.sequence >= oldestAcceptedSequence else { throw CancellationError() }
+            if flights[request]?.sequence == flight.sequence { flights[request] = nil }
+            let slot = Slot(collection: request.collection, volume: request.volume, index: max(0, page.page - 1))
+            if let latest = latestSequences[slot], latest > flight.sequence {
+                guard let current = entries[slot], request.target.map({ target in current.page.items.contains { $0.providerHadithId == target } }) ?? true else { throw CancellationError() }
+                try Task.checkCancellation()
+                return current.page
+            }
+            if page.page > 0, let key = page.pageKey, key != "legacy",
+               let version = page.contentVersion, version != "legacy", let pagination = page.paginationVersion {
+                if let prior = paginationByCollection[request.collection], prior.version != pagination {
+                    guard prior.sequence <= flight.sequence else { throw CancellationError() }
+                    coverage = coverage.filter { $0.key.collection != request.collection }
+                    let obsolete = entries.keys.filter { $0.collection == request.collection }
+                    for key in obsolete { entries[key] = nil; order.removeAll { $0 == key } }
+                }
+                if (paginationByCollection[request.collection]?.sequence ?? -1) < flight.sequence {
+                    paginationByCollection[request.collection] = (pagination, flight.sequence)
+                }
+                rememberCoverage(page, request: request)
+                let identity = Identity(key: key, version: version, pagination: pagination,
+                    providers: page.items.map { "\($0.provider)|\($0.internalId)|\($0.id)" })
+                if let prior = entries[slot], prior.identity != identity { observedIdentityChanges += 1; entries[slot] = nil }
+                entries[slot] = Entry(identity: identity, page: page, sequence: flight.sequence, storedAt: Date())
+                latestSequences[slot] = flight.sequence
+                sequenceOrder.removeAll { $0 == slot }; sequenceOrder.append(slot)
+                while sequenceOrder.count > capacity * 2 {
+                    let removed = sequenceOrder.removeFirst()
+                    oldestAcceptedSequence = max(oldestAcceptedSequence, latestSequences.removeValue(forKey: removed) ?? 0)
+                }
+                touch(slot)
+                while order.count > capacity { entries[order.removeFirst()] = nil }
+            }
+            try Task.checkCancellation()
+            return page
+        } catch {
+            if flight.generation == generation, flights[request]?.sequence == flight.sequence { flights[request] = nil }
+            throw error
+        }
+    }
+
+    private func touch(_ slot: Slot) { order.removeAll { $0 == slot }; order.append(slot) }
+
+#if DEBUG
+    var retainedPageCount: Int { entries.count }
+    var inFlightPageCount: Int { flights.count }
+#endif
 }

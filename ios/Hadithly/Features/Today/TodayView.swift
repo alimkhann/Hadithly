@@ -147,7 +147,7 @@ struct TodayView: View {
             if previewState != nil { await loadDailyHadith(); return }
 #endif
             ReaderPrefetch.warmEntry(convex: environment.convex,
-                                     target: ReaderPrefetchTargets.entryTarget(progress: library.continueReading))
+                                     target: ReaderPrefetchTargets.entryTarget(progress: library.continueReading), pages: environment.readerPages)
             await loadDailyHadith()
         }
         .onChange(of: library.progress) { _, _ in

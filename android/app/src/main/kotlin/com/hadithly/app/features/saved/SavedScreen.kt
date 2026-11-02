@@ -123,7 +123,7 @@ fun SavedScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
     }
 
     androidx.compose.runtime.LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) { ReaderPrefetch.warmEntryCache(app.repository, app.library.progress.value) }
+        withContext(Dispatchers.IO) { ReaderPrefetch.warmEntryCache(app.repository, app.library.progress.value, app.readerPages) }
     }
     Column(Modifier.fillMaxSize().background(colors.background).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {

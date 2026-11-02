@@ -47,6 +47,7 @@ final class AppEnvironment {
     #endif
     let config: AppConfig
     let convex: ConvexClientWithAuth<String>
+    let readerPages: ReaderPageContentStore
     let guestData: GuestDataStore
     let library: UserLibraryModel
     let librarySync: LibrarySync
@@ -114,6 +115,7 @@ final class AppEnvironment {
             deploymentUrl: config.convexURL,
             authProvider: provider
         )
+        self.readerPages = ReaderPageContentStore(convex: self.convex)
         provider.bind(client: convex)
         let purchaseClient = self.convex
         purchases.verifyBackendAccess = { try await purchaseClient.action("actions/subscriptions:refresh", with: [:]) }

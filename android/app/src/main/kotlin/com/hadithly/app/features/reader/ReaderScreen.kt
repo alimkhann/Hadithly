@@ -207,6 +207,7 @@ fun ReaderScreen(
             openHadithNumber = openHadithNumber,
             openPosition = openPosition,
             targetSource = targetSource,
+            pageStore = app.readerPages.also { it.beginReading() },
         )
     }
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -241,8 +242,7 @@ fun ReaderScreen(
     var showQuotaPaywall by remember { mutableStateOf(false) }
 
     fun closeReader() {
-        viewModel.saveCurrentProgress()
-        viewModel.clearRecentPositions()
+        viewModel.closeReaderSession()
         onClose()
     }
     BackHandler(enabled = !showContents && !showSettings, onBack = ::closeReader)
@@ -270,7 +270,7 @@ fun ReaderScreen(
                     onOpenSettings = { showSettings = true },
                     onShowPaywall = { showQuotaPaywall = true },
                     onClose = ::closeReader,
-                    onOpenSaved = onOpenSaved,
+                    onOpenSaved = { viewModel.closeReaderSession(); onOpenSaved() },
                 )
             }
         }
@@ -1270,7 +1270,7 @@ private fun ReaderPage(
     val latchedRanges = remember { mutableMapOf<String, Pair<Int, Int>>() }
     val freshRange = remember(state.volumes, state.selectedVolumeId, state.pages) {
         val volumeId = state.selectedVolumeId ?: return@remember null
-        if (!ReaderViewModel.isVolumeFullyCached(state.pages)) return@remember null
+        if (!viewModel.hasKnownVolumeRange(volumeId) && !ReaderViewModel.isVolumeFullyCached(state.pages)) return@remember null
         ReaderViewModel.volumeHadithRange(state.volumes, volumeId)
     }
     if (freshRange != null && state.selectedVolumeId != null) {

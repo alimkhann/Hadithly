@@ -11,6 +11,7 @@ import com.hadithly.app.core.data.OutlineChapter
 import com.hadithly.app.core.data.OutlineVolume
 import com.hadithly.app.core.data.ReaderHadith
 import com.hadithly.app.core.data.ReaderPageResult
+import com.hadithly.app.core.data.ReaderPageContentStore
 import com.hadithly.app.core.data.ReaderPrefetch
 import com.hadithly.app.core.data.ReaderTranslation
 import com.hadithly.app.core.data.PublicationAvailability
@@ -60,7 +61,12 @@ class ReaderViewModel(
     private val pageLoader: suspend (String, Int, String?) -> ReaderPageResult = { volume, page, target ->
         app.repository.getReaderPage(collectionSlug, volume, page, target)
     },
+    pageStore: ReaderPageContentStore? = null,
 ) : ViewModel() {
+    private val pageStore = pageStore ?: ReaderPageContentStore { request ->
+        pageLoader(request.volume, request.index, request.target)
+    }.also { it.beginReading() }
+
     private val measurement = com.hadithly.app.core.analytics.ReaderMeasurement()
     private var usedOfflineForEntry = false
     private var initialTargetInspected = false
@@ -119,6 +125,11 @@ class ReaderViewModel(
     val state: StateFlow<ReaderState> = _state
 
     private var pageJob: Job? = null
+    private sealed interface PageLoadOperation {
+        data class Page(val index: Int, val volume: String, val target: String?) : PageLoadOperation
+        data class Edge(val volume: String, val edge: VolumeEdge) : PageLoadOperation
+    }
+    private var pageLoadOperation: PageLoadOperation? = null
     private var pageGeneration = 0
 
     private fun cancelPageLoad() {
@@ -173,17 +184,44 @@ class ReaderViewModel(
             0, ReaderVerticalLandingPage(state.selectedVolumeId.orEmpty(), index), ReaderVerticalLanding.Header)
     }
 
-    fun clearRecentPositions() {
+    fun hasKnownVolumeRange(volume: String) = pageStore.hasCompleteVolume(collectionSlug, volume)
+
+    fun closeReaderSession() {
+        saveCurrentProgress()
+        clearRecentPositions()
+        translationJob?.cancel()
+        publicationJob?.cancel()
+        publicationDeadlineJob?.cancel()
+        generationJobs.values.forEach { it.cancel() }
+        generationJobs.clear()
+        _state.update { it.copy(pages = emptyList(), translations = emptyMap(), translationAllowances = emptyMap()) }
+    }
+
+    fun clearRecentPositions(restartLoading: Boolean = false) {
+        val resumeLoad = if (restartLoading && _state.value.isLoadingPage) pageLoadOperation else null
+        pageStore.clear()
+        if (restartLoading) pageStore.beginReading()
+        cancelPageLoad()
+        _state.update { it.copy(isLoadingPage = false) }
         recentPositions.clear()
         val pending = _state.value.verticalLanding
         if (pending != null && pending.token < 0) requestHeaderLanding(pending.page.pageIndex)
+        pageLoadOperation = null
+        when (resumeLoad) {
+            is PageLoadOperation.Page -> loadPage(resumeLoad.index, resumeLoad.volume, resumeLoad.target)
+            is PageLoadOperation.Edge -> {
+                // The target volume is already selected; restart its original edge operation.
+                startVolumeEdge(resumeLoad.volume, resumeLoad.edge)
+            }
+            null -> Unit
+        }
     }
 
     fun isRecentLandingValid(request: ReaderVerticalLandingRequest): Boolean =
         request.token >= 0 || recentPositions.any { it.request == request }
 
     fun updateRecentPositionAccount(accountId: String?) {
-        if (recentAccountInitialized && recentAccountId != accountId) clearRecentPositions()
+        if (recentAccountInitialized && recentAccountId != accountId) clearRecentPositions(restartLoading = true)
         recentAccountInitialized = true
         recentAccountId = accountId
     }
@@ -564,13 +602,19 @@ class ReaderViewModel(
                 verticalLanding = null,
             )
         }
+        startVolumeEdge(volumeId, edge)
+    }
+
+    private fun startVolumeEdge(volumeId: String, edge: VolumeEdge) {
+        pageLoadOperation = PageLoadOperation.Edge(volumeId, edge)
+        _state.update { it.copy(isLoadingPage = true) }
         val generation = pageGeneration
         pageJob = viewModelScope.launch {
             try {
-                val first = app.repository.getReaderPage(collectionSlug, volumeId, 0)
+                val first = (if (edge == VolumeEdge.LAST) pageStore.peekLast(collectionSlug, volumeId) else null) ?: fetchPage(volumeId, 0)
                 val landing = if (edge == VolumeEdge.FIRST) 0 else maxOf(0, first.totalPagesInt - 1)
                 val last = if (landing == 0) first else {
-                    app.repository.getReaderPage(collectionSlug, volumeId, landing)
+                    fetchPage(volumeId, landing)
                 }
                 if (generation != pageGeneration) return@launch
                 val pages = if (landing == 0) listOf(first) else {
@@ -590,7 +634,7 @@ class ReaderViewModel(
                     _state.update { it.copy(phase = Phase.Failed(errorMessage(error))) }
                 }
             } finally {
-                if (generation == pageGeneration) _state.update { it.copy(isLoadingPage = false) }
+                if (generation == pageGeneration) { pageLoadOperation = null; _state.update { it.copy(isLoadingPage = false) } }
             }
         }
     }
@@ -681,13 +725,14 @@ class ReaderViewModel(
      */
     private fun loadPage(index: Int, volumeId: String, jumpToHadithNumber: String? = null) {
         if (_state.value.isLoadingPage) return
+        pageLoadOperation = PageLoadOperation.Page(index, volumeId, jumpToHadithNumber)
         _state.update { it.copy(isLoadingPage = true) }
         val generation = pageGeneration
         pageJob = viewModelScope.launch {
             var shouldPrefetchNeighbor = false
             try {
                 val result = withTimeout(FETCH_TIMEOUT_MS) {
-                    pageLoader(volumeId, index, jumpToHadithNumber)
+                    fetchPage(volumeId, index, jumpToHadithNumber)
                 }
                 if (generation != pageGeneration) return@launch
                 _state.update { s ->
@@ -701,12 +746,17 @@ class ReaderViewModel(
                     val landingIndex = maxOf(0, result.pageNumber - 1)
                     _state.update { it.copy(pageIndex = landingIndex) }
                     requestEntryLanding(landingIndex)
+                    restoreCachedNeighbors()
+                    trimPageSlots()
                     shouldPrefetchNeighbor = true
                 } else if (_state.value.pageIndex == index) {
-                    if (_state.value.verticalLanding == null) requestHeaderLanding(index)
+                    if (_state.value.verticalLanding == null || _state.value.verticalLanding?.landing == ReaderVerticalLanding.Header) requestRecentLanding(index)
+                    restoreCachedNeighbors()
+                    trimPageSlots()
                     scheduleTranslationsForCurrentPage()
                     shouldPrefetchNeighbor = true
                 }
+                trimPageSlots()
                 cacheAdjacentVolumes()
             } catch (error: Exception) {
                 if (generation == pageGeneration && currentCoroutineContext().isActive && !useOfflinePage(index, volumeId, jumpToHadithNumber) &&
@@ -716,6 +766,7 @@ class ReaderViewModel(
                 }
             } finally {
                 if (generation == pageGeneration) {
+                    pageLoadOperation = null
                     _state.update { it.copy(isLoadingPage = false) }
                     if (shouldPrefetchNeighbor) prefetchForwardIfNeeded()
                 }
@@ -774,12 +825,14 @@ class ReaderViewModel(
         val s = _state.value
         if (index == s.pageIndex) return
         _state.update { it.copy(pageIndex = index) }
+        restoreCachedNeighbors()
         requestRecentLanding(index)
+        trimPageSlots()
         // A settled scroll (user swipe or pill/edge turn) lands focused:
         // the menu is closed by the screen observing the page index, and
         // the chrome collapses here with no haptic.
         collapseToFocused()
-        val pages = s.pages
+        val pages = _state.value.pages
         if (index in pages.indices && pages[index].isPlaceholder) {
             s.selectedVolumeId?.let { loadPage(index, it) }
         }
@@ -809,16 +862,35 @@ class ReaderViewModel(
      * the prefetch helper.
      */
     private fun cacheAdjacentVolumes() {
-        val s = _state.value
-        if (s.phase != Phase.Reading) return
-        viewModelScope.launch {
-            ReaderPrefetch.warmAdjacentVolumes(
-                repository = app.repository,
-                collectionSlug = collectionSlug,
-                volumes = s.volumes,
-                selectedId = s.selectedVolumeId,
-            )
+        val state = _state.value
+        if (state.phase != Phase.Reading) return
+        for (volume in ReaderPrefetch.adjacentVolumeIds(state.volumes, state.selectedVolumeId)) {
+            viewModelScope.launch { runCatching { fetchPage(volume, 0) } }
         }
+    }
+
+    private suspend fun fetchPage(volume: String, index: Int, target: String? = null): ReaderPageResult =
+        pageStore.load(ReaderPageContentStore.Request(collectionSlug, volume, index, target))
+
+    private fun restoreCachedNeighbors() {
+        val state = _state.value
+        val volume = state.selectedVolumeId ?: return
+        val pages = state.pages.toMutableList()
+        for (index in listOf(state.pageIndex - 1, state.pageIndex, state.pageIndex + 1)) {
+            val page = pages.getOrNull(index) ?: continue
+            if (!pageStore.isCompatible(page, collectionSlug)) pages[index] = emptyPage()
+            if (pages[index].isPlaceholder) {
+                pageStore.peek(collectionSlug, volume, index)?.let { pages[index] = it }
+            }
+        }
+        if (pages != state.pages) _state.update { it.copy(pages = pages) }
+    }
+
+    private fun trimPageSlots() {
+        val state = _state.value
+        val pinned = setOf(state.pageIndex - 1, state.pageIndex, state.pageIndex + 1, state.pages.lastIndex)
+        val pages = state.pages.mapIndexed { index, page -> if (index in pinned) page else emptyPage() }
+        if (pages != state.pages) _state.update { it.copy(pages = pages) }
     }
 
     /**

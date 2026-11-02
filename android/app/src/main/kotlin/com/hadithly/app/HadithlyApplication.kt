@@ -44,6 +44,8 @@ class HadithlyApplication : Application() {
         private set
     lateinit var preferences: PreferencesStore
         private set
+    lateinit var readerPages: com.hadithly.app.core.data.ReaderPageContentStore
+        private set
     lateinit var repository: ConvexRepository
         private set
     lateinit var guestData: GuestDataStore
@@ -89,6 +91,9 @@ class HadithlyApplication : Application() {
         savedSafety = SavedSafetyPreferences(sharedPreferences)
         readerExperience = com.hadithly.app.core.preferences.ReaderExperiencePreferences(sharedPreferences)
         repository = ConvexRepository(this)
+        readerPages = com.hadithly.app.core.data.ReaderPageContentStore { request ->
+            repository.getReaderPage(request.collection, request.volume, request.index, request.target)
+        }
         purchases.verifyBackendAccess = { repository.refreshSubscriptionAccess() }
         guestData = GuestDataStore(this)
         appScope.launch {

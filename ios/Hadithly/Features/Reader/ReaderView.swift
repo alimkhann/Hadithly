@@ -137,7 +137,8 @@ struct ReaderView: View {
                     openPosition: openPosition,
                     targetSource: targetSource,
                     currentPreferences: { environment.preferences.preferences },
-                    widthClass: horizontalSizeClass == .regular ? .regular : .compact
+                    widthClass: horizontalSizeClass == .regular ? .regular : .compact,
+                    pageStore: environment.readerPages
                 )
                 model?.automaticTranslationEnabled = { environment.readerExperience.automaticallyTranslates }
                 model?.offlineStore = environment.offline
@@ -154,7 +155,7 @@ struct ReaderView: View {
             model?.stop()
         }
         .onChange(of: clerk.user?.id) { _, _ in
-            model?.clearRecentPositions()
+            model?.clearRecentPositions(restartLoading: true)
             model?.resetTranslationRequestsForAccount()
             showQuotaPaywall = false
         }
@@ -217,6 +218,8 @@ struct ReaderView: View {
                     },
                     onEdit: {
                         showSavedShortcut = false
+                        model?.saveCurrentProgress()
+                        model?.clearRecentPositions()
                         dismiss()
                         NotificationCenter.default.post(name: .hadithlyOpenSavedTab, object: nil)
                     }
@@ -1251,14 +1254,14 @@ struct ReaderPageView: View {
     }
 
     /// Page-top corner text: the volume title, plus the `: first–last`
-    /// hadith-number range only when the volume is fully cached and the
-    /// range is computable. Nil when no volume is selected.
+    /// hadith-number range after all source page endpoints are known. Nil when no volume is selected.
     private var volumeCornerText: String? {
-        guard let title = model.currentVolumeTitle else { return nil }
-        return ReaderVolumeRange.cornerText(
-            volumeTitle: localizedVolumeTitle(title, preferences: preferences, locale: locale),
-            pages: model.pages
-        )
+        guard let rawTitle = model.currentVolumeTitle else { return nil }
+        let title = localizedVolumeTitle(rawTitle, preferences: preferences, locale: locale)
+        if let range = model.knownVolumeRange {
+            return range.first == range.last ? "\(title): \(range.first)" : "\(title): \(range.first)–\(range.last)"
+        }
+        return ReaderVolumeRange.cornerText(volumeTitle: title, pages: model.pages)
     }
 
     /// Fixed header slot (round 7): the corner label (other pages) or the

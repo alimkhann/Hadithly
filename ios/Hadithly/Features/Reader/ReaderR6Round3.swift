@@ -405,28 +405,24 @@ struct ReaderPrefetchEntry: Equatable {
 
 /// When Library, Today, or Saved appears, quietly ensures the outline
 /// plus the continue-reading target volume's first page are cached.
-/// Existing cache-first actions, results discarded, errors swallowed, no
-/// UI. At most two backend calls.
+/// Existing actions share bounded public page content with the reader.
+/// Errors remain silent. At most two backend calls.
 enum ReaderPrefetch {
     static func warmEntry(
         convex: ConvexClientWithAuth<String>,
-        target: ReaderPrefetchEntry?
+        target: ReaderPrefetchEntry?,
+        pages: ReaderPageContentStore? = nil
     ) {
         guard let target else { return }
-        Task {
+        Task { @MainActor in
+            let store = pages ?? ReaderPageContentStore(convex: convex)
+            let context = store.contextVersion
             _ = try? await convex.action(
                 "actions/hadithData:getCollectionOutline",
                 with: ["collectionSlug": target.collectionSlug as ConvexEncodable?]
             ) as CollectionOutlineResult
             if let volumeId = target.volumeId {
-                _ = try? await convex.action(
-                    "actions/hadithData:getReaderPage",
-                    with: [
-                        "collectionSlug": target.collectionSlug as ConvexEncodable?,
-                        "volumeId": volumeId as ConvexEncodable?,
-                        "page": Double(1) as ConvexEncodable?,
-                    ]
-                ) as ReaderPageResult
+                _ = try? await store.load(.init(collection: target.collectionSlug, volume: volumeId, index: 0), expectedVersion: context)
             }
         }
     }

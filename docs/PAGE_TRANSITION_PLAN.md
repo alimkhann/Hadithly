@@ -4,7 +4,8 @@ November 2, 2026. Planning is complete. The owner subsequently authorized all
 four units and an Android scrolling parity audit in this chat. Unit 1 now has
 paired native verification and owner-reviewed physical iPhone evidence in
 [PAGE_TRANSITION_VERIFICATION.md](PAGE_TRANSITION_VERIFICATION.md). Continue with
-Unit 2. Keep each unit separately verified and committed without pushing.
+Unit 3 after the paired reuse verification in PAGE_TRANSITION_REUSE_VERIFICATION.md.
+Keep each unit separately verified and committed without pushing.
 
 ## Agreed experience
 
@@ -175,8 +176,9 @@ Laziness Protocol keeps loading presentation at one boundary. Build the Lever
 produced the reusable native gesture probe. Prove It Works requires the actual
 native before/after replay, rather than a passing build.
 
-Next task: implement Unit 2 on both native apps. Preserve the verified recent-page
-landing and owner-reviewed signed build, accepted scrolling and Convex reductions.
-Measure reuse, duplicate calls, destination readiness and retained memory before
-changing fetch policy. Commit Unit 2 with evidence, then continue through Units 3
-and 4 under the owner's expanded goal. Keep all original gates open.
+Next task: implement Unit 3 on both native apps. Preserve verified recent-page
+landing, public content reuse, owner-reviewed signed builds, accepted scrolling
+and Convex reductions. Keep current readable content until the pending target is
+ready and fence cancellation/supersession. Then complete Unit 4 and the full
+native matrix. The owner's additional horizontal-lag/volume-loading observation
+is recorded in PAGE_TRANSITION_BASELINE.md. Keep all original gates open.

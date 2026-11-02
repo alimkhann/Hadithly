@@ -116,3 +116,15 @@ links, and byte preservation of incoming iOS files and Python caches. Independen
 source/requirements review caught the older manual-header backlog rule; its
 current bullet now reflects the owner's recent-page decision. No product test
 suite was rerun for these documentation-only changes.
+
+## Owner follow-up, November 3
+
+The owner reports horizontal page swiping feels laggier than the accepted vertical
+scrolling. Volume changes repeatedly show loading, including an immediate return.
+This is owner observation, not a new matched frame-time measurement. Unit 2 now
+retains cross-volume payloads and shares warming/foreground requests. Inspection
+also found that returning to a retained last page fetched the evicted first page
+only to learn the count; the paired native regression covers this case. Unit 3
+still owns stable pending targets and removal of the loading-page handoff. Unit 4
+will inspect/profile horizontal tracking and settling separately from vertical
+scrolling. Do not equate cache hits or prior scroll acceptance with smooth turns.

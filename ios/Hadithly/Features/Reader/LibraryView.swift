@@ -72,7 +72,7 @@ struct LibraryView: View {
             model.start(convex: environment.convex)
             ReaderPrefetch.warmEntry(
                 convex: environment.convex,
-                target: ReaderPrefetchTargets.entryTarget(progress: library.continueReading)
+                target: ReaderPrefetchTargets.entryTarget(progress: library.continueReading), pages: environment.readerPages
             )
         }
         .fullScreenCover(item: $openTarget) { target in

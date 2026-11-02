@@ -1,70 +1,90 @@
-# Active continuation: Unit 2 content reuse
+# Active continuation: Unit 3 stable pending targets
 
 Read PLAN.md's current checkpoint and mistakes, PAGE_TRANSITION_PLAN.md,
-PAGE_TRANSITION_BASELINE.md, PAGE_TRANSITION_VERIFICATION.md and the Page and
-volume transitions prompt in SESSION_PROMPTS.md. The owner expanded this chat
-to finish all four paging units and audit Android scrolling. Earlier Unit 1-only
-stop instructions are historical. Continue the entire authorized paging plan.
+PAGE_TRANSITION_BASELINE.md, PAGE_TRANSITION_VERIFICATION.md,
+PAGE_TRANSITION_REUSE_VERIFICATION.md and the Page and volume transitions prompt
+in SESSION_PROMPTS.md. The owner expanded this chat to all four paging units plus
+an Android scrolling audit. Earlier Unit 1-only stops are historical. Continue the
+whole authorized paging goal, with separately verified commits and no push.
 
-## Current result
+## Retained result
 
-Unit 1 is verified on both native apps. Recent pages restore during the current
-reader session, unseen pages start at the header, and preview/commit use one
-native landing writer. Compatible viewport snapshots preserve partial headers;
-layout and text changes use semantic anchors. Explicit targets and account fences
-keep priority. Focused model and rendered tests pass on iOS and Android.
+Unit 1 restores bounded recent positions through one native landing writer.
+Compatible viewport snapshots preserve partial headers; incompatible layout/text
+uses semantic anchors. Explicit Continue/Saved/Contents and account fences keep
+priority. The owner watched the physical repair and said, "no jerk, it was good."
+The exact accepted app/source archive remains owner-accepted-unit1 in the artifact
+root below. Preserve it and the earlier reader-smooth-owner-20261102 checkpoint.
 
-Physical before/after iPhone video confirms the two owner-observed jumps are gone
-in the sampled replay. The owner watched it and said, "no jerk, it was good."
-The exact signed build, source archive and raw evidence are at
-/Users/alim/Developer/Artifacts/Hadithly/paging-implementation-20261102.
-The accepted app is owner-accepted-unit1/Hadithly.app, binary SHA-256
-44f4fb5d1c0e1f9c32e5e968c72f09684e3fc6e79cf35e7dee0cced855d74059.
-The evidence record identifies later local source/test refinements separately.
+Unit 2 now shares public pages and in-flight requests between existing resume-only
+entry warming, adjacent-volume warming and foreground loading. The LRU holds 28
+payloads and renderer pins at most four more; offline identities, personal
+translations/allowances and generation stay separate. No wider lookahead enabled.
+Failed work retries; context clear rejects late replies; account changes replay
+the exact page/target or volume-edge operation. A retained last-volume page is
+usable without fetching an evicted first page. Source-range metadata survives
+payload eviction. See unit2.json for exact native request/memory/test scopes.
 
-The iPhone slow replay passes the retained mean 5 ms/s hitch and 6.35-second CPU
-budgets. The faster replay passes its hitch budget; its raw CPU remains recorded.
-This does not close the unachieved strict long-form below-1 target. Android already
-has debounced durable saving and IO-backed storage. Its quiet baseline/repair
-pair shows no timing deterioration, with different measured movement and no
-physical Android FPS claim. Do not port the iOS Core Data cache speculatively.
+The owner now reports horizontal swiping feels laggier than vertical scrolling,
+and volume changes repeatedly load even on an immediate return. This is relevant
+to Units 2-4. Keep it as observation until matched native evidence resolves it.
+Vertical scroll acceptance does not pass horizontal tracking or settling.
 
-## Unit 2 outcome
+## Unit 3 outcome and design
 
-Reuse available public page content and deduplicate in-flight requests before
-wider prefetch. Keep the cache bounded across current page slots and retained
-content, with actual live page/content/pagination/provider identity. Offline dump
-pages remain distinct. Do not cache personal translations, account allowances or
-generation requests in the public page store.
+Keep committed volume, page payloads, page index and vertical position unchanged
+until an unavailable turn target is ready. Represent pending intent separately,
+with loading/failed state, cancellation, retry and an intent generation. Commit
+destination identity, payload and landing together. Cancel on superseding or
+explicit navigation/account/exit; late completion must never surprise-turn.
 
-Start with current nearest-forward and adjacent-volume behavior. Measure resumed
-entry, warm out-and-back and a volume edge before/after. Retain actual request
-counts/duplicates, destination-ready timing and native retained memory. A fixture
-byte estimate is not process-memory proof or a billed saving. Compare one versus
-two-page lookahead only with matched waiting, unused work and memory evidence;
-do not enable extra work by default. Preserve cancellation and stale-completion
-fences and all verified Unit 1 landings. Then implement Unit 3 and Unit 4 separately.
+The bounded Terra read-only design compared a pending model against an outgoing
+snapshot over an already committed destination. Use the pending model. A snapshot
+would leave progress, translations and landing attached to an invisible target.
+Sketch TurnTarget.page(volume,index) / volumeEdge(volume,edge), PendingTurn(id,
+target,status), requestTurn/cancelPendingTurn/retryPendingTurn. Use an independent
+pending job from ordinary prefetch so it can share the public store's flight.
 
-A bounded Terra iOS delegate has completed read-only Unit 2 design in this chat.
-Its proposed model-owned session store maps request locators to actual payload
-identity, shares in-flight tasks and removes aliases on eviction. It is awaiting
-implementation go. Recheck live working state before using any old agent report.
+On iOS route followPill/switchToVolume and ReaderView drag release through the
+pending path. A missing destination springs back to the current readable page;
+loaded preview/commit keeps the accepted Unit 1 handoff. On Android prevent the
+pager from exposing/committing a placeholder, while retaining native horizontal
+tracking, direction and outward-edge handling. One native rendering decision
+shows the quiet accessible loading/error/retry/cancel cue. Keep fetching and
+landing independent of that choice. Factor offline payload resolution without
+confusing legacy dump ordinals with live identities. Verify both volume edges.
+
+Prove delayed, failed, retried, canceled, superseded and successful targets on both
+apps, including explicit Contents/Saved priority and stale account completion.
+Repeat the physical first-backward loader workload. Keep destination-ready time,
+first readable text and animation duration distinct. Then commit Unit 3 and move
+to Unit 4's surrounding layout/motion and complete native matrix. Inspect/profile
+horizontal swiping against the retained smooth vertical behavior.
 
 ## Verification and preservation
 
-Serialize native device runs. Reuse the existing iPhone 18 Pro simulator/runtime.
-Android instrumentation uses scripts/run-android-ui-tests.py with explicit
-emulator-5554 and repeated --class arguments. Keep physical capture off during
-passcode entry. The owner approves any fresh XCTest prompt directly on the phone.
+Serialize native device runs. Reuse iPhone 18 Pro simulator
+40FDE642-C9F1-46C4-83E3-4D2469BDE3A6. Android instrumentation uses the guarded
+scripts/run-android-ui-tests.py with explicit emulator-5554 and repeated --class.
+Use JDK21 from /Users/alim/Library/Java/JavaVirtualMachines/openjdk-21.0.1/Contents/Home.
+Keep physical capture off during passcode entry. The owner approves any fresh
+XCTest prompt directly on the phone. Native builds may run independently except
+when they would confound performance measurements.
 
-Preserve incoming iOS project/scheme/catalog and Python cache bytes. Their local
-SHA-256 inventory is incoming-hashes.json in the artifact directory. Preserve
-accepted scrolling, the prior owner checkpoint/tag/archive, Convex notification,
-outline and reader reductions, A2 row mode off, A5/B/C/D completion, G01-G41,
-A1/A3/A4 acceptance, A7/G38 deferral, E actual Linear and the final audit.
-Commit each verified unit without pushing. No cloud, backend deployment, schema,
-migration, account, paid-model or publication action is authorized by implication.
+Raw evidence and signed/source archives are at
+/Users/alim/Developer/Artifacts/Hadithly/paging-implementation-20261102.
+The standalone physical driver is in page-transitions-20261102/gesture-probe.
+Unit 2 measured build is unit2-verified/Hadithly.app; later cached-tail build
+provenance is in unit2.json. AGP removes instrumentation app data after a run;
+retain public numeric proof via the HadithlyPagingProof log tag and copy XML
+before another run. Do not depend on pulling a deleted cache file.
 
-Chosen-language offline translations retain their separate rights/revocation
-contract gate. Sharing, functional pills, general opening latency, simulator
-cleanup, crash-safe saving and Free-Pro/translation reliability remain separate.
+Preserve incoming iOS project/scheme/catalog and Python cache bytes against the
+13-file incoming-hashes.json inventory. Preserve accepted scrolling, Convex
+notification/outline/reader reductions, A2 row mode off, A5/B/C/D completion,
+G01-G41, A1/A3/A4 acceptance, A7/G38 deferral, E actual Linear and the final audit.
+All original physical/accessibility/language/release gates keep their scopes.
+No cloud, backend deployment, schema, migration, account, paid-model or publication
+action is authorized by implication. Chosen-language offline translation packs,
+sharing, functional pills, general opening latency, simulator cleanup, crash-safe
+saving and Free-Pro/translation reliability keep their separate contracts.

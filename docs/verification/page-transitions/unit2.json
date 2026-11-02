@@ -1,0 +1,181 @@
+{
+  "unit": 2,
+  "date": "2026-11-03",
+  "status": "Bounded public reuse verified on both native apps; Units3-4 remain active",
+  "bounds": {
+    "publicPayloads": 28,
+    "rendererPins": 4,
+    "inFlightRequests": 4,
+    "unopenedEntryWarmthSeconds": 120,
+    "recentPositions": 32
+  },
+  "reproduction": {
+    "iosWarmEdgeBeforeCalls": [
+      "2:0",
+      "2:0",
+      "1:0"
+    ],
+    "iosWarmEdgeAfterCalls": [
+      "2:0",
+      "1:0"
+    ],
+    "androidBefore": "Adjacent warmer bypassed injected loader; gated check timed out",
+    "androidAfter": "Warm and foreground share one request"
+  },
+  "verification": {
+    "iosStoreTests": 12,
+    "iosRenderedRecentRegressions": 2,
+    "androidReuseTests": 8,
+    "androidRecentRegressions": 6,
+    "androidEntryPolicyUnitTests": 30,
+    "androidReuseScope": "Seven cases in unit2-native-android, cached-tail case in unit2-tail-android; memory-only extraction rerun separate.",
+    "iosRenderedScope": "Two real UI regressions in unit2-accept-ios, final twelve store cases in unit2-tail-ios."
+  },
+  "lookahead": {
+    "scope": "Native iOS store fixture; 25ms synthetic fetch; demand excludes warming and animation; payload counts are not process memory",
+    "rows": [
+      {
+        "journey": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "distance": 1,
+        "calls": 5,
+        "unused": 0,
+        "retainedPages": 5,
+        "demandWaitMs": 0.056541999999999995
+      },
+      {
+        "journey": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "distance": 2,
+        "calls": 5,
+        "unused": 0,
+        "retainedPages": 5,
+        "demandWaitMs": 0.049791
+      },
+      {
+        "journey": [
+          0,
+          1,
+          2,
+          1,
+          0
+        ],
+        "distance": 1,
+        "calls": 4,
+        "unused": 1,
+        "retainedPages": 4,
+        "demandWaitMs": 0.049084
+      },
+      {
+        "journey": [
+          0,
+          1,
+          2,
+          1,
+          0
+        ],
+        "distance": 2,
+        "calls": 5,
+        "unused": 2,
+        "retainedPages": 5,
+        "demandWaitMs": 0.048458999999999995
+      },
+      {
+        "journey": [
+          3,
+          4,
+          3,
+          2,
+          3
+        ],
+        "distance": 1,
+        "calls": 3,
+        "unused": 0,
+        "retainedPages": 3,
+        "demandWaitMs": 27.109958
+      },
+      {
+        "journey": [
+          3,
+          4,
+          3,
+          2,
+          3
+        ],
+        "distance": 2,
+        "calls": 3,
+        "unused": 0,
+        "retainedPages": 3,
+        "demandWaitMs": 26.918419
+      }
+    ],
+    "decision": "Retain existing policy; two-page lookahead disabled"
+  },
+  "physicalMemory": {
+    "scope": "Physical iPhone16Pro iOS27.0.1; English, dark, Arabic40/translation22; canonical7184 entry; five left then five right with same driver; matched content/pacing but differing entry warmth and capture start delay",
+    "control": {
+      "scope": "Physical iPhone native process footprint, Activity Monitor; five forward and five backward turns",
+      "samples": 65,
+      "firstBytes": 150685728,
+      "lastBytes": 161450040,
+      "peakBytes": 213387368,
+      "medianBytes": 161450040
+    },
+    "repair": {
+      "scope": "Physical iPhone native process footprint, Activity Monitor; five forward and five backward turns",
+      "samples": 65,
+      "firstBytes": 154552352,
+      "lastBytes": 161302584,
+      "peakBytes": 205293624,
+      "medianBytes": 161318968
+    },
+    "limits": [
+      "Control replay ran after repair; raw ordering retained.",
+      "Both finish near161.3MB; no isolated causal saving, leak-proof or universal memory claim.",
+      "Screenshots verify same7184,7188,7193,7196,7202,7207 and reverse sequence."
+    ]
+  },
+  "binarySHA256": "66c1a795614b9924d1a79b03b27e6b1dd068c8c65ff50f1ec62ab9d7462e091c",
+  "review": {
+    "findings": [
+      "Warming could cancel foreground flight",
+      "Account clear could strand load or lose LAST edge"
+    ],
+    "resolution": "Capacity wait and exact PageLoadOperation replay; follow-up review accepted fixes"
+  },
+  "preservation": {
+    "incomingFilesUnchanged": 13,
+    "backendChanges": false,
+    "push": false,
+    "originalGates": "All remain open as recorded"
+  },
+  "limits": [
+    "No full pending-target or surrounding-motion matrix until Units3-4.",
+    "Offline legacy payload exclusion tested; existing native fallback remains a separate verified path.",
+    "No live-service request/byte/invoice saving claim.",
+    "Physical Android, accessibility/language/release gates retain prior scopes."
+  ],
+  "androidNativeMemory": {
+    "scope": "Android emulator native rendered fixture, 34 forward and 34 backward model-directed turns",
+    "requests": 44,
+    "uniquePages": 36,
+    "maximumPopulatedSlots": 4,
+    "firstPssKb": 275822,
+    "lastPssKb": 277501,
+    "peakPssKb": 310252,
+    "limits": "PSS includes test/runtime/rendering; initial versus final within one fixture run, not implementation before/after or physical Android."
+  },
+  "finalBinarySHA256": "6f77aa0d1e1b2abf35e5eba1d6dda6ea82a252c5b58320056d620469749ecb87",
+  "binaryScope": "binarySHA256 is memory-measured Unit2 app; finalBinarySHA256 includes cached-tail lookup and no other production changes.",
+  "cachedTailRegression": "Both models return to retained last page with evicted first page and no request for that volume."
+}

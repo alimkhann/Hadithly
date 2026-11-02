@@ -18,8 +18,17 @@ the owner watched the installed repair and said, "no jerk, it was good."
 native scopes, test results, source/build provenance, original-frame inspection,
 Android scrolling audit and bounded iPhone scrolling recheck. The reviewed signed
 build and exact tracked source archive remain outside the checkout for comparison.
-Next is Unit 2 content reuse and request deduplication. Do not batch it with
-Unit 3 pending-target presentation or Unit 4 surrounding motion/layout. Incoming project, scheme, catalog
+Unit 2 public content reuse and shared in-flight requests are also verified in
+[PAGE_TRANSITION_REUSE_VERIFICATION.md](PAGE_TRANSITION_REUSE_VERIFICATION.md).
+Resume/adjacent warming shares the bounded public store with foreground turns.
+A retained last page no longer requires fetching its evicted first page. Native
+request/cancellation/eviction regressions, the iPhone process-memory pair and an
+Android 68-turn rendered retention check pass in their recorded scopes. Two-page
+lookahead remains disabled. The owner additionally reports horizontal swipes feel
+laggier than vertical scrolling and repeated volume loading. Unit 3 now owns
+stable outgoing content while targets load; Unit 4 must inspect/profile horizontal
+tracking and settling. Do not infer turn smoothness from accepted vertical scrolls.
+Continue with Unit 3 separately, then Unit 4 and the full native matrix. Incoming project, scheme, catalog
 and Python cache bytes remain preserved. All original gates stay open.
 
 ## Prior checkpoint: page-transition discovery and plan, November 2
