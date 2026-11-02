@@ -226,6 +226,12 @@ UI delay is next; a renderer replacement is not yet justified.
 See [the exact result](smooth-reader-verification/phase-bounded-quiet-experiment.json)
 and [implementation decision](SMOOTH_READER_DECISION.md).
 
+An [offline frame-phase export](smooth-reader-verification/remaining-phase-quiet-frame-phases.json)
+from that retained run joins both late presentations to 1.10–1.11 ms GPU phases,
+3.21–3.29 ms render phases and app commit calls below 1 ms. Both associated app
+updates begin about 36.6 ms into native scrolling. These overlapping pipeline
+intervals cannot be added or substituted for main-thread CPU attribution.
+
 All 171 safety tests, two full-bleed/reanchor UI checks and 13 capture checks pass.
 Eight further [simulator behavior cases](smooth-reader-verification/phase-bounded-behavior.json)
 pass, including large RTL/long-locale source clearance and growth, guest Saved

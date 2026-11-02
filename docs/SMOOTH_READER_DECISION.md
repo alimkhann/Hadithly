@@ -260,3 +260,38 @@ delay before changing another variable. Eight further simulator behavior checks
 pass, including Saved return, large text/growth, manual landing/revisits and
 focus-position stability. The phone is now occupied; wait for owner availability
 before the next diagnostic. The owner's exact checkpoint remains unchanged.
+
+## Offline frame-phase attribution after the shared gate
+
+An additional serial export from the same retained 1.34 ms/s trace joins both
+remaining hitches to frame lifetimes, app updates, render/GPU phases and commit
+calls. Each lifetime ends at the hitch's final presentation within exported
+timestamp precision. No new physical action was needed. The
+[frame record](smooth-reader-verification/remaining-phase-quiet-frame-phases.json)
+keeps those joins and the exact measured build.
+
+GPU phases take 1.10 and 1.11 ms; render phases take 3.21 and 3.29 ms. The
+longest individual app commit calls within the associated app updates take
+0.89 and 0.40 ms. Pipeline intervals overlap and must not be added. Both app
+updates begin approximately 36.6 ms after native active scrolling starts, on
+separate gestures. Storage/projection/persistence have zero overlap with the
+entire associated app-update windows. The residual is early in a drag, and
+these records do not establish an expensive glyph-layout or GPU bottleneck.
+
+The next ranked explanations and predictions are:
+
+1. Early-scroll UI/gesture work. Simultaneous main-thread samples should show
+   reader gesture callbacks, SwiftUI graph processing or layout occupying the
+   affected update windows. A repair must remove the attributed work and then
+   improve the same matched physical workload.
+2. Main-thread waiting or scheduling. The affected update windows would have
+   relatively little running CPU and substantial blocked/runnable time. Inspect
+   that state before interpreting wall time as expensive text layout.
+3. Text creation/layout. CoreText/TextKit or glyph preparation would dominate
+   those windows, with the long/large cases reproducing the cost. Only that
+   evidence would reopen the conditional renderer comparison.
+
+The owner-checkpoint CPU trace predates the shared gate; do not use its samples
+to claim the new candidate's residual cause. Capture the latest installed
+candidate after the owner says the phone is free. Keep the failed 1.34 ms/s run,
+the strict metric and owner acceptance gate unchanged.

@@ -16,7 +16,8 @@ Goal 1 is complete. The controlled baseline matrix is retained. Quiet progress
 persistence and committed decoded reuse are committed as 7774dcd and b9d8604.
 Combined Animation Hitches/Time Profiler data attributes library/storage work in
 16 of 19 late-frame preparation windows. Do not repeat that diagnostic or start
-a renderer rewrite without new evidence. Keep large exports serial; parallel
+a renderer rewrite without new evidence. A fresh diagnostic on the current
+candidate is needed for its residual cause. Keep large exports serial; parallel
 exports previously exhausted scratch space, then owned scratch was recovered.
 
 Shared quiet scheduling measures 2.23 ms/s using geometry alone. The native
@@ -38,6 +39,15 @@ checks also pass, including Saved return, large text/growth, manual landing and
 revisits, vertical-scroll ownership and focus stability. The repair and evidence
 are committed as a6c3035. Inspect existing outputs before rerunning. Full final
 matrix, physical VoiceOver/live restoration and owner confirmation remain open.
+
+Offline frame-phase export from that same retained failing run is complete.
+remaining-phase-quiet-frame-phases.json records joined GPU phases of 1.10 and
+1.11 ms, render phases of 3.21 and 3.29 ms, and maximum app commit calls below
+1 ms. Both associated app updates begin about 36.6 ms into native scrolling,
+without storage/projection/persistence overlap across their whole windows.
+Distinguish early-scroll UI/gesture work from blocked/runnable main-thread time
+using a new simultaneous frame/CPU capture on this candidate. The old binary's
+CPU trace cannot establish this cause. No further product change was made.
 
 Raw root is /tmp/hadithly-smooth-reader-20261101. The latest build manifest is
 phase-aware-bounded-sync-build/build-manifest.json, binary SHA-256

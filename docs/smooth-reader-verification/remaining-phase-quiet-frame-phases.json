@@ -1,0 +1,79 @@
+{
+  "capture_type": "Validated optimized physical measurement, enriched by offline exports from the same retained trace. No new phone action.",
+  "build_binary_sha256": "996d4856538009af8f9c02584307ec0cf0e35ee158bfbdc49edbd0508a4b5b05",
+  "active_hitch_ms_per_second": 1.3398218927814527,
+  "method": "Join each retained app hitch to app update, frame lifetime, GPU, render and frame-wait by display/swap/surface identity. Lifetime end must equal final hitch presentation. Count storage/projection/persistence intersections across the entire associated app-update interval, not only its later hitch interval.",
+  "frames": [
+    {
+      "hitch_start_s": 13.393728,
+      "hitch_ms": 12.502125,
+      "gesture_index_zero_based": 1,
+      "update_start_after_native_scroll_ms": 36.605333,
+      "hitch_start_after_native_scroll_ms": 62.565917,
+      "app_update_ms": 15.091666,
+      "frame_phases": {
+        "hitches-frame-lifetimes": {
+          "start_s": 13.364548541,
+          "duration_ms": 41.681583
+        },
+        "hitches-framewait": {
+          "start_s": 13.393396791,
+          "duration_ms": 12.833333
+        },
+        "hitches-renders": {
+          "start_s": 13.389584166,
+          "duration_ms": 3.212541
+        },
+        "hitches-gpu": {
+          "start_s": 13.392295958,
+          "duration_ms": 1.100833
+        }
+      },
+      "lifetime_end_matches_hitch_presentation_error_ms": 1e-06,
+      "commit_calls_in_app_update": 4,
+      "max_commit_call_ms": 0.890333,
+      "sum_commit_call_ms": 1.367666,
+      "operation_overlaps_app_update": {
+        "AccountPartitionWork": 0,
+        "LibraryProjectionRefresh": 0,
+        "ScrollProgressPersistence": 0
+      }
+    },
+    {
+      "hitch_start_s": 30.417427916,
+      "hitch_ms": 12.502125,
+      "gesture_index_zero_based": 9,
+      "update_start_after_native_scroll_ms": 36.556833,
+      "hitch_start_after_native_scroll_ms": 62.500041,
+      "app_update_ms": 17.131833,
+      "frame_phases": {
+        "hitches-frame-lifetimes": {
+          "start_s": 30.388248666,
+          "duration_ms": 41.681375
+        },
+        "hitches-framewait": {
+          "start_s": 30.417507791,
+          "duration_ms": 12.42225
+        },
+        "hitches-renders": {
+          "start_s": 30.413367791,
+          "duration_ms": 3.286416
+        },
+        "hitches-gpu": {
+          "start_s": 30.416401166,
+          "duration_ms": 1.106625
+        }
+      },
+      "lifetime_end_matches_hitch_presentation_error_ms": 0.0,
+      "commit_calls_in_app_update": 4,
+      "max_commit_call_ms": 0.397583,
+      "sum_commit_call_ms": 0.930582,
+      "operation_overlaps_app_update": {
+        "AccountPartitionWork": 0,
+        "LibraryProjectionRefresh": 0,
+        "ScrollProgressPersistence": 0
+      }
+    }
+  ],
+  "interpretation": "Both remaining app updates begin about 36.6 ms after native active scrolling starts, on separate gestures. GPU phases and individual commit calls are short. App-update wall time is 15\u201317 ms without storage/projection/persistence overlap. New simultaneous main-thread attribution is needed; this does not establish expensive text layout or identify a gesture callback as causal. Pipeline intervals overlap and must not be added."
+}

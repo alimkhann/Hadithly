@@ -51,6 +51,14 @@ produced no usable capture. Continue physical work when the phone is free.
 Full final matrix, physical VoiceOver/live restoration and owner acceptance
 remain open. The implementation and measured evidence are committed as `a6c3035`.
 
+Offline export of the retained failing run joins both frames to short GPU phases
+of 1.10–1.11 ms and individual app commits below 1 ms. Both app updates begin
+about 36.6 ms after native scrolling starts. See the new frame record linked in
+SMOOTH_READER_DECISION.md. The next profile must distinguish early-scroll UI
+work from main-thread waiting on the latest candidate. No further product change
+is supported until that attribution; the old owner-checkpoint CPU samples cannot
+prove the residual cause in the repaired build.
+
 Keep large diagnostic exports serial. Earlier parallel exports exhausted disk;
 only their owned terminal-process scratch was removed. Preserve incoming iOS
 project/scheme/catalog and Python cache bytes, all original G01–G41 gates,
