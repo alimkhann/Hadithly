@@ -1,7 +1,6 @@
 import { v } from "convex/values";
 import type { Infer } from "convex/values";
 import { DIAGNOSTICS_RELEASE } from "./diagnosticsRelease";
-import { generationFailureReason } from "./generationPolicy";
 
 export const operation = v.union(v.literal("generation"), v.literal("daily_translation"),
   v.literal("daily_push"), v.literal("evidence_processing"), v.literal("subscription_refresh"),
@@ -9,7 +8,9 @@ export const operation = v.union(v.literal("generation"), v.literal("daily_trans
 export type DiagnosticOperation = Infer<typeof operation>;
 export const surface = v.union(v.literal("backend"), v.literal("web"));
 // Enumerated only: never carries provider exceptions, prompts, responses or accounts.
-export const failureReason = generationFailureReason;
+// Mirrors generationFailureReason in generationPolicy without coupling diagnostics to generation code.
+export const failureReason = v.union(v.literal("service_unavailable"), v.literal("provider_error"),
+  v.literal("invalid_response"), v.literal("completion_rejected"), v.literal("completion_error"));
 export type DiagnosticFailureReason = Infer<typeof failureReason>;
 
 /** Deploy-stamped release when provided, otherwise the committed fallback. */
