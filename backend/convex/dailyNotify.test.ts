@@ -115,6 +115,7 @@ test("does not generate a translation when the device provider is unavailable", 
   const t = convexTest(schema, modules);
   const asUser = t.withIdentity(identity("notify_no_provider"));
   await asUser.mutation(api.users.ensureCurrentUser, { preferredLanguage: "en" });
+  await asUser.mutation(api.library.setDailyNotification, { enabled: true, dailyTime: "08:00" });
   await asUser.mutation(api.library.savePushToken, {
     token: "no-provider", platform: "ios", timezone: "Asia/Almaty", translationLocale: "kk",
   });
@@ -148,7 +149,7 @@ describe("N1 push token registration", () => {
       translationLocale: "kk",
       dailyTime: "08:00",
       deliveryBucket: "08:00",
-      enabled: true,
+      enabled: false,
     });
     expect(row?.lastSeenAt).toBeDefined();
   });
@@ -215,6 +216,47 @@ describe("N1 push token registration", () => {
 });
 
 describe("N1 daily notification preferences", () => {
+  test("registration followed by a preference change updates the device and later tokens", async () => {
+    const t = convexTest(schema, modules);
+    const user = t.withIdentity(identity("notify_registration_first"));
+    await user.mutation(api.users.ensureCurrentUser, { preferredLanguage: "en" });
+    const first = await user.mutation(api.library.savePushToken, { token: "first", platform: "ios" });
+    expect(await t.run(ctx => ctx.db.get(first))).toMatchObject({ enabled: false, dailyTime: "08:00" });
+    await user.mutation(api.library.setDailyNotification, { enabled: true, dailyTime: "19:23" });
+    const second = await user.mutation(api.library.savePushToken, { token: "rotated", platform: "ios" });
+    for (const id of [first, second]) {
+      expect(await t.run(ctx => ctx.db.get(id))).toMatchObject({ enabled: true, dailyTime: "19:23", deliveryBucket: "19:15" });
+    }
+    await t.run(ctx => ctx.db.patch(first, { enabled: false, dailyTime: "07:00", deliveryBucket: "07:00" }));
+    await user.mutation(api.library.savePushToken, { token: "first", platform: "ios" });
+    expect(await t.run(ctx => ctx.db.get(first))).toMatchObject({ enabled: false, dailyTime: "07:00", deliveryBucket: "07:00" });
+  });
+  test("legacy accounts inherit the most recently updated token's schedule", async () => {
+    const t = convexTest(schema, modules);
+    const user = t.withIdentity(identity("notify_legacy_inherit"));
+    await user.mutation(api.users.ensureCurrentUser, { preferredLanguage: "en" });
+    const userId = await t.run(async ctx => (await ctx.db.query("users").unique())!._id);
+    await t.run(async ctx => {
+      await ctx.db.insert("pushTokens", { userId, token: "old", platform: "ios", enabled: true, dailyTime: "07:00", updatedAt: 10 });
+      await ctx.db.insert("pushTokens", { userId, token: "recent", platform: "android", enabled: false, dailyTime: "18:37", updatedAt: 20 });
+    });
+    const id = await user.mutation(api.library.savePushToken, { token: "new", platform: "ios", timezone: "Asia/Almaty" });
+    expect(await t.run(ctx => ctx.db.get(id))).toMatchObject({ enabled: false, dailyTime: "18:37", deliveryBucket: "18:30", timezone: "Asia/Almaty" });
+  });
+  test.each([
+    { enabled: false, dailyTime: "08:00" },
+    { enabled: true, dailyTime: "18:37" },
+  ])("preserves preferences saved before a token arrives: $enabled $dailyTime", async preferences => {
+    const t = convexTest(schema, modules);
+    const asUser = t.withIdentity(identity("notify_before_token"));
+    await asUser.mutation(api.users.ensureCurrentUser, { preferredLanguage: "en" });
+    expect(await asUser.mutation(api.library.setDailyNotification, preferences)).toBe(0);
+    const tokenId = await asUser.mutation(api.library.savePushToken, {
+      token: "later-token", platform: "ios", timezone: "Asia/Almaty",
+    });
+    const row = await t.run(ctx => ctx.db.get(tokenId));
+    expect(row).toMatchObject(preferences);
+  });
   test("validates the time, recomputes the bucket, and re-arms today", async () => {
     const t = convexTest(schema, modules);
     const asUser = t.withIdentity(identity("notify_prefs"));
@@ -394,6 +436,7 @@ describe("N1 cron loop", () => {
     const t = convexTest(schema, modules);
     const asUser = t.withIdentity(identity("notify_date_rollover"));
     await asUser.mutation(api.users.ensureCurrentUser, { preferredLanguage: "en" });
+    await asUser.mutation(api.library.setDailyNotification, { enabled: true, dailyTime: "08:00" });
     const tokenId = await asUser.mutation(api.library.savePushToken, {
       token: "date-rollover", platform: "ios", timezone: "Asia/Almaty", translationLocale: "en",
     });
@@ -468,6 +511,7 @@ describe("N1 cron loop", () => {
     await asUser.mutation(api.users.ensureCurrentUser, {
       preferredLanguage: "en",
     });
+    await asUser.mutation(api.library.setDailyNotification, { enabled: true, dailyTime: "08:00" });
     await asUser.mutation(api.library.savePushToken, {
       token: "due-android",
       platform: "android",
@@ -502,6 +546,7 @@ describe("N1 cron loop", () => {
     await asUser.mutation(api.users.ensureCurrentUser, {
       preferredLanguage: "en",
     });
+    await asUser.mutation(api.library.setDailyNotification, { enabled: true, dailyTime: "08:00" });
     await asUser.mutation(api.library.savePushToken, {
       token: "due-kk",
       platform: "ios",
@@ -527,6 +572,7 @@ describe("N1 cron loop", () => {
     await asUser.mutation(api.users.ensureCurrentUser, {
       preferredLanguage: "en",
     });
+    await asUser.mutation(api.library.setDailyNotification, { enabled: true, dailyTime: "08:00" });
     await asUser.mutation(api.library.savePushToken, {
       token: "due-ur",
       platform: "android",
@@ -574,6 +620,7 @@ describe("N1 cron loop", () => {
     await asUser.mutation(api.users.ensureCurrentUser, {
       preferredLanguage: "en",
     });
+    await asUser.mutation(api.library.setDailyNotification, { enabled: true, dailyTime: "08:00" });
     await asUser.mutation(api.library.savePushToken, {
       token: "due-ai",
       platform: "android",
@@ -611,6 +658,7 @@ describe("N1 cron loop", () => {
     await asUser.mutation(api.users.ensureCurrentUser, {
       preferredLanguage: "en",
     });
+    await asUser.mutation(api.library.setDailyNotification, { enabled: true, dailyTime: "08:00" });
     await asUser.mutation(api.library.savePushToken, {
       token: "dead-ios",
       platform: "ios",
@@ -652,6 +700,7 @@ describe("N1 cron loop", () => {
     await asUser.mutation(api.users.ensureCurrentUser, {
       preferredLanguage: "en",
     });
+    await asUser.mutation(api.library.setDailyNotification, { enabled: true, dailyTime: "08:00" });
     await asUser.mutation(api.library.savePushToken, {
       token: "bp-1",
       platform: "android",

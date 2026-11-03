@@ -62,6 +62,8 @@ export default defineSchema({
     displayName: v.optional(v.string()),
     avatarUrl: v.optional(v.string()),
     preferredLanguage: v.string(),
+    dailyNotificationEnabled: v.optional(v.boolean()),
+    dailyNotificationTime: v.optional(v.string()),
     // F2 reader preference contracts. Optional until every signed-in row has
     // been seeded by ensureCurrentUser; preferredLanguage stays as the legacy
     // dual-write field during the migration window.
@@ -639,6 +641,7 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_user", ["userId"])
+    .index("by_user_updated_at", ["userId", "updatedAt"])
     .index("by_token", ["token"])
     .index("by_enabled_bucket", ["enabled", "deliveryBucket"]),
 

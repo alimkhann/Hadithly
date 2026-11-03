@@ -315,11 +315,16 @@ export const savePushToken = mutation({
       });
       return existing._id;
     }
+    const legacy = user.dailyNotificationEnabled === undefined || user.dailyNotificationTime === undefined
+      ? await ctx.db.query("pushTokens").withIndex("by_user_updated_at", q => q.eq("userId", user._id)).order("desc").first()
+      : null;
+    const legacyTime = legacy?.dailyTime && normalizeDeliveryBucket(legacy.dailyTime) !== null ? legacy.dailyTime : "08:00";
+    const dailyTime = user.dailyNotificationTime ?? legacyTime;
     return await ctx.db.insert("pushTokens", {
       token: args.token,
-      dailyTime: "08:00",
-      deliveryBucket: normalizeDeliveryBucket("08:00") ?? "08:00",
-      enabled: true,
+      dailyTime,
+      deliveryBucket: normalizeDeliveryBucket(dailyTime) ?? "08:00",
+      enabled: user.dailyNotificationEnabled ?? legacy?.enabled ?? false,
       consecutiveFailures: 0,
       ...patch,
     });
@@ -357,6 +362,7 @@ export const setDailyNotification = mutation({
       .collect();
     const bucket = normalizeDeliveryBucket(args.dailyTime);
     if (bucket === null) throw new Error(`Invalid dailyTime: ${args.dailyTime}`);
+    await ctx.db.patch(user._id, { dailyNotificationEnabled: args.enabled, dailyNotificationTime: args.dailyTime });
     const now = Date.now();
     for (const row of rows) {
       await ctx.db.patch(row._id, {
