@@ -61,12 +61,16 @@ async function generate(ctx: ActionCtx, admission: { jobId: Id<"aiGenerationJobs
     const payload = parseTranslationPayload(response.text ?? "");
     if (!payload?.translation.trim() || payload.translation.length > 24_000 || payload.riskFlags.length > 30) throw new Error("AI_INVALID_RESPONSE");
     failureReason = "completion_error";
+    // The model may echo reference IDs that were never offered (including when no
+    // references were sent). Keep only offered IDs so a valid translation is not rejected.
+    const offeredIds = new Set(admission.references.map((_, index) => `reference:${index}`));
+    const usedReferenceIds = payload.usedReferenceIds.filter(id => offeredIds.has(id));
     const completed = await ctx.runMutation(internal.quotas.finish, { jobId: admission.jobId, attempt: admission.attempt, telemetry,
-      output: { translation: payload.translation, confidence: payload.confidence, riskFlags: payload.riskFlags, usedReferenceIds: payload.usedReferenceIds } });
+      output: { translation: payload.translation, confidence: payload.confidence, riskFlags: payload.riskFlags, usedReferenceIds } });
     if (!completed) { failureReason = "completion_rejected"; throw new Error("AI_GENERATION_RETRY"); }
     return result(completed.translation, completed.cached);
   } catch {
-    await reportFailure(ctx, "generation");
+    await reportFailure(ctx, "generation", failureReason);
     // No provider exception, prompt, response text, proof, or account enters telemetry.
     await ctx.runMutation(internal.quotas.finish, { jobId: admission.jobId, attempt: admission.attempt,
       telemetry: { ...telemetry, failureReason, durationMs: Math.min(120_000, Date.now() - startedAt) } });

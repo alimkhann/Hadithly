@@ -174,9 +174,10 @@ export const finish = internalMutation({
         if (!text || text.length > 24_000 || !Number.isFinite(args.output.confidence) || args.output.confidence < 0 || args.output.confidence > 1 || args.output.riskFlags.length > 30)
           throw new Error("INVALID_GENERATION_OUTPUT");
         const references = await currentGenerationReferences(ctx, hadith, job.referenceBindings ?? []);
-        const usedIds = args.output.usedReferenceIds ?? [];
-        const validIds = references && usedIds.length <= 3 && new Set(usedIds).size === usedIds.length &&
-          usedIds.every(id => references.some((_, index) => id === `reference:${index}`));
+        // Unknown IDs are ignored, while duplicate or excessive offered IDs remain invalid.
+        const reportedIds = args.output.usedReferenceIds ?? [];
+        const usedIds = references ? reportedIds.filter(id => references.some((_, index) => id === `reference:${index}`)) : [];
+        const validIds = usedIds.length <= 3 && new Set(usedIds).size === usedIds.length;
         if (references && validIds && !await knownMeaningReversal(ctx, hadith, job.language, text)) {
           const used = references.filter((_, index) => usedIds.includes(`reference:${index}`));
           groundingUsed = used.length > 0;

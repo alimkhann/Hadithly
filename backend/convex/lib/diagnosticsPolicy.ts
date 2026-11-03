@@ -7,6 +7,17 @@ export const operation = v.union(v.literal("generation"), v.literal("daily_trans
   v.literal("canonical_resolver"), v.literal("synthetic"));
 export type DiagnosticOperation = Infer<typeof operation>;
 export const surface = v.union(v.literal("backend"), v.literal("web"));
+// Enumerated only: never carries provider exceptions, prompts, responses or accounts.
+// Mirrors generationFailureReason in generationPolicy without coupling diagnostics to generation code.
+export const failureReason = v.union(v.literal("service_unavailable"), v.literal("provider_error"),
+  v.literal("invalid_response"), v.literal("completion_rejected"), v.literal("completion_error"));
+export type DiagnosticFailureReason = Infer<typeof failureReason>;
+
+/** Deploy-stamped release when provided, otherwise the committed fallback. */
+export function diagnosticsRelease(): string {
+  const release = process.env.DIAGNOSTICS_RELEASE;
+  return release && /^hadithly@[a-f0-9]{12}$/.test(release) ? release : DIAGNOSTICS_RELEASE;
+}
 export type DiagnosticSurface = Infer<typeof surface>;
 export const MONTHLY_REPORT_CAP = 1000;
 export const REPORT_INTERVAL_MS = 60_000;
@@ -18,12 +29,12 @@ export function diagnosticsEnvironment(): "development" | "production" {
 }
 
 export function safeEvent(input: { operation: DiagnosticOperation; surface: DiagnosticSurface;
-  eventId: string; release?: string; environment?: "development" | "production" }) {
+  eventId: string; release?: string; environment?: "development" | "production"; failureReason?: DiagnosticFailureReason }) {
   return { event_id: input.eventId, platform: input.surface === "backend" ? "node" : "javascript",
-    level: "error", release: input.release ?? DIAGNOSTICS_RELEASE,
+    level: "error", release: input.release ?? diagnosticsRelease(),
     environment: input.environment ?? diagnosticsEnvironment(),
     exception: { values: [{ type: "HadithlyOperationalFailure", value: input.operation }] },
-    tags: { surface: input.surface, operation: input.operation },
+    tags: { surface: input.surface, operation: input.operation, ...(input.failureReason ? { failure_reason: input.failureReason } : {}) },
     fingerprint: ["hadithly", input.surface, input.operation] };
 }
 
