@@ -64,7 +64,7 @@ async function generate(ctx: ActionCtx, admission: { jobId: Id<"aiGenerationJobs
     // The model may echo reference IDs that were never offered (including when no
     // references were sent). Keep only offered IDs so a valid translation is not rejected.
     const offeredIds = new Set(admission.references.map((_, index) => `reference:${index}`));
-    const usedReferenceIds = [...new Set(payload.usedReferenceIds.filter(id => offeredIds.has(id)))].slice(0, 3);
+    const usedReferenceIds = payload.usedReferenceIds.filter(id => offeredIds.has(id));
     const completed = await ctx.runMutation(internal.quotas.finish, { jobId: admission.jobId, attempt: admission.attempt, telemetry,
       output: { translation: payload.translation, confidence: payload.confidence, riskFlags: payload.riskFlags, usedReferenceIds } });
     if (!completed) { failureReason = "completion_rejected"; throw new Error("AI_GENERATION_RETRY"); }

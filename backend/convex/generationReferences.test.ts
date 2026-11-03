@@ -87,9 +87,15 @@ test("unused supplied comparisons do not become citations or a grounding claim",
   expect(provider).toHaveBeenCalledTimes(1);
 });
 
-test("invented and duplicate reference IDs fail without success or allowance consumption", async () => {
-  for (const ids of [["https://invented.example/source"], ["reference:0", "reference:0"]]) {
-    const f = await published(); provider.mockResolvedValue(response(ids));
+test("unknown reference IDs are ignored while duplicate offered IDs fail", async () => {
+  {
+    const f = await published(); provider.mockResolvedValue(response(["https://invented.example/source"]));
+    const generated = await generate(f);
+    expect(generated).toMatchObject({ groundingUsed: false, citations: [] });
+    expect(await f.owner.query(api.quotas.getTranslationAllowance, {})).toMatchObject({ used: 1, reserved: 0, remaining: 4 });
+  }
+  {
+    const f = await published(); provider.mockResolvedValue(response(["reference:0", "reference:0"]));
     await expect(generate(f)).rejects.toThrow("AI_GENERATION_RETRY");
     expect(await f.owner.query(api.quotas.getTranslationAllowance, {})).toMatchObject({ used: 0, reserved: 0, remaining: 5 });
     expect(await f.t.run(ctx => ctx.db.query("aiUsageEvents").collect())).toEqual([]);
