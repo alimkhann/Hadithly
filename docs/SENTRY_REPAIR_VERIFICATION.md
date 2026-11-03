@@ -115,3 +115,54 @@ The iOS crash needs matching symbols or a reproducing native trace. All original
 release, language, accessibility, A7 deferral and reader gates remain open.
 The owner's proposed grounding tiers remain research only in
 [GEMINI_GROUNDING_DECISION.md](GEMINI_GROUNDING_DECISION.md).
+
+## November 4 notification continuation
+
+Read-only checks found the existing production FCM sender configured for the
+current Android Firebase project, `hadithlyapp`. The owner approved copying only
+`FCM_PROJECT_ID`, `FCM_CLIENT_EMAIL` and `FCM_PRIVATE_KEY` into development
+`festive-cobra-664`. Copying used subprocess stdin, with no credential value in
+arguments, output, files or git. Destination readback matches the approved source;
+production readback is unchanged. No key was created or revoked. This proves
+configuration, not provider acceptance or delivery.
+
+Physical computer-use inspection of iOS Settings showed no Notifications category
+under Hadithly. No permission or notification preference was changed. The phone
+was restored to Hadithly, with Device Hub keyboard capture off. No physical Android
+device was attached; one emulator was available. A real delivery check remains
+open.
+
+Two real local Convex regressions exposed a registration race. Saving a disabled
+choice or 18:37 time before an APNs token existed returned zero updated rows.
+The later token registration silently became enabled at 08:00. A further
+two-account regression showed the same physical token carried the previous
+account's enabled/time and delivery history into its new account.
+
+Commits `327ba4d` and `f791606` fix those demonstrated paths. Explicit enabled/time
+choices are now stored on the authenticated account, consistent with the existing
+account-wide notification setting. New tokens inherit that choice, otherwise the
+latest legacy token's choice through a bounded indexed read, otherwise disabled.
+Same-account refreshes preserve the token's settings. Account transfer applies the
+new owner's choice and clears the old delivery/retry history. Timezone and locales
+remain per device. The optional fields need no data backfill; the added index and
+code require a schema deployment.
+
+Commit `c6c0c33` adds portable notification preferences to account export, with no
+token or device identifiers. Missing or deleted account preferences export as null.
+The full backend suite passed 570 cases before the export assertion extension.
+Final integrated notification and export checks passed 28 cases, and typecheck
+passed. The focused deletion case emitted the existing asynchronous cleanup
+teardown warning; no assertion failed. All six incoming regular-file hashes remain
+unchanged. These follow-up code commits have not yet been deployed.
+
+The owner confirmed source reuse/translation permission exists. Its location or
+reference is pending; no verified license URL or broader redistribution/offline
+grant has been invented. The physical failure remains reproducible until the
+existing permission is represented in the backend source record.
+
+For the separate native crash, Sentry identifies a missing image debug ID
+`e5302d6a-f709-3751-a77c-e85454b0f3c3`, loaded at `0x00010a590000`.
+No matching retained app binary or dSYM was found in the Hadithly artifacts,
+temporary builds or Xcode DerivedData checked. No Hadithly crash report was found
+in the local diagnostic report paths checked. No approximate binary was used for
+symbolication. The crash remains undiagnosed, not resolved.

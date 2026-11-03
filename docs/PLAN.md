@@ -6,6 +6,19 @@ before any Hadithly session. Then open the matching standalone prompt in
 
 ## Sentry repair checkpoint, November 3
 
+November 4 follow-up: the owner approved copying the existing `hadithlyapp` FCM
+sender settings into development. All three values match their approved source;
+production readback is unchanged. No new key was created. Terra reproduced and
+repaired a registration race that lost a choice saved before the token arrived,
+and account transfer inheriting the previous owner's notification settings.
+`327ba4d`, `f791606` and `c6c0c33` persist optional account-level enabled/time
+choices, preserve same-account refreshes, default new accounts to disabled,
+and export only the caller's portable choices. The full backend suite passes
+570 cases; final notification/export checks pass 28 cases. These follow-up code
+changes await their own development deployment approval. The source permission
+exists according to the owner; its reference is pending so the database record
+can be corrected accurately. No further model request or test push occurred.
+
 Notification retries now reset by local date, and unavailable providers are
 checked before content or AI generation. AI cost records retain only a fixed
 failure stage. Three notification regressions failed before and pass after;
@@ -18,7 +31,7 @@ The phone's Bukhari 7 retry again failed with `AI_SOURCE_UNAVAILABLE` before
 provider generation. Its cached source license remains unverified; its 22,307-byte
 source is within the generation bound. The displayed 5/5 allowance is consistent
 with not charging a failed request. No native file changed for this repair.
-FCM credentials are absent; physical delivery, actual translation success and
+FCM credentials were absent at the initial readback; physical delivery, actual translation success and
 the unsymbolicated iOS crash remain open. No historical Sentry issue is claimed
 resolved. Grounding pricing and the owner's proposed Free/Pro cache split are
 research only. Preserve every reader and original-program gate below.
