@@ -15,12 +15,18 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
 
 class ReaderRecentPositionTest {
     @get:Rule val compose = createComposeRule()
+    private val noTranslationReads = ReaderTranslationReads(
+        defaults = { _, _ -> emptyList() },
+        publications = { kotlinx.coroutines.flow.flow { kotlinx.coroutines.awaitCancellation() } },
+    )
 
     @Test fun returningPageUsesCapturedSemanticPosition() {
         val app = ApplicationProvider.getApplicationContext<HadithlyApplication>()
@@ -31,7 +37,7 @@ class ReaderRecentPositionTest {
         lateinit var model: ReaderViewModel
         try {
             compose.runOnUiThread {
-                model = ReaderViewModel(app, "bukhari", null, null, null, ReaderTargetSource.COLLECTION,
+                model = ReaderViewModel(app, "bukhari", null, null, null, ReaderTargetSource.COLLECTION, translationReads = noTranslationReads,
                     library = library,
                     outlineLoader = { CollectionOutlineResult(listOf(OutlineVolume("1", "Fixture", hadithCount = 2.0))) },
                     pageLoader = { _, index, _ -> page(index) })
@@ -67,7 +73,7 @@ class ReaderRecentPositionTest {
         lateinit var model: ReaderViewModel
         try {
             compose.runOnUiThread {
-                model = ReaderViewModel(app, "bukhari", null, null, null, ReaderTargetSource.COLLECTION,
+                model = ReaderViewModel(app, "bukhari", null, null, null, ReaderTargetSource.COLLECTION, translationReads = noTranslationReads,
                     library = library,
                     outlineLoader = { CollectionOutlineResult(listOf(OutlineVolume("1", "Fixture", hadithCount = 2.0,
                         chapters = listOf(OutlineChapter(title = "First", firstProviderHadithId = "1"))))) },
@@ -98,6 +104,209 @@ class ReaderRecentPositionTest {
         }
     }
 
+    @Test fun renderedContinueReadingRestoresSemanticAnchorAndFraction() {
+        val app = ApplicationProvider.getApplicationContext<HadithlyApplication>()
+        val original = app.preferences.preferences.value
+        val automatic = app.readerExperience.automaticallyTranslates.value
+        val directory = java.io.File(app.cacheDir, "continue-render-${System.nanoTime()}").apply { mkdirs() }
+        val context = object : android.content.ContextWrapper(app) { override fun getFilesDir() = directory }
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+        val library = UserLibraryModel(GuestDataStore(context), scope)
+        val owner = object : ViewModelStoreOwner { override val viewModelStore = ViewModelStore() }
+        val expectedFraction = .25
+        val position = ReadingPosition(
+            anchor = ReadingPositionAnchor("sunnah_now", "bukhari", "2"), contentVersion = "cv1:fixture",
+            volumeId = "1", pageKey = "pg1:page2", displayPageIndex = 2.0, rawPageOffset = 0.0,
+            normalizedOffset = expectedFraction, layoutSignature = "legacy", updatedAt = 1000.0,
+        )
+        val requests = mutableListOf<Triple<String, Int, String?>>()
+        lateinit var model: ReaderViewModel
+        try {
+            compose.runOnUiThread {
+                app.readerExperience.setAutomaticTranslation(false)
+                app.preferences.adoptServer(original.copy(uiLocale = "en", translationLocale = "en", arabicVisible = true,
+                    translationVisible = true, readingDirection = com.hadithly.app.core.preferences.ReadingDirection.LTR,
+                    updatedAt = original.updatedAt + 1))
+                model = ReaderViewModel(app, "bukhari", "1", null, position, ReaderTargetSource.CONTINUE_READING,
+                    library = library,
+                    translationReads = noTranslationReads,
+                    outlineLoader = { CollectionOutlineResult(listOf(OutlineVolume("1", "Fixture", hadithCount = 2.0))) },
+                    pageLoader = { volume, index, target ->
+                        requests.add(Triple(volume, index, target))
+                        val result = page(if (target == "2") 1 else index)
+                        result.copy(items = result.items.map { it.copy(arabicText = "نص الحديث ".repeat(80),
+                            englishText = "Continue reading rendered fixture. ".repeat(120)) })
+                    })
+                owner.viewModelStore.put("reader-783", model)
+            }
+            compose.setContent {
+                CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
+                    com.hadithly.app.core.theme.LocalizedPreview(com.hadithly.app.core.preferences.ReaderTheme.DARK, "en") {
+                        ReaderScreen("bukhari", "Fixture", "1", null, position, ReaderTargetSource.CONTINUE_READING, 783L, {})
+                    }
+                }
+            }
+            compose.waitUntil(10_000) { model.state.value.pageIndex == 1 && model.state.value.verticalLanding == null }
+            compose.waitUntil(10_000) {
+                val captured = library.progressFor("bukhari")?.position
+                captured != null && captured.anchor.providerHadithId == "2" && captured.rawPageOffset > 20.0 &&
+                    kotlin.math.abs(captured.normalizedOffset - expectedFraction) < .04
+            }
+            compose.onNodeWithTag("reader.hadithBlock").assertIsDisplayed()
+            compose.runOnIdle {
+                assertEquals("2", model.positionedHadith()?.providerHadithId)
+                assertTrue(requests.any { it.first == "1" && it.third == "2" })
+            }
+        } finally {
+            compose.runOnUiThread {
+                owner.viewModelStore.clear()
+                app.preferences.adoptServer(original)
+                app.readerExperience.setAutomaticTranslation(automatic)
+            }
+            scope.cancel(); directory.deleteRecursively()
+        }
+    }
+
+    @Test fun renderedReturnReanchorsAfterDelayedPrivateDefaultGrowth() = renderedPrivateDefaultReturn(false)
+    @Test fun inactivePrivateDefaultRevocationRemovesPreview() = renderedPrivateDefaultReturn(true)
+
+    private fun renderedPrivateDefaultReturn(revokeWhileInactive: Boolean) {
+        val app = ApplicationProvider.getApplicationContext<HadithlyApplication>()
+        val original = app.preferences.preferences.value
+        val automatic = app.readerExperience.automaticallyTranslates.value
+        val directory = java.io.File(app.cacheDir, "private-growth-${System.nanoTime()}").apply { mkdirs() }
+        val context = object : android.content.ContextWrapper(app) { override fun getFilesDir() = directory }
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+        val library = UserLibraryModel(GuestDataStore(context), scope)
+        val owner = object : ViewModelStoreOwner { override val viewModelStore = ViewModelStore() }
+        val gate = CompletableDeferred<Unit>()
+        val statuses = MutableStateFlow(listOf(PublicationAvailability("fixture-private", true)))
+        val firstId = "sunnah_now:bukhari:1"
+        val shortText = "Short private translation."
+        val grownText = "Long private translation after return. ".repeat(100)
+        var firstPageReads = 0
+        lateinit var model: ReaderViewModel
+        try {
+            compose.runOnUiThread {
+                app.readerExperience.setAutomaticTranslation(false)
+                app.preferences.adoptServer(original.copy(uiLocale = "en", translationLocale = "en", arabicVisible = true,
+                    translationVisible = true, readingDirection = com.hadithly.app.core.preferences.ReadingDirection.LTR,
+                    updatedAt = original.updatedAt + 1))
+                model = ReaderViewModel(app, "bukhari", null, null, null, ReaderTargetSource.COLLECTION,
+                    library = library,
+                    translationReads = ReaderTranslationReads(
+                        defaults = { hadiths, _ ->
+                            if (hadiths.none { it.internalId == firstId }) emptyList() else {
+                                firstPageReads++
+                                if (firstPageReads > 1) gate.await()
+                                val content = if (firstPageReads > 1) grownText else shortText
+                                listOf(ReaderDefaultTranslation(firstId, StoredReaderTranslation("fixture-private", content, "community", "Fixture")))
+                            }
+                        },
+                        publications = { statuses },
+                    ),
+                    outlineLoader = { CollectionOutlineResult(listOf(OutlineVolume("1", "Fixture", hadithCount = 2.0))) },
+                    pageLoader = { _, index, _ ->
+                        page(index).let { result -> result.copy(items = result.items.map {
+                            it.copy(arabicText = (if (index == 0) "نص الصفحة الأولى " else "نص الصفحة الثانية ").repeat(80), englishText = "Fallback fixture")
+                        }) }
+                    })
+                owner.viewModelStore.put("reader-784", model)
+            }
+            compose.setContent {
+                CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
+                    com.hadithly.app.core.theme.LocalizedPreview(com.hadithly.app.core.preferences.ReaderTheme.DARK, "en") {
+                        ReaderScreen("bukhari", "Fixture", null, null, null, ReaderTargetSource.COLLECTION, 784L, {})
+                    }
+                }
+            }
+            compose.waitUntil(10_000) {
+                (model.state.value.translations[firstId] as? TranslationUiState.Loaded)?.translation?.translation == shortText &&
+                    model.state.value.pages.size == 2 && model.state.value.verticalLanding == null
+            }
+            repeat(2) { compose.onRoot().performTouchInput { swipeUp(startY = height * .72f, endY = height * .3f, durationMillis = 700) } }
+            compose.waitUntil(10_000) {
+                val actual = library.progressFor("bukhari")?.position
+                actual != null && actual.anchor.providerHadithId == "1" && actual.rawPageOffset > 20.0
+            }
+            val before = library.progressFor("bukhari")!!.position!!
+            compose.onRoot().performTouchInput { swipeLeft(durationMillis = 500) }
+            compose.waitUntil(10_000) { model.state.value.pageIndex == 1 && model.state.value.verticalLanding == null }
+            compose.runOnIdle {
+                assertEquals(shortText, (model.state.value.translations[firstId] as? TranslationUiState.Loaded)?.translation?.translation)
+                if (revokeWhileInactive) statuses.value = listOf(PublicationAvailability("fixture-private", false))
+            }
+            if (revokeWhileInactive) compose.waitUntil(10_000) { model.state.value.translations[firstId] == null }
+            compose.onRoot().performTouchInput { swipeRight(durationMillis = 500) }
+            compose.waitUntil(10_000) { model.state.value.pageIndex == 0 && firstPageReads > 1 && model.state.value.verticalLanding == null }
+            if (revokeWhileInactive) {
+                compose.runOnIdle { assertNull(model.state.value.translations[firstId]) }
+                compose.onAllNodesWithText(shortText).assertCountEquals(0)
+                return
+            }
+            compose.waitUntil(10_000) {
+                val request = model.recentLandingForPage(0)
+                val viewport = request?.viewport
+                val semantic = request?.landing as? ReaderVerticalLanding.Semantic
+                viewport?.firstItemIndex == 1 && viewport.firstItemOffset > 20 && semantic != null &&
+                    semantic.normalizedOffset > .02 && viewport.layout.translations.any {
+                        (it as? TranslationUiState.Loaded)?.translation?.translation == shortText
+                    }
+            }
+            val beforeGrowth = model.recentLandingForPage(0)!!
+            val beforeViewport = beforeGrowth.viewport!!
+            val beforeFraction = (beforeGrowth.landing as ReaderVerticalLanding.Semantic).normalizedOffset
+            assertEquals(before.normalizedOffset, beforeFraction, .04)
+            val arabic = compose.onNode(hasTestTag("reader.arabic") and hasText("نص الصفحة الأولى", substring = true), useUnmergedTree = true)
+            arabic.assertIsDisplayed()
+            val beforeArabicTop = arabic.fetchSemanticsNode().positionInRoot.y
+            compose.runOnIdle { gate.complete(Unit) }
+            compose.waitUntil(10_000) {
+                val request = model.recentLandingForPage(0)
+                val viewport = request?.viewport
+                request != null && request.token != beforeGrowth.token && viewport?.firstItemIndex == 1 &&
+                    viewport.layout.translations.any { (it as? TranslationUiState.Loaded)?.translation?.translation == grownText }
+            }
+            val afterGrowth = model.recentLandingForPage(0)!!
+            val afterViewport = afterGrowth.viewport!!
+            val afterFraction = (afterGrowth.landing as ReaderVerticalLanding.Semantic).normalizedOffset
+            assertTrue("The captured grown fraction must be nonzero", afterFraction > .001)
+            val beforeHeight = beforeViewport.firstItemOffset / beforeFraction
+            val afterHeight = afterViewport.firstItemOffset / afterFraction
+            val afterArabicTop = arabic.fetchSemanticsNode().positionInRoot.y
+            android.util.Log.i("HadithlyPagingProof", "private-growth beforeArabicTop=$beforeArabicTop afterArabicTop=$afterArabicTop beforeRaw=${beforeViewport.firstItemOffset} afterRaw=${afterViewport.firstItemOffset} beforeFraction=$beforeFraction afterFraction=$afterFraction beforeHeight=$beforeHeight afterHeight=$afterHeight")
+            assertTrue("Captured hadith row did not grow: $beforeHeight -> $afterHeight", afterHeight > beforeHeight * 1.05)
+            assertEquals("Visible Arabic moved during a below-anchor addition", beforeArabicTop, afterArabicTop, 3f)
+            assertEquals("Raw row position moved during a below-anchor addition", beforeViewport.firstItemOffset.toFloat(), afterViewport.firstItemOffset.toFloat(), 3f)
+            compose.runOnIdle { assertEquals("1", model.positionedHadith()?.providerHadithId) }
+            compose.onRoot().performTouchInput { swipeLeft(durationMillis = 500) }
+            compose.waitUntil(10_000) { model.state.value.pageIndex == 1 && model.state.value.verticalLanding == null }
+            compose.onRoot().performTouchInput { swipeRight(durationMillis = 500) }
+            compose.waitUntil(10_000) {
+                val request = model.recentLandingForPage(0)
+                model.state.value.pageIndex == 0 && model.state.value.verticalLanding == null && request != null &&
+                    request.token != afterGrowth.token && request.viewport?.layout?.translations?.any {
+                        (it as? TranslationUiState.Loaded)?.translation?.translation == grownText
+                    } == true
+            }
+            val returned = model.recentLandingForPage(0)!!
+            val returnedFraction = (returned.landing as ReaderVerticalLanding.Semantic).normalizedOffset
+            val returnedTop = arabic.fetchSemanticsNode().positionInRoot.y
+            android.util.Log.i("HadithlyPagingProof", "private-growth-return arabicTop=$returnedTop raw=${returned.viewport!!.firstItemOffset} fraction=$returnedFraction")
+            assertEquals("Returning to the grown layout changed the visible anchor", afterArabicTop, returnedTop, 3f)
+            assertEquals("Returning to the grown layout changed the captured fraction", afterFraction, returnedFraction, .04)
+            compose.onNodeWithTag("reader.hadithBlock").assertIsDisplayed()
+        } finally {
+            gate.complete(Unit)
+            compose.runOnUiThread {
+                owner.viewModelStore.clear()
+                app.preferences.adoptServer(original)
+                app.readerExperience.setAutomaticTranslation(automatic)
+            }
+            scope.cancel(); directory.deleteRecursively()
+        }
+    }
+
     @Test fun renderedOutAndBackRetainsPosition() = renderedJourney(false)
     @Test fun partialHeaderReturnRetainsPosition() = renderedJourney(true)
     @Test fun recreatedActivePageRetainsPosition() = renderedJourney(false, recreate = true)
@@ -115,7 +324,7 @@ class ReaderRecentPositionTest {
         compose.runOnUiThread {
             app.preferences.adoptServer(original.copy(uiLocale = "en", translationLocale = "en",
                 arabicVisible = true, translationVisible = true, readingDirection = com.hadithly.app.core.preferences.ReadingDirection.LTR, updatedAt = original.updatedAt + 1))
-            model = ReaderViewModel(app, "bukhari", null, null, null, ReaderTargetSource.COLLECTION,
+            model = ReaderViewModel(app, "bukhari", null, null, null, ReaderTargetSource.COLLECTION, translationReads = noTranslationReads,
                 library = library,
                 outlineLoader = { CollectionOutlineResult(listOf(OutlineVolume("1", "Fixture", hadithCount = 2.0))) },
                 pageLoader = { _, index, _ ->

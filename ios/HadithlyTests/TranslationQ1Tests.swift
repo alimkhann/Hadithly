@@ -58,6 +58,24 @@ final class TranslationQ1Tests: XCTestCase {
         XCTAssertNil(store.peek(collection: "bukhari", volume: "2", index: 0), "A resolved target cannot alias the requested ordinal")
     }
 
+    func testCachedTargetLoadsBeforeUnreachableProbeWithoutOrdinalAlias() async throws {
+        let store = ReaderPageContentStore { request in self.reusePage(request.index) }
+        _ = try await store.load(.init(collection: "bukhari", volume: "2", index: 3))
+        XCTAssertNil(store.cachedRequest(.init(collection: "bukhari", volume: "2", index: 0)))
+        XCTAssertNil(store.cachedRequest(.init(collection: "bukhari", volume: "2", index: 3, target: "1")))
+        XCTAssertEqual(store.cachedRequest(.init(collection: "bukhari", volume: "2", index: 0, target: "4"))?.page, 4)
+        let reader = ReaderModel(convex: ConvexClientWithAuth(deploymentUrl: "https://example.invalid", authProvider: ClerkConvexAuthProvider()),
+            collectionSlug: "bukhari", collectionName: "Bukhari", language: "en", isSignedIn: { false }, pageStore: store)
+        reader.seedForUITest(volumes: [OutlineVolume(volumeId: "2", title: "Two", hadithCount: 5)], selectedVolumeId: "2")
+        reader.seedPagesForUITest([reusePage(0)])
+        reader.offlineProbeBaseURL = URL(string: "http://127.0.0.1:1")
+        reader.jumpToHadith(volumeId: "2", hadithNumber: "4")
+        for _ in 0..<100 where reader.pageIndex != 3 { try await Task.sleep(for: .milliseconds(10)) }
+        XCTAssertEqual(reader.pageIndex, 3)
+        XCTAssertEqual(reader.currentPageHadiths.first?.providerHadithId, "4")
+        reader.stop()
+    }
+
     func testPageStoreDeduplicatesWithoutSharingCallerCancellation() async throws {
         var release: CheckedContinuation<ReaderPageResult, Never>?
         var calls = 0
@@ -214,6 +232,91 @@ final class TranslationQ1Tests: XCTestCase {
         for _ in 0..<10 { await Task.yield() }
         XCTAssertEqual(reader.pageIndex, 2)
         XCTAssertNil(reader.pendingTurn)
+        reader.stop()
+    }
+
+    func testCachedVolumeEdgeContextCommitsExactPreview() async throws {
+        let store = ReaderPageContentStore { request in self.reusePage(request.index) }
+        _ = try await store.load(.init(collection: "bukhari", volume: "2", index: 0))
+        _ = try await store.load(.init(collection: "bukhari", volume: "2", index: 4))
+        let reader = ReaderModel(convex: ConvexClientWithAuth(deploymentUrl: "https://example.invalid", authProvider: ClerkConvexAuthProvider()),
+            collectionSlug: "bukhari", collectionName: "Bukhari", language: "en", isSignedIn: { false }, pageStore: store)
+        reader.seedForUITest(volumes: [OutlineVolume(volumeId: "1", title: "One", hadithCount: 5), OutlineVolume(volumeId: "2", title: "Two", hadithCount: 5)], selectedVolumeId: "1")
+        let source = reusePage(0)
+        reader.seedPagesForUITest([ReaderPageResult(items: source.items, page: 1, pageSize: source.pageSize,
+            totalPages: 1, hasMore: false, contentVersion: source.contentVersion,
+            paginationVersion: source.paginationVersion, pageKey: source.pageKey)])
+        let preview = try XCTUnwrap(reader.renderedNeighbor(.next))
+        XCTAssertEqual(preview.volume.title, "Two")
+        XCTAssertEqual(preview.index, 0)
+        XCTAssertEqual(preview.landing?.page.volumeId, "2")
+        XCTAssertEqual(reader.selectedVolumeId, "1")
+        XCTAssertNil(preview.range)
+        for index in 1...3 { _ = try await store.load(.init(collection: "bukhari", volume: "2", index: index)) }
+        XCTAssertNotNil(store.knownRange(collection: "bukhari", volume: "2"))
+        XCTAssertTrue(reader.commitRenderedPage(preview))
+        XCTAssertEqual(reader.selectedVolumeId, "2")
+        XCTAssertEqual(reader.renderedCurrentPage()?.id, preview.id)
+        XCTAssertNil(reader.renderedCurrentPage()?.range, "A metadata update during the drag must not change the prepared header at handoff")
+        let old = try XCTUnwrap(reader.renderedPage(volumeId: "1", index: 0, payload: reusePage(0)))
+        reader.clearRecentPositions()
+        XCTAssertFalse(reader.commitRenderedPage(old))
+        reader.stop()
+    }
+
+    func testPreparedCrossVolumeRoundTripRebasesCommittedOrigin() async throws {
+        let page = reusePage(0)
+        let single = ReaderPageResult(items: page.items, page: 1, pageSize: page.pageSize,
+            totalPages: 1, hasMore: false, contentVersion: page.contentVersion,
+            paginationVersion: page.paginationVersion, pageKey: page.pageKey)
+        let store = ReaderPageContentStore { _ in single }
+        for volume in ["1", "2"] {
+            _ = try await store.load(.init(collection: "bukhari", volume: volume, index: 0))
+        }
+        let reader = ReaderModel(convex: ConvexClientWithAuth(deploymentUrl: "https://example.invalid", authProvider: ClerkConvexAuthProvider()),
+            collectionSlug: "bukhari", collectionName: "Bukhari", language: "en", isSignedIn: { false }, pageStore: store)
+        reader.seedForUITest(volumes: [OutlineVolume(volumeId: "1", title: "One", hadithCount: 1), OutlineVolume(volumeId: "2", title: "Two", hadithCount: 1)], selectedVolumeId: "1")
+        reader.seedPagesForUITest([single])
+        let forward = try XCTUnwrap(reader.renderedNeighbor(.next))
+        XCTAssertTrue(reader.commitRenderedPage(forward))
+        let origin = try XCTUnwrap(reader.renderedCurrentPage())
+        XCTAssertEqual(origin.id, forward.id)
+        XCTAssertEqual(origin.generation, reader.pageGeneration)
+        XCTAssertTrue(reader.isCommitted(origin))
+        let backward = try XCTUnwrap(reader.renderedNeighbor(.previous))
+        XCTAssertTrue(reader.commitRenderedPage(backward))
+        XCTAssertEqual(reader.selectedVolumeId, "1")
+        XCTAssertEqual(reader.renderedCurrentPage()?.generation, reader.pageGeneration)
+        reader.stop()
+    }
+
+    func testCachedPreviousVolumePreviewUsesLastPage() async throws {
+        let store = ReaderPageContentStore { request in self.reusePage(request.index) }
+        _ = try await store.load(.init(collection: "bukhari", volume: "1", index: 4))
+        let reader = ReaderModel(convex: ConvexClientWithAuth(deploymentUrl: "https://example.invalid", authProvider: ClerkConvexAuthProvider()),
+            collectionSlug: "bukhari", collectionName: "Bukhari", language: "en", isSignedIn: { false }, pageStore: store)
+        reader.seedForUITest(volumes: [OutlineVolume(volumeId: "1", title: "One", hadithCount: 5), OutlineVolume(volumeId: "2", title: "Two", hadithCount: 5)], selectedVolumeId: "2")
+        reader.seedPagesForUITest([reusePage(0)])
+        let preview = try XCTUnwrap(reader.renderedNeighbor(.previous))
+        XCTAssertEqual(preview.volume.title, "One")
+        XCTAssertEqual(preview.index, 4)
+        XCTAssertTrue(reader.commitRenderedPage(preview))
+        XCTAssertEqual(reader.pageIndex, 4)
+        XCTAssertEqual(reader.renderedCurrentPage()?.id, preview.id)
+        reader.stop()
+    }
+
+    func testPreparedPageCarriesRecentLandingThroughCommit() throws {
+        let reader = model()
+        reader.seedForUITest(volumes: [OutlineVolume(volumeId: "2", title: "Two", hadithCount: 5)], selectedVolumeId: "2")
+        let first = reusePage(0)
+        reader.seedPagesForUITest([first, reusePage(1)])
+        reader.captureStableScroll(hadiths: first.items, leadingIndex: 0, rawPageOffset: 100, normalizedOffset: 0.4)
+        reader.pageIndex = 1
+        let preview = try XCTUnwrap(reader.renderedNeighbor(.previous))
+        XCTAssertEqual(preview.landing?.landing, .semantic(providerHadithId: "1", normalizedOffset: 0.4))
+        XCTAssertTrue(reader.commitRenderedPage(preview))
+        XCTAssertEqual(reader.verticalLanding, preview.landing)
         reader.stop()
     }
 

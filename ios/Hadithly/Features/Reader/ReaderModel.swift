@@ -166,6 +166,7 @@ final class ReaderModel {
     var pageIndex = 0 {
         didSet {
             guard oldValue != pageIndex else { return }
+            retainedRenderedContext = nil
             endViewportInteractions()
             invalidateAutomaticTranslationVisibility()
             restoreCachedNeighbors()
@@ -326,6 +327,8 @@ final class ReaderModel {
 #if DEBUG
         if Self.forceOfflineReader { throw OfflineFetchTimeout.timedOut }
 #endif
+        let request = ReaderPageContentStore.Request(collection: collectionSlug, volume: volumeId, index: index)
+        if let cached = pageStore.cachedRequest(request) { return cached }
         if await backendUnreachable() { throw OfflineFetchTimeout.timedOut }
         return try await fetchReaderPage(index, volumeId: volumeId)
     }
@@ -384,6 +387,103 @@ final class ReaderModel {
         }
     }
 
+    struct RenderedPageContext: Identifiable {
+        let volume: OutlineVolume
+        let volumeNumber: Int?
+        let index: Int
+        let payload: ReaderPageResult
+        let range: (first: String, last: String)?
+        let landing: ReaderVerticalLandingRequest?
+        let generation: Int
+        let storeGeneration: Int
+        func rebased(generation: Int, storeGeneration: Int) -> RenderedPageContext {
+            RenderedPageContext(volume: volume, volumeNumber: volumeNumber, index: index, payload: payload,
+                range: range, landing: landing, generation: generation, storeGeneration: storeGeneration)
+        }
+
+        var id: String {
+            [volume.volumeId, String(index), payload.pageKey ?? "legacy", payload.contentVersion ?? "legacy",
+             String(describing: payload.paginationVersion), payload.items.map(\.internalId).joined(separator: "|")].joined(separator: ":")
+        }
+    }
+
+    private(set) var preparedPageRevision = 0
+    // Keep the preview's header metadata stable for this page visit; navigation clears it.
+    private var retainedRenderedContext: RenderedPageContext?
+
+    func renderedPage(volumeId: String, index: Int, payload: ReaderPageResult) -> RenderedPageContext? {
+        guard let volumeIndex = volumes.firstIndex(where: { $0.volumeId == volumeId }), !payload.isPlaceholder else { return nil }
+        let recent = recentPositions.last { $0.matches(payload, volume: volumeId, index: index) }?.request
+        let landing = volumeId == selectedVolumeId && index == pageIndex ? verticalLanding : recent ??
+            ReaderVerticalLandingRequest(id: 0, page: .init(volumeId: volumeId, pageIndex: index), landing: .header)
+        let retainedRange = volumeId == selectedVolumeId && ReaderVolumeRange.isFullyCached(pages: pages)
+            ? ReaderVolumeRange.endpointIDs(pages: pages) : nil
+        return RenderedPageContext(volume: volumes[volumeIndex], volumeNumber: volumeIndex + 1,
+            index: index, payload: payload, range: pageStore.knownRange(collection: collectionSlug, volume: volumeId) ?? retainedRange,
+            landing: landing, generation: pageGeneration, storeGeneration: pageStore.contextVersion)
+    }
+
+    func renderedCurrentPage() -> RenderedPageContext? {
+        guard let volume = selectedVolumeId, pages.indices.contains(pageIndex) else { return nil }
+        let current = renderedPage(volumeId: volume, index: pageIndex, payload: pages[pageIndex])
+        if let retainedRenderedContext, retainedRenderedContext.id == current?.id { return retainedRenderedContext }
+        return current
+    }
+
+    func renderedNeighbor(_ turn: ReaderPageTurn) -> RenderedPageContext? {
+        _ = preparedPageRevision
+        guard let volume = selectedVolumeId else { return nil }
+        let index = pageIndex + (turn == .next ? 1 : -1)
+        if (turn == .next ? hasNextPage : hasPreviousPage) {
+            guard pages.indices.contains(index), !pages[index].isPlaceholder else { return nil }
+            return renderedPage(volumeId: volume, index: index, payload: pages[index])
+        }
+        guard let neighbor = turn == .next ? nextVolume : previousVolume else { return nil }
+        let page = turn == .next
+            ? pageStore.peek(collection: collectionSlug, volume: neighbor.volumeId, index: 0)
+            : pageStore.peekLast(collection: collectionSlug, volume: neighbor.volumeId)
+        guard let page else { return nil }
+        return renderedPage(volumeId: neighbor.volumeId, index: max(0, page.page - 1), payload: page)
+    }
+
+    func isCommitted(_ context: RenderedPageContext) -> Bool {
+        guard selectedVolumeId == context.volume.volumeId, pageIndex == context.index,
+              pages.indices.contains(pageIndex), let current = renderedCurrentPage() else { return false }
+        return current.id == context.id
+    }
+
+    @discardableResult
+    func commitRenderedPage(_ context: RenderedPageContext) -> Bool {
+        guard context.generation == pageGeneration, context.storeGeneration == pageStore.contextVersion else { return false }
+        if context.volume.volumeId == selectedVolumeId {
+            guard pages.indices.contains(context.index),
+                  renderedPage(volumeId: context.volume.volumeId, index: context.index, payload: pages[context.index])?.id == context.id else { return false }
+            requestTurn(.page(context.volume.volumeId, context.index))
+            verticalLanding = context.landing
+            retainedRenderedContext = context.rebased(generation: pageGeneration, storeGeneration: pageStore.contextVersion)
+            return true
+        }
+        guard let cached = pageStore.peek(collection: collectionSlug, volume: context.volume.volumeId, index: context.index),
+              renderedPage(volumeId: context.volume.volumeId, index: context.index, payload: cached)?.id == context.id else { return false }
+        cancelPendingTurn()
+        saveCurrentProgress()
+        resetReading()
+        selectedVolumeId = context.volume.volumeId
+        landingHadithNumber = nil
+        restoredPosition = nil
+        pages = (0..<context.index).map { _ in emptyPage() } + [context.payload]
+        phase = .reading
+        pageIndex = context.index
+        verticalLanding = context.landing
+        retainedRenderedContext = context.rebased(generation: pageGeneration, storeGeneration: pageStore.contextVersion)
+        trimPageSlots()
+        scheduleTranslationsForCurrentPage()
+        saveCurrentProgress()
+        warmAdjacentVolumes()
+        prefetchForwardIfNeeded()
+        return true
+    }
+
     private func recentPosition(for index: Int) -> RecentPagePosition? {
         guard let volume = selectedVolumeId, pages.indices.contains(index) else { return nil }
         return recentPositions.last { $0.matches(pages[index], volume: volume, index: index) }
@@ -406,6 +506,7 @@ final class ReaderModel {
     }
 
     func clearRecentPositions(restartLoading: Bool = false) {
+        retainedRenderedContext = nil
         cancelPendingTurn()
         let resumeLoad = restartLoading && isLoadingPage ? pageLoadOperation : nil
         warmingTask?.cancel()
@@ -765,6 +866,10 @@ final class ReaderModel {
         guard volumeId != selectedVolumeId else { return }
         guard volumes.contains(where: { $0.volumeId == volumeId }) else { return }
         collapseToFocused()
+        let turn: ReaderPageTurn = edge == .first ? .next : .previous
+        if let prepared = renderedNeighbor(turn), prepared.volume.volumeId == volumeId,
+           (edge == .first ? prepared.index == 0 : prepared.index == prepared.payload.totalPages - 1),
+           commitRenderedPage(prepared) { return }
         requestTurn(.volumeEdge(volumeId, edge))
     }
 
@@ -869,6 +974,16 @@ final class ReaderModel {
     }
 
     func seedPagesForUITest(_ pages: [ReaderPageResult]) { self.pages = pages }
+
+    func startContinueForUITest() async {
+        let target = ReaderTargetResolver.resolve(.init(source: targetSource, collectionSlug: collectionSlug,
+            hadithNumber: openHadithNumber, position: openPosition))
+        restoredPosition = target.position
+        landingHadithNumber = target.hadithNumber
+        guard let volume = target.volumeId ?? volumes.first?.volumeId else { return }
+        selectedVolumeId = volume
+        await loadPage(0, volumeId: volume, jumpToHadithNumber: target.hadithNumber)
+    }
 
     func seedForUITest(volumes: [OutlineVolume], selectedVolumeId: String) {
         self.volumes = volumes
@@ -996,6 +1111,7 @@ final class ReaderModel {
     // MARK: - Adjacent-volume prefetch (R6 round 3)
 
     private func resetReading(preservingPendingTurn: Bool = false) {
+        retainedRenderedContext = nil
         if !preservingPendingTurn { cancelPendingTurn() }
         flushScrollProgress()
         pageGeneration += 1
@@ -1057,17 +1173,23 @@ final class ReaderModel {
                 throw OfflineFetchTimeout.timedOut
             }
 #endif
-            let unreachable = await backendUnreachable()
-            guard generation == pageGeneration, !Task.isCancelled else { return }
-            if unreachable {
-                if !useOfflinePage(index, volumeId: volumeId, jumpToHadithNumber: jumpToHadithNumber),
-                   pages.isEmpty
-                {
-                    phase = .failed("You're offline. Connect to load this collection.")
+            let request = ReaderPageContentStore.Request(collection: collectionSlug, volume: volumeId,
+                index: index, target: jumpToHadithNumber)
+            let result: ReaderPageResult
+            if let cached = pageStore.cachedRequest(request) {
+                result = cached
+            } else {
+                let unreachable = await backendUnreachable()
+                guard generation == pageGeneration, !Task.isCancelled else { return }
+                if unreachable {
+                    if !useOfflinePage(index, volumeId: volumeId, jumpToHadithNumber: jumpToHadithNumber),
+                       pages.isEmpty {
+                        phase = .failed("You're offline. Connect to load this collection.")
+                    }
+                    return
                 }
-                return
+                result = try await fetchReaderPage(index, volumeId: volumeId, targetHadithNumber: jumpToHadithNumber)
             }
-            let result = try await fetchReaderPage(index, volumeId: volumeId, targetHadithNumber: jumpToHadithNumber)
             guard generation == pageGeneration, !Task.isCancelled else { return }
             if jumpToHadithNumber != nil {
                 // The server picked the page; slot it at its real position
@@ -1204,7 +1326,10 @@ final class ReaderModel {
             defer { if generation == self.warmingGeneration { self.warmingTask = nil } }
             for volumeId in targets {
                 guard !Task.isCancelled else { return }
-                _ = try? await self.fetchReaderPage(0, volumeId: volumeId)
+                if (try? await self.fetchReaderPage(0, volumeId: volumeId)) != nil,
+                   generation == self.warmingGeneration, !Task.isCancelled {
+                    self.preparedPageRevision += 1
+                }
             }
         }
     }
@@ -1887,6 +2012,17 @@ final class ReaderPageContentStore {
         return entry.page
     }
 
+    func cachedRequest(_ request: Request) -> ReaderPageResult? {
+        if !reading { expireEntryWarmth() }
+        guard let target = request.target else {
+            return peek(collection: request.collection, volume: request.volume, index: request.index)
+        }
+        guard let hit = entries.filter({ $0.key.collection == request.collection && $0.key.volume == request.volume
+            && $0.value.page.items.contains { $0.providerHadithId == target } }).max(by: { $0.value.sequence < $1.value.sequence }) else { return nil }
+        touch(hit.key)
+        return hit.value.page
+    }
+
     func peekLast(collection: String, volume: String) -> ReaderPageResult? {
         guard let slot = entries.filter({ $0.key.collection == collection && $0.key.volume == volume
             && $0.key.index == $0.value.page.totalPages - 1 }).max(by: { $0.value.sequence < $1.value.sequence })?.key else { return nil }
@@ -1898,15 +2034,7 @@ final class ReaderPageContentStore {
     func load(_ request: Request, fetch override: Fetch? = nil, expectedVersion: Int? = nil) async throws -> ReaderPageResult {
         try Task.checkCancellation()
         guard expectedVersion == nil || expectedVersion == generation else { throw CancellationError() }
-        if !reading { expireEntryWarmth() }
-        if let target = request.target {
-            if let hit = entries.filter({ $0.key.collection == request.collection && $0.key.volume == request.volume
-                && $0.value.page.items.contains { $0.providerHadithId == target } }).max(by: { $0.value.sequence < $1.value.sequence }) {
-                touch(hit.key)
-                try Task.checkCancellation()
-                return hit.value.page
-            }
-        } else if let hit = peek(collection: request.collection, volume: request.volume, index: request.index) {
+        if let hit = cachedRequest(request) {
             try Task.checkCancellation()
             return hit
         }

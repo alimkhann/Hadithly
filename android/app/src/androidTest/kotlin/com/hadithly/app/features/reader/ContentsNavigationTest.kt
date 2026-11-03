@@ -52,9 +52,16 @@ class ContentsNavigationTest {
         val requests = mutableListOf<String>()
         val owner = object : ViewModelStoreOwner { override val viewModelStore = ViewModelStore() }
         lateinit var model: ReaderViewModel
+        fun visibleArabic(): SemanticsNodeInteraction {
+            val viewport = compose.onRoot().fetchSemanticsNode().boundsInRoot
+            return compose.onAllNodesWithTag("reader.arabic", useUnmergedTree = true)
+                .filterToOne(SemanticsMatcher("Arabic in the current viewport") { it.boundsInRoot.overlaps(viewport) })
+        }
         compose.runOnUiThread {
             model = ReaderViewModel(app, "bukhari", null, null, null, ReaderTargetSource.COLLECTION,
                 library = library,
+                translationReads = ReaderTranslationReads(defaults = { _, _ -> emptyList() },
+                    publications = { kotlinx.coroutines.flow.flow { kotlinx.coroutines.awaitCancellation() } }),
                 outlineLoader = { CollectionOutlineResult(listOf(OutlineVolume("1", "Original %@ مصدر", hadithCount = 100.0))) },
                 pageLoader = { _, index, target ->
                     requests.add(target ?: "page$index")
@@ -154,12 +161,12 @@ class ContentsNavigationTest {
                 }
                 val header = compose.onNode(hasTestTag("reader.hadithLabel") and hasContentDescription("Bukhari – 57", substring = true)).fetchSemanticsNode().boundsInRoot
                 assertTrue("Navigation target must clear floating controls", header.top >= maxOf(pagePill.bottom, volumePill.bottom))
-                compose.onNodeWithTag("reader.arabic", useUnmergedTree = true).performTouchInput { click(center) }
+                visibleArabic().performTouchInput { click(center) }
                 compose.waitForIdle()
                 compose.runOnIdle { assertFalse(model.state.value.chromeVisible) }
                 val focusedHeader = compose.onNode(hasTestTag("reader.hadithLabel") and hasContentDescription("Bukhari – 57", substring = true)).fetchSemanticsNode().boundsInRoot
                 assertEquals("Focus must not move the reading anchor", header.top, focusedHeader.top, 1f)
-                compose.onNodeWithTag("reader.arabic", useUnmergedTree = true).performTouchInput { click(center) }
+                visibleArabic().performTouchInput { click(center) }
                 compose.waitForIdle()
                 compose.runOnIdle { assertTrue(model.state.value.chromeVisible) }
                 compose.onNodeWithTag("reader.unfocusedPageBar").performTouchInput { click(center) }
@@ -167,7 +174,7 @@ class ContentsNavigationTest {
             }
             if (checkSaved) {
                 fun menu(tag: String) {
-                    compose.onNodeWithTag("reader.arabic", useUnmergedTree = true).performTouchInput { longClick() }
+                    visibleArabic().performTouchInput { longClick() }
                     compose.onNodeWithTag(tag).performClick()
                 }
                 menu("reader.bookmark")
@@ -217,5 +224,6 @@ class ContentsNavigationTest {
             arabicText = "نص تجريبي %@", englishText = "Controlled original %@ text $number", referenceDisplay = "Original %@ $number",
             collectionName = "Original %@ مصدر", authenticity = AuthenticityClaim("unknown", claimScope = "hadith", sourceLabel = "Original %@", sourceName = "Fixture", sourceUrl = "", verificationMethod = "fixture"))),
         page = if (number == "57") 3.0 else if (number == "2") 2.0 else 1.0, pageSize = 1.0, totalPages = 3.0, hasMore = more,
+        contentVersion = "cv1:contents-$number", paginationVersion = 1.0, pageKey = "pg1:contents-$number",
     )
 }

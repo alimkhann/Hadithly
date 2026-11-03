@@ -14,6 +14,7 @@ import com.hadithly.app.core.data.ReaderPageResult
 import com.hadithly.app.core.data.ReaderPageContentStore
 import com.hadithly.app.core.data.ReaderPrefetch
 import com.hadithly.app.core.data.ReaderTranslation
+import com.hadithly.app.core.data.ReaderDefaultTranslation
 import com.hadithly.app.core.data.PublicationAvailability
 import com.hadithly.app.core.data.ReadingLayout
 import com.hadithly.app.core.data.ReadingPosition
@@ -24,12 +25,14 @@ import com.hadithly.app.core.data.ReaderTargetResolver
 import com.hadithly.app.core.data.ReaderTargetSource
 import com.hadithly.app.core.data.TranslationFailure
 import com.hadithly.app.core.links.CanonicalHadithLink
+import com.hadithly.app.core.preferences.ReaderPageTurn
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
@@ -41,6 +44,11 @@ sealed interface TranslationUiState {
     data class Loaded(val translation: ReaderTranslation) : TranslationUiState
     data class Failed(val failure: TranslationFailure) : TranslationUiState
 }
+
+data class ReaderTranslationReads(
+    val defaults: suspend (List<ReaderHadith>, String) -> List<ReaderDefaultTranslation>,
+    val publications: (List<String>) -> Flow<List<PublicationAvailability>>,
+)
 
 /**
  * Drives the reader: loads the collection outline, pages hadiths by content
@@ -63,6 +71,10 @@ class ReaderViewModel(
     },
     pageStore: ReaderPageContentStore? = null,
     private val offlineStore: com.hadithly.app.core.offline.OfflineStore = app.offline,
+    private val translationReads: ReaderTranslationReads = ReaderTranslationReads(
+        defaults = { hadiths, language -> app.repository.storedReaderTranslations(hadiths, language) },
+        publications = { ids -> app.repository.watchPublications(ids) },
+    ),
 ) : ViewModel() {
     private val pageStore = pageStore ?: ReaderPageContentStore { request ->
         pageLoader(request.volume, request.index, request.target)
@@ -121,6 +133,7 @@ class ReaderViewModel(
         val translationAllowances: Map<String, com.hadithly.app.core.data.TranslationAllowance> = emptyMap(),
         val verticalLanding: ReaderVerticalLandingRequest? = null,
         val pendingTurn: PendingTurn? = null,
+        val preparedCacheRevision: Long = 0,
     )
 
     private val _state = MutableStateFlow(ReaderState(language = app.preferences.preferences.value.translationLocale))
@@ -133,6 +146,77 @@ class ReaderViewModel(
     enum class TurnStatus { LOADING, FAILED }
     data class PendingTurn(val id: Int, val target: TurnTarget, val status: TurnStatus)
     private data class ResolvedTurn(val volume: String, val index: Int, val page: ReaderPageResult)
+    internal data class PreparedPage(
+        val volume: String,
+        val index: Int,
+        val page: ReaderPageResult,
+        val landing: ReaderVerticalLandingRequest,
+        val originVolume: String,
+        val originIndex: Int,
+        val originPage: ReaderPageResult,
+        val epoch: Long,
+    )
+    private var preparedEpoch = 0L
+
+    internal fun preparedCurrent(): PreparedPage? {
+        val state = _state.value
+        val volume = state.selectedVolumeId ?: return null
+        val page = state.pages.getOrNull(state.pageIndex)?.takeUnless { it.isPlaceholder } ?: return null
+        val landing = state.verticalLanding ?: recentPosition(state.pageIndex)?.request ?: ReaderVerticalLandingRequest(
+            0, ReaderVerticalLandingPage(volume, state.pageIndex), ReaderVerticalLanding.Header)
+        return PreparedPage(volume, state.pageIndex, page, landing, volume, state.pageIndex, page, preparedEpoch)
+    }
+
+    internal fun preparedNeighbor(turn: ReaderPageTurn): PreparedPage? {
+        val state = _state.value
+        val originVolume = state.selectedVolumeId ?: return null
+        val originPage = state.pages.getOrNull(state.pageIndex)?.takeUnless { it.isPlaceholder } ?: return null
+        val pill = (if (turn == ReaderPageTurn.PREVIOUS) pagePills().previous else pagePills().next) ?: return null
+        val (volume, index, page) = when (val target = pill.target) {
+            is ReaderPagePills.Target.Page -> {
+                val page = state.pages.getOrNull(target.index)?.takeUnless { it.isPlaceholder }
+                    ?: (if (originPage.isLegacyPage()) null else pageStore.peek(collectionSlug, originVolume, target.index))
+                    ?: return null
+                Triple(originVolume, target.index, page)
+            }
+            is ReaderPagePills.Target.VolumeFirst -> {
+                val page = pageStore.peek(collectionSlug, target.volumeId, 0) ?: return null
+                Triple(target.volumeId, 0, page)
+            }
+            is ReaderPagePills.Target.VolumeLast -> {
+                val page = pageStore.peekLast(collectionSlug, target.volumeId) ?: return null
+                Triple(target.volumeId, page.pageNumber - 1, page)
+            }
+        }
+        if (index < 0 || page.isPlaceholder) return null
+        val recent = recentPositions.lastOrNull { it.matches(page, volume, index) }
+        val landing = recent?.request ?: ReaderVerticalLandingRequest(
+            0, ReaderVerticalLandingPage(volume, index), ReaderVerticalLanding.Header)
+        return PreparedPage(volume, index, page, landing, originVolume, state.pageIndex, originPage, preparedEpoch)
+    }
+
+    internal fun isPreparedOriginCurrent(origin: PreparedPage?): Boolean {
+        val state = _state.value
+        return origin != null && origin.epoch == preparedEpoch && state.selectedVolumeId == origin.volume &&
+            state.pageIndex == origin.index && state.pages.getOrNull(state.pageIndex) == origin.page
+    }
+
+    internal fun commitPreparedNeighbor(page: PreparedPage): Boolean {
+        val state = _state.value
+        if (page.epoch != preparedEpoch || state.selectedVolumeId != page.originVolume ||
+            state.pageIndex != page.originIndex || state.pages.getOrNull(state.pageIndex) != page.originPage ||
+            !isRecentLandingValid(page.landing) || !pageStore.isCompatible(page.page, collectionSlug)) return false
+        if (!page.page.isLegacyPage()) {
+            val resident = if (state.selectedVolumeId == page.volume) state.pages.getOrNull(page.index)?.takeUnless { it.isPlaceholder } else null
+            val cached = pageStore.peek(collectionSlug, page.volume, page.index)
+            if (resident != null && resident != page.page) return false
+            if (cached != null && cached != page.page) return false
+            if (resident == null && cached != page.page) return false
+        }
+        cancelPendingTurn()
+        commitTurn(ResolvedTurn(page.volume, page.index, page.page), page.landing)
+        return true
+    }
     private var turnGeneration = 0
     private var turnJob: Job? = null
 
@@ -204,7 +288,7 @@ class ReaderViewModel(
 
     private fun ReaderPageResult.isLegacyPage() = contentVersion == "legacy" && pageKey == "legacy" && !isPlaceholder
 
-    private fun commitTurn(result: ResolvedTurn) {
+    private fun commitTurn(result: ResolvedTurn, preparedLanding: ReaderVerticalLandingRequest? = null) {
         val old = _state.value
         val sameVolume = old.selectedVolumeId == result.volume
         val offline = result.page.isLegacyPage()
@@ -216,7 +300,7 @@ class ReaderViewModel(
         val limit = maxOf(result.index + 1, result.page.totalPagesInt)
         while (pages.size > limit) pages.removeAt(pages.lastIndex)
         val recent = recentPositions.lastOrNull { it.matches(result.page, result.volume, result.index) }
-        val landing = recent?.request ?: ReaderVerticalLandingRequest(
+        val landing = preparedLanding ?: recent?.request ?: ReaderVerticalLandingRequest(
             ++nextVerticalLandingToken, ReaderVerticalLandingPage(result.volume, result.index), ReaderVerticalLanding.Header)
         saveCurrentProgress()
         cancelPageLoad()
@@ -315,12 +399,13 @@ class ReaderViewModel(
     }
 
     fun clearRecentPositions(restartLoading: Boolean = false) {
+        preparedEpoch++
         cancelPendingTurn()
         val resumeLoad = if (restartLoading && _state.value.isLoadingPage) pageLoadOperation else null
         pageStore.clear()
         if (restartLoading) pageStore.beginReading()
         cancelPageLoad()
-        _state.update { it.copy(isLoadingPage = false) }
+        _state.update { it.copy(isLoadingPage = false, preparedCacheRevision = it.preparedCacheRevision + 1) }
         recentPositions.clear()
         val pending = _state.value.verticalLanding
         if (pending != null && pending.token < 0) requestHeaderLanding(pending.page.pageIndex)
@@ -670,8 +755,12 @@ class ReaderViewModel(
     }
 
     fun selectVolume(volumeId: String) {
+        preparedEpoch++
         cancelPendingTurn()
-        if (volumeId == _state.value.selectedVolumeId) return
+        if (volumeId == _state.value.selectedVolumeId) {
+            _state.update { it.copy(preparedCacheRevision = it.preparedCacheRevision + 1) }
+            return
+        }
         saveCurrentProgress()
         cancelPageLoad()
         _state.update {
@@ -776,6 +865,7 @@ class ReaderViewModel(
     }
 
     private fun selectVolumeFallback(volumeId: String) {
+        preparedEpoch++
         cancelPendingTurn()
         cancelPageLoad()
         landingHadithNumber = null
@@ -795,6 +885,7 @@ class ReaderViewModel(
 
     /** Resets onto [volumeId] and lands the pager on the page holding [hadithNumber]. */
     private fun jumpToHadith(volumeId: String, hadithNumber: String) {
+        preparedEpoch++
         cancelPendingTurn()
         cancelPageLoad()
         landingHadithNumber = hadithNumber
@@ -814,6 +905,7 @@ class ReaderViewModel(
 
     fun setLanguage(code: String) {
         if (code == _state.value.language) return
+        preparedEpoch++
         cancelPendingTurn()
         app.preferences.setTranslationLocale(code)
         cancelTranslationRun()
@@ -978,7 +1070,15 @@ class ReaderViewModel(
         val state = _state.value
         if (state.phase != Phase.Reading) return
         for (volume in ReaderPrefetch.adjacentVolumeIds(state.volumes, state.selectedVolumeId)) {
-            viewModelScope.launch { runCatching { fetchPage(volume, 0) } }
+            viewModelScope.launch {
+                try {
+                    fetchPage(volume, 0)
+                    _state.update { it.copy(preparedCacheRevision = it.preparedCacheRevision + 1) }
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                }
+            }
         }
     }
 
@@ -1073,7 +1173,7 @@ class ReaderViewModel(
         translationJob?.cancel()
         translationJob = viewModelScope.launch {
             try {
-                val rows = app.repository.storedReaderTranslations(hadiths, language)
+                val rows = translationReads.defaults(hadiths, language)
                 if (generation != translationGeneration) return@launch
                 val loaded = rows.mapNotNull { row -> row.translation?.let { row.hadithInternalId to TranslationUiState.Loaded(it.readerTranslation()) } }.toMap()
                 _state.update { it.copy(translations = it.translations + loaded) }
@@ -1140,7 +1240,7 @@ class ReaderViewModel(
         val ids = observed.mapNotNull { (it.value as? TranslationUiState.Loaded)?.translation?.translationId }
         publicationJob = viewModelScope.launch {
             try {
-                app.repository.watchPublications(ids).collect { statuses ->
+                translationReads.publications(ids).collect { statuses ->
                     _state.update { it.copy(translations = keepAvailableTranslations(it.translations, statuses)) }
                     publicationDeadlineJob?.cancel()
                     if (statuses.any { it.validUntil != null }) {

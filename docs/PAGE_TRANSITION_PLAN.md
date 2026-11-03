@@ -177,10 +177,8 @@ Laziness Protocol keeps loading presentation at one boundary. Build the Lever
 produced the reusable native gesture probe. Prove It Works requires the actual
 native before/after replay, rather than a passing build.
 
-Next task: implement Unit 4 on both native apps. Preserve verified recent-page
-landing, bounded public reuse, stable pending turns, owner-reviewed signed builds,
-accepted vertical scrolling and Convex reductions. Cached cross-volume previews
-must carry actual destination volume/content/landing before they are revealed.
-Inspect the retained unusual frames and owner-reported tiny jerks/old-page flash,
-profile horizontal motion and close the full native matrix. Keep all original
-gates open and the full paging goal active until every required case is proved.
+All four units are verified in their recorded scopes. See
+PAGE_TRANSITION_MOTION_VERIFICATION.md and verification/page-transitions/unit4.json
+for Unit 4's final native matrix, actual frame repairs, mixed horizontal profile
+and vertical recheck. The owner asked to wrap here. Commit without pushing and
+stop after paging. Preserve every original gate and separate later contract.

@@ -102,6 +102,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -119,6 +120,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.platform.ClipEntry
@@ -418,38 +424,42 @@ private fun ReadingView(
         readerMenuExpanded = false
     }
 
-    // One extra sentinel while more content exists. A turn toward an
-    // unavailable slot starts a pending request before the pager exposes it.
-    val pageCount = state.pages.size + if (state.pages.lastOrNull()?.hasMore == true) 1 else 0
-    val pagerState = key(state.selectedVolumeId) {
-        rememberPagerState(initialPage = state.pageIndex, pageCount = { maxOf(pageCount, 1) })
+    val currentPage = viewModel.preparedCurrent()
+    val previousPage = viewModel.preparedNeighbor(ReaderPageTurn.PREVIOUS)
+    val nextPage = viewModel.preparedNeighbor(ReaderPageTurn.NEXT)
+    val freshSlots = listOf(previousPage, currentPage, nextPage)
+    var frozenSlots by remember { mutableStateOf<List<ReaderViewModel.PreparedPage?>?>(null) }
+    val frozenCurrent = frozenSlots?.getOrNull(1)
+    val frozenOriginIsCurrent = currentPage != null && frozenCurrent?.volume == currentPage.volume &&
+        frozenCurrent.index == currentPage.index && frozenCurrent.page == currentPage.page && frozenCurrent.epoch == currentPage.epoch
+    val slots = if (frozenOriginIsCurrent) frozenSlots ?: freshSlots else freshSlots
+    val pagerState = rememberPagerState(initialPage = 1, pageCount = { 3 })
+    val committedIdentity = currentPage?.let { listOf(it.volume, it.index, it.page, it.epoch) }
+    val lastIdentity = remember { arrayOf(committedIdentity) }
+    SideEffect {
+        if (lastIdentity[0] != committedIdentity) {
+            lastIdentity[0] = committedIdentity
+            frozenSlots = null
+            pagerState.requestScrollToPage(1)
+        }
     }
-    val currentFirstHadithId = state.pages
-        .getOrNull(state.pageIndex)
-        ?.items
-        ?.firstOrNull()
-        ?._id
-
-    // Persist the initial page as soon as it resolves. Previously progress
-    // was only written after a swipe, so opening Today/Saved and closing the
-    // reader without changing pages could never create Continue Reading.
+    val currentFirstHadithId = state.pages.getOrNull(state.pageIndex)?.items?.firstOrNull()?._id
     LaunchedEffect(currentFirstHadithId) {
         if (currentFirstHadithId != null) viewModel.saveCurrentProgress()
     }
-
-    // Deep links resolve their containing page on the backend after the
-    // pager is created. Move the visual pager to that resolved index so
-    // Today/Saved/continue-reading never land on an earlier placeholder.
-    SynchronizeReaderPager(pagerState, state.pageIndex, pageCount)
-
     LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.settledPage }
-            .distinctUntilChanged()
-            // The pager always emits its synthetic initial page (0). A
-            // reused/deep-linked ReaderViewModel may already be on another
-            // page, so that first emission must not overwrite the target.
-            .drop(1)
-            .collect { index -> viewModel.onPageSettled(index) }
+        snapshotFlow { pagerState.isScrollInProgress to pagerState.settledPage }
+            .distinctUntilChanged().collect { (scrolling, slot) ->
+                if (!scrolling && slot != 1) {
+                    val committed = frozenSlots?.getOrNull(slot)?.let { viewModel.commitPreparedNeighbor(it) } == true
+                    if (!committed) {
+                        frozenSlots = null
+                        pagerState.requestScrollToPage(1)
+                    }
+                } else if (!scrolling && slot == 1) {
+                    frozenSlots = null
+                }
+            }
     }
 
     // A layout-affecting preference change (font, size, visibility, transla-
@@ -507,30 +517,16 @@ private fun ReadingView(
     )
 
     fun turnPage(turn: ReaderPageTurn): Boolean {
-        val destination = pagingPolicy.destination(
-            pagerState.currentPage,
-            pagerState.pageCount,
-            turn,
-        )
-        if (destination != null) {
-            if (state.pages.getOrNull(destination)?.isPlaceholder != false) {
-                viewModel.onPageSettled(destination)
-                return true
-            }
-            if (reduceMotion) {
-                coroutine.launch { pagerState.scrollToPage(destination) }
-            } else {
-                coroutine.launch { pagerState.animateScrollToPage(destination) }
-            }
-            return true
-        }
-        val pill = if (turn == ReaderPageTurn.PREVIOUS) {
-            viewModel.pagePills().previous
+        val pill = if (turn == ReaderPageTurn.PREVIOUS) viewModel.pagePills().previous else viewModel.pagePills().next
+        if (pill == null) return false
+        val slot = if (turn == ReaderPageTurn.PREVIOUS) 0 else 2
+        if (slots[slot] == null) {
+            viewModel.followPill(pill)
         } else {
-            viewModel.pagePills().next
+            if (frozenSlots == null) frozenSlots = slots
+            if (reduceMotion) coroutine.launch { pagerState.scrollToPage(slot) }
+            else coroutine.launch { pagerState.animateScrollToPage(slot) }
         }
-        if (pill?.crossesVolume != true) return false
-        viewModel.followPill(pill)
         return true
     }
 
@@ -559,8 +555,8 @@ private fun ReadingView(
     // Reset on every page turn; ReaderPage reports (page, fraction) pairs
     // so a stale late emission cannot move another page's bar.
     val pageScroll = remember { mutableStateOf(0 to 0f) }
-    LaunchedEffect(pagerState.currentPage) {
-        pageScroll.value = pagerState.currentPage to 0f
+    LaunchedEffect(state.selectedVolumeId, state.pageIndex) {
+        pageScroll.value = state.pageIndex to 0f
     }
 
     val totalPages = viewModel.totalPages()
@@ -588,77 +584,68 @@ private fun ReadingView(
         DirectionAwareHorizontalPager(
             state = pagerState,
             policy = pagingPolicy,
-            onOutwardEdgeTurn = ::turnPage,
-            isMissingPage = { index -> state.pages.getOrNull(index)?.isPlaceholder != false },
-            onMissingPage = viewModel::onPageSettled,
-            // A user horizontal drag collapses to focused immediately (no
-            // haptic) and closes the menu. Programmatic turns settle through
-            // onPageSettled, which collapses there.
+            pageKey = { slot -> slots[slot]?.let { context ->
+                "${context.volume}:${context.index}:${context.page.pageKey}:${context.page.contentVersion}:${context.page.paginationVersion}:${context.page.items.joinToString("|") { it.internalId }}"
+            } ?: "empty-slot-$slot" },
+            isMissingPage = { slot -> slots.getOrNull(slot) == null },
+            onMissingPage = { slot -> turnPage(if (slot == 0) ReaderPageTurn.PREVIOUS else ReaderPageTurn.NEXT) },
+            captureGestureValidity = {
+                val origin = viewModel.preparedCurrent()
+                val pills = viewModel.pagePills()
+                val valid: () -> Boolean = { viewModel.isPreparedOriginCurrent(origin) && viewModel.pagePills() == pills }
+                valid
+            },
             onUserDragStart = {
+                if (frozenSlots == null) frozenSlots = slots
                 viewModel.cancelPendingTurn()
                 collapseToFocusedAndCloseMenu()
             },
             modifier = Modifier.fillMaxSize(),
-        ) { pageIndex ->
-                val pages = state.pages
-                // Stable per-page identity: volume plus the backend pageKey
-                // when loaded, the index otherwise. The key never involves
-                // the settled pageIndex, so a settle never re-creates the
-                // current page composition. The model's one landing command
-                // is the only vertical-scroll authority. The pager's neighbor compositions
-                // (beyondViewportPageCount) then survive list appends and the
-                // outgoing page never drops mid-gesture (no flicker); a
-                // settle-or-cancel just reuses the kept composition.
-                // Round 5: the items snapshot is remembered against the page
-                // identity, so an unrelated state change mid-gesture (pills,
-                // translations, progress) can never rebind neighbor content
-                // while the swipe is in flight. A real page replacement
-                // (placeholder load, volume switch) changes identity and
-                // re-resolves exactly once.
-                val page = pages.getOrNull(pageIndex)
-                key("${state.selectedVolumeId}:${page?.pageKey ?: "page-$pageIndex"}:${page?.contentVersion}") {
-                    val stableHadiths = remember(page) { page?.items ?: emptyList() }
-                    // Round 8: end-of-page pills resolve per pager slot from
-                    // already-cached synchronous sources (this slot's index,
-                    // the loaded pages list, the outline). Keyed on those —
-                    // never on the settled pageIndex — so settling a swipe
-                    // recomposes no pill and nothing arrives a frame late.
-                    val pagePillState = remember(pageIndex, pages, state.volumes, state.selectedVolumeId) {
-                        pagePillsForPage(pageIndex, pages, state.volumes, state.selectedVolumeId)
-                    }
-                    ReaderPage(
-                        viewModel = viewModel,
-                        state = state,
-                        hadiths = stableHadiths,
-                        arabicFontSize = arabicFontSize,
-                        preferences = preferences,
-                        pagingPolicy = pagingPolicy,
-                        pageIndex = pageIndex,
-                        pillState = pagePillState,
-                        verticalLanding = viewModel.landingForPage(pageIndex),
-                        topContentPadding = progressHeaderHeight,
-                        isSentinel = pageIndex >= pages.size,
-                        // Round 7: the inline corner label rides the chrome
-                        // fade+scale through graphicsLayer — always composed,
-                        // so the page layout never moves.
-                        chromeAlpha = chromeAlpha,
-                        chromeScale = chromeScale,
-                        onFollowPill = viewModel::followPill,
-                        // Round 7: the tap toggle (and its single tick) fires
-                        // only on a confirmed tap — up with minimal movement
-                        // and a short duration. A touch that becomes a
-                        // drag/swipe/scroll never toggles and never ticks.
-                        onTap = {
+        ) { slot ->
+            val context = slots[slot]
+            if (context == null) {
+                Box(Modifier.fillMaxSize()) {
+                    if (slot == 1) com.hadithly.app.core.theme.ArticleLoadingView(nativeText("Loading page"))
+                }
+            } else {
+                val active = state.selectedVolumeId == context.volume && state.pageIndex == context.index &&
+                    state.pages.getOrNull(state.pageIndex) == context.page
+                val pages = (if (state.selectedVolumeId == context.volume) state.pages else emptyList()).toMutableList().apply {
+                    while (size <= context.index) add(ReaderPageResult())
+                    this[context.index] = context.page
+                }
+                val pageState = state.copy(selectedVolumeId = context.volume, pageIndex = context.index, pages = pages,
+                    translations = if (state.selectedVolumeId == context.volume) state.translations else emptyMap(),
+                    translationAllowances = if (state.selectedVolumeId == context.volume) state.translationAllowances else emptyMap(),
+                    verticalLanding = if (active) state.verticalLanding else context.landing)
+                val pagePillState = pagePillsForPage(context.index, pages, state.volumes, context.volume)
+                ReaderPage(
+                    viewModel = viewModel,
+                    state = pageState,
+                    hadiths = context.page.items,
+                    arabicFontSize = arabicFontSize,
+                    preferences = preferences,
+                    pagingPolicy = pagingPolicy,
+                    pageIndex = context.index,
+                    isActivePage = active,
+                    pillState = pagePillState,
+                    verticalLanding = if (active) state.verticalLanding else context.landing,
+                    topContentPadding = progressHeaderHeight,
+                    isSentinel = false,
+                    chromeAlpha = chromeAlpha,
+                    chromeScale = chromeScale,
+                    onFollowPill = { if (active) turnPage(it.turn) },
+                    onTap = {
+                        if (active) {
                             ReaderHaptics.perform(androidView, ReaderHapticKind.TAP_TOGGLE)
                             viewModel.toggleChrome()
-                        },
-                        onUserScroll = ::collapseToFocusedAndCloseMenu,
-                        onPageScrollFraction = { page, fraction ->
-                            pageScroll.value = page to fraction
-                        },
-                        onShowPaywall = onShowPaywall,
-                    )
-                }
+                        }
+                    },
+                    onUserScroll = { if (active) collapseToFocusedAndCloseMenu() },
+                    onPageScrollFraction = { page, fraction -> if (active) pageScroll.value = page to fraction },
+                    onShowPaywall = { if (active) onShowPaywall() },
+                )
+            }
         }
 
         state.pendingTurn?.let { pending ->
@@ -1120,8 +1107,10 @@ internal fun DirectionAwareHorizontalPager(
     state: PagerState,
     policy: ReaderPagingPolicy,
     onOutwardEdgeTurn: ((ReaderPageTurn) -> Boolean)? = null,
+    pageKey: ((Int) -> Any)? = null,
     isMissingPage: (Int) -> Boolean = { false },
     onMissingPage: (Int) -> Unit = {},
+    captureGestureValidity: () -> (() -> Boolean) = { { true } },
     onUserDragStart: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     content: @Composable PagerScope.(page: Int) -> Unit,
@@ -1136,47 +1125,79 @@ internal fun DirectionAwareHorizontalPager(
     }
     val missingPage = rememberUpdatedState(isMissingPage)
     val requestMissingPage = rememberUpdatedState(onMissingPage)
+    val captureValidity = rememberUpdatedState(captureGestureValidity)
+    val missingGesture = remember(state, policy) { MissingPageGesture() }
+    val missingConnection = remember(state, policy) {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (source != NestedScrollSource.UserInput || available.x == 0f) return Offset.Zero
+                if (!missingGesture.isValid()) return Offset(available.x, 0f)
+                val logicalDirection = if (policy.reverseLayout) 1f else -1f
+                val pageExtent = (state.layoutInfo.pageSize + state.layoutInfo.pageSpacing).toFloat()
+                if (pageExtent <= 0f) return Offset.Zero
+                val position = (state.currentPage - missingGesture.originSlot + state.currentPageOffsetFraction) * pageExtent
+                val delta = available.x * logicalDirection
+                val destination = position + delta
+                val turn = if (destination > 0f) ReaderPageTurn.NEXT else if (destination < 0f) ReaderPageTurn.PREVIOUS else return Offset.Zero
+                val target = policy.destination(missingGesture.originSlot, state.pageCount, turn) ?: return Offset.Zero
+                if (!missingPage.value(target)) return Offset.Zero
+                val allowed = if (position * delta < 0f) -position else 0f
+                val consumed = delta - allowed
+                if (consumed == 0f) return Offset.Zero
+                missingGesture.blockedTarget = target
+                return Offset(consumed * logicalDirection, 0f)
+            }
+
+            override suspend fun onPreFling(available: Velocity): Velocity {
+                if (!missingGesture.isValid()) return Velocity(available.x, 0f)
+                val direction = if (available.x < 0f) SwipeDirection.LEFT else SwipeDirection.RIGHT
+                val target = policy.destination(missingGesture.originSlot, state.pageCount, policy.turn(direction))
+                return if (available.x != 0f && target != null && missingPage.value(target)) Velocity(available.x, 0f) else Velocity.Zero
+            }
+        }
+    }
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         HorizontalPager(
             state = state,
+            key = pageKey,
             reverseLayout = policy.reverseLayout,
             // Neighbors stay rendered during drags so a mid-gesture
             // cancel-back never flashes an empty page.
             beyondViewportPageCount = 1,
-            modifier = modifier.missingPageSwipe(state, policy, missingPage, requestMissingPage)
+            modifier = modifier.missingPageSwipe(state, policy, missingGesture, requestMissingPage, captureValidity)
+                .nestedScroll(missingConnection)
                 .edgeVolumeSwipe(state, policy, onOutwardEdgeTurn),
             pageContent = content,
         )
     }
 }
 
+private class MissingPageGesture {
+    var blockedTarget: Int? = null
+    var originSlot = 0
+    var isValid: () -> Boolean = { false }
+    fun begin(slot: Int, validity: () -> Boolean) { blockedTarget = null; originSlot = slot; isValid = validity }
+}
+
 private fun Modifier.missingPageSwipe(
     state: PagerState,
     policy: ReaderPagingPolicy,
-    isMissingPage: State<(Int) -> Boolean>,
+    gesture: MissingPageGesture,
     onMissingPage: State<(Int) -> Unit>,
-): Modifier = pointerInput(state, policy) {
+    captureValidity: State<() -> (() -> Boolean)>,
+): Modifier = pointerInput(state, policy, gesture) {
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
-        var blockedTarget: Int? = null
-        var decided = false
+        gesture.begin(state.settledPage, captureValidity.value())
         var deltaX = 0f
         do {
             val event = awaitPointerEvent(PointerEventPass.Initial)
             val change = event.changes.firstOrNull { it.id == down.id } ?: break
             deltaX = change.position.x - down.position.x
-            val deltaY = change.position.y - down.position.y
-            if (!decided && (kotlin.math.abs(deltaX) > viewConfiguration.touchSlop || kotlin.math.abs(deltaY) > viewConfiguration.touchSlop)) {
-                decided = true
-                if (kotlin.math.abs(deltaX) > kotlin.math.abs(deltaY)) {
-                    val direction = if (deltaX < 0) SwipeDirection.LEFT else SwipeDirection.RIGHT
-                    val target = policy.destination(state.settledPage, state.pageCount, policy.turn(direction))
-                    if (target != null && isMissingPage.value(target)) blockedTarget = target
-                }
-            }
-            if (blockedTarget != null) change.consume()
         } while (change.pressed)
-        blockedTarget?.let { if (kotlin.math.abs(deltaX) >= 96f) onMissingPage.value(it) }
+        val direction = if (deltaX < 0f) SwipeDirection.LEFT else SwipeDirection.RIGHT
+        val target = policy.destination(gesture.originSlot, state.pageCount, policy.turn(direction))
+        if (gesture.isValid() && target != null && target == gesture.blockedTarget && kotlin.math.abs(deltaX) >= 96f) onMissingPage.value(target)
     }
 }
 
@@ -1266,6 +1287,7 @@ private fun ReaderPage(
     preferences: ReaderPreferences,
     pagingPolicy: ReaderPagingPolicy,
     pageIndex: Int,
+    isActivePage: Boolean,
     pillState: ReaderPagePills.State,
     verticalLanding: ReaderVerticalLandingRequest?,
     isSentinel: Boolean,
@@ -1288,7 +1310,7 @@ private fun ReaderPage(
     var submissionTarget by remember { mutableStateOf<Pair<ReaderHadith, ReaderTranslation?>?>(null) }
     var reportTarget by remember { mutableStateOf<Pair<ReaderHadith, ReaderTranslation>?>(null) }
     var initialLanding by remember { mutableStateOf(
-        if (state.pageIndex == pageIndex && verticalLanding == null) viewModel.recentLandingForPage(pageIndex) else null
+        if (isActivePage && verticalLanding == null) viewModel.recentLandingForPage(pageIndex) else null
     ) }
     val landing = (verticalLanding ?: initialLanding)?.takeIf {
         it.page == ReaderVerticalLandingPage(state.selectedVolumeId.orEmpty(), pageIndex)
@@ -1367,7 +1389,7 @@ private fun ReaderPage(
     // R6 round 3: a user vertical drag collapses to focused (no haptic)
     // and closes the menu. The DragInteraction gate keeps programmatic
     // restoration scrolls from collapsing; tap-chrome is untouched.
-    LaunchedEffect(listState) {
+    LaunchedEffect(listState, isActivePage) {
         var userDragging = false
         launch {
             listState.interactionSource.interactions.collect { interaction ->
@@ -1375,13 +1397,13 @@ private fun ReaderPage(
             }
         }
         snapshotFlow { listState.isScrollInProgress }.collect { scrolling ->
-            if (scrolling && userDragging) onUserScroll()
+            if (scrolling && userDragging && isActivePage) onUserScroll()
         }
     }
 
     // This is the only vertical-scroll writer. A command waits through a
     // sentinel/unloaded page, then applies once the matching list exists.
-    LaunchedEffect(landing?.token, hadiths.firstOrNull()?._id, pageIndex, state.pageIndex == pageIndex,
+    LaunchedEffect(landing?.token, hadiths.firstOrNull()?._id, pageIndex, isActivePage,
         layoutProjection, hadiths, selectedLayoutVolume, layoutTranslations, layoutAllowances, viewportSize) {
         val request = landing ?: return@LaunchedEffect
         if (!viewModel.isRecentLandingValid(request)) {
@@ -1391,7 +1413,7 @@ private fun ReaderPage(
         if (hadiths.isEmpty()) return@LaunchedEffect
         val layout = viewportLayout()
         if (appliedLandingToken == request.token && appliedLandingLayout == layout) {
-            if (state.pageIndex == pageIndex) viewModel.acknowledgeVerticalLanding(request)
+            if (isActivePage) viewModel.acknowledgeVerticalLanding(request)
             return@LaunchedEffect
         }
         val snapshot = request.viewport
@@ -1419,12 +1441,12 @@ private fun ReaderPage(
         appliedLandingToken = request.token
         appliedLandingLayout = layout
         if (initialLanding == request) initialLanding = null
-        if (state.pageIndex == pageIndex) viewModel.acknowledgeVerticalLanding(request)
+        if (isActivePage) viewModel.acknowledgeVerticalLanding(request)
     }
 
     // Clearing the command cancels its effect; observe the acknowledged frame separately.
-    LaunchedEffect(state.verticalLanding, state.pageIndex, hadiths, state.translations, preferences.arabicVisible, preferences.translationVisible) {
-        if (state.verticalLanding != null || state.pageIndex != pageIndex || hadiths.isEmpty()) return@LaunchedEffect
+    LaunchedEffect(isActivePage, state.verticalLanding, state.pageIndex, hadiths, state.translations, preferences.arabicVisible, preferences.translationVisible) {
+        if (state.verticalLanding != null || !isActivePage || hadiths.isEmpty()) return@LaunchedEffect
         withFrameNanos { }
         val visible = listState.layoutInfo.visibleItemsInfo.mapNotNull { item ->
             readerHadithIndex(item.index, hadiths.size)?.let { index ->
@@ -1438,7 +1460,7 @@ private fun ReaderPage(
 
     // Intra-page scroll fraction for the dynamic page bars: leading item
     // plus its consumed offset over the page's item count.
-    LaunchedEffect(listState, hadiths) {
+    LaunchedEffect(listState, hadiths, isActivePage) {
         snapshotFlow {
             val info = listState.layoutInfo
             val total = info.totalItemsCount.coerceAtLeast(1)
@@ -1451,11 +1473,11 @@ private fun ReaderPage(
                 ((first.index + consumed) / total).coerceIn(0f, 1f)
             }
         }.distinctUntilChanged { a, b -> abs(a - b) < 0.005f }
-            .collect { onPageScrollFraction(pageIndex, it) }
+            .collect { if (isActivePage) onPageScrollFraction(pageIndex, it) }
     }
 
-    LaunchedEffect(listState, hadiths, state.pageIndex == pageIndex, initialLanding, layoutProjection, selectedLayoutVolume, layoutTranslations, layoutAllowances) {
-        if (state.pageIndex != pageIndex || hadiths.isEmpty() || initialLanding != null) return@LaunchedEffect
+    LaunchedEffect(listState, hadiths, isActivePage, initialLanding, layoutProjection, selectedLayoutVolume, layoutTranslations, layoutAllowances) {
+        if (!isActivePage || hadiths.isEmpty() || initialLanding != null) return@LaunchedEffect
         snapshotFlow {
             val info = listState.layoutInfo
             info.visibleItemsInfo.firstOrNull { item ->
@@ -1491,8 +1513,8 @@ private fun ReaderPage(
     val experience = com.hadithly.app.HadithlyApplication.instance().readerExperience
     val automatic by experience.automaticallyTranslates.collectAsStateWithLifecycle()
     val activeSession by com.clerk.api.Clerk.sessionFlow.collectAsStateWithLifecycle()
-    LaunchedEffect(listState, state.pageIndex == pageIndex, automatic, preferences.translationVisible, state.language, activeSession?.id) {
-        if (state.pageIndex != pageIndex || !automatic || !preferences.translationVisible) return@LaunchedEffect
+    LaunchedEffect(listState, isActivePage, automatic, preferences.translationVisible, state.language, activeSession?.id) {
+        if (!isActivePage || !automatic || !preferences.translationVisible) return@LaunchedEffect
         snapshotFlow {
             val info = listState.layoutInfo
             info.visibleItemsInfo.mapNotNull { item ->
@@ -1505,7 +1527,16 @@ private fun ReaderPage(
         modifier = Modifier
             .fillMaxSize()
             .testTag("reader.pageViewport")
-            .confirmedTapGesture { onTap() },
+            .then(if (isActivePage) Modifier else Modifier.clearAndSetSemantics { }.pointerInput(Unit) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial).consume()
+                    do {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        event.changes.forEach { it.consume() }
+                    } while (event.changes.any { it.pressed })
+                }
+            })
+            .confirmedTapGesture { if (isActivePage) onTap() },
     ) {
         if (isSentinel || hadiths.isEmpty()) {
             Box(

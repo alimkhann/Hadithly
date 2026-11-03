@@ -11,6 +11,228 @@ final class ReaderR5UITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    private func edgeFixture(rtl: Bool = false, large: Bool = false, reduceMotion: Bool = false, interrupt: Bool = false) -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments = ["-A5ContentsNavigationFixture"]
+        app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "PAGING_EDGES": "1",
+                                 "PAGING_EDGES_RTL": rtl ? "1" : "0",
+                                 "A5_LOCALE": rtl ? "ar" : "en", "A5_LARGE_TEXT": large ? "1" : "0",
+                                 "PAGING_EDGES_REDUCE_MOTION": reduceMotion ? "1" : "0",
+                                 "PAGING_EDGES_INTERRUPT": interrupt ? "1" : "0"]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["paging.location"].waitForExistence(timeout: 10))
+        XCTAssertTrue(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "ready"), object: app.staticTexts["paging.ready"])], timeout: 10) == .completed)
+        return app
+    }
+
+    private func edgeLocation(_ app: XCUIApplication, _ expected: String, file: StaticString = #filePath, line: UInt = #line) {
+        let location = app.staticTexts["paging.location"]
+        XCTAssertTrue(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", expected), object: location)], timeout: 8) == .completed,
+                      "Expected \(expected), got \(location.label)", file: file, line: line)
+    }
+
+    private func edgeDrag(_ app: XCUIApplication, forward: Bool, rtl: Bool = false, slow: Bool = false) {
+        let leftward = forward != rtl
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: leftward ? 0.83 : 0.17, dy: 0.5))
+        let end = app.coordinate(withNormalizedOffset: CGVector(dx: leftward ? 0.17 : 0.83, dy: 0.5))
+        start.press(forDuration: 0.08, thenDragTo: end,
+                    withVelocity: slow ? .slow : XCUIGestureVelocity(rawValue: 900), thenHoldForDuration: 0)
+    }
+
+    func testPreparedEdgesBothDirectionsAndAbsoluteBoundaries() {
+        let app = edgeFixture()
+        defer { app.terminate() }
+        edgeLocation(app, "2:1")
+        edgeDrag(app, forward: true, slow: true)
+        edgeLocation(app, "3:0")
+        XCTAssertTrue(element("reader.volumeHeader", in: app).waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["reader.arabic"].firstMatch.label.contains("301"), "The committed text must match the displayed volume")
+        edgeDrag(app, forward: false)
+        edgeLocation(app, "2:1")
+        edgeDrag(app, forward: false, slow: true)
+        edgeLocation(app, "2:0")
+        edgeDrag(app, forward: false)
+        edgeLocation(app, "1:1")
+        edgeDrag(app, forward: false)
+        edgeLocation(app, "1:0")
+        edgeDrag(app, forward: false)
+        edgeLocation(app, "1:0")
+        for expected in ["1:1", "2:0", "2:1", "3:0", "3:1"] {
+            edgeDrag(app, forward: true)
+            edgeLocation(app, expected)
+        }
+        edgeDrag(app, forward: true)
+        edgeLocation(app, "3:1")
+    }
+
+    func testPreparedEdgesCancelReverseAndRTLAtLargeText() {
+        let app = edgeFixture(rtl: true, large: true, reduceMotion: true)
+        defer { app.terminate() }
+        edgeLocation(app, "2:1")
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        let short = app.coordinate(withNormalizedOffset: CGVector(dx: 0.54, dy: 0.5))
+        start.press(forDuration: 0.1, thenDragTo: short, withVelocity: .slow, thenHoldForDuration: 0)
+        edgeLocation(app, "2:1")
+        let diagonal = app.coordinate(withNormalizedOffset: CGVector(dx: 0.56, dy: 0.22))
+        start.press(forDuration: 0.1, thenDragTo: diagonal, withVelocity: .slow, thenHoldForDuration: 0)
+        edgeLocation(app, "2:1")
+        for _ in 0..<2 {
+            edgeDrag(app, forward: true, rtl: true, slow: true)
+            edgeLocation(app, "3:0")
+            edgeDrag(app, forward: false, rtl: true)
+            edgeLocation(app, "2:1")
+        }
+    }
+
+    func testFooterControlsNavigateCachedEdgesAndChromeKeepsGeometry() {
+        let app = edgeFixture()
+        defer { app.terminate() }
+        edgeLocation(app, "2:1")
+        func revealFooter(_ identifier: String) -> XCUIElement {
+            let button = app.buttons[identifier]
+            for _ in 0..<8 where !button.isHittable { app.swipeUp() }
+            XCTAssertTrue(button.waitForExistence(timeout: 5))
+            XCTAssertTrue(button.isHittable)
+            XCTAssertTrue(button.isEnabled)
+            XCTAssertGreaterThanOrEqual(button.frame.width, 44)
+            XCTAssertGreaterThanOrEqual(button.frame.height, 44)
+            return button
+        }
+        let next = revealFooter("reader.nextPage")
+        XCTAssertTrue(next.label.contains("Next page"))
+        XCTAssertTrue(next.label.contains("Volume 3"))
+        let footerY = next.frame.minY
+        let page = element("reader.page", in: app)
+        let pageTop = page.frame.minY
+        let pageBottom = page.frame.maxY
+        let chrome = app.buttons["reader.close"]
+        let wasVisible = chrome.exists && chrome.isHittable
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.36)).tap()
+        if wasVisible {
+            XCTAssertTrue(chrome.waitForNonExistence(timeout: 5))
+        } else {
+            XCTAssertTrue(chrome.waitForExistence(timeout: 5))
+        }
+        XCTAssertEqual(page.frame.minY, pageTop, accuracy: 1)
+        XCTAssertEqual(page.frame.maxY, pageBottom, accuracy: 1)
+        XCTAssertEqual(next.frame.minY, footerY, accuracy: 2, "Reader chrome must not shift footer content")
+        next.tap()
+        edgeLocation(app, "3:0")
+        let previous = revealFooter("reader.previousPage")
+        XCTAssertTrue(previous.label.contains("Previous page"))
+        XCTAssertTrue(previous.label.contains("Volume 2"))
+        previous.tap()
+        edgeLocation(app, "2:1")
+    }
+
+    func testExplicitVolumeSelectionDuringSlowTurnWins() {
+        let app = edgeFixture(interrupt: true)
+        defer { app.terminate() }
+        edgeLocation(app, "2:1")
+        edgeDrag(app, forward: false, slow: true)
+        XCTAssertTrue(app.staticTexts["a5.requests"].label.contains("interrupt-select"))
+        edgeLocation(app, "3:0")
+        Thread.sleep(forTimeInterval: 0.6)
+        edgeLocation(app, "3:0")
+        XCTAssertTrue(app.staticTexts["reader.arabic"].firstMatch.label.contains("301"))
+    }
+
+    func testVerifiedOfflineReaderTurnsForwardAndBackWithoutLiveReads() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-A5ContentsNavigationFixture", "-forceOfflineReader"]
+        app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "PAGING_OFFLINE": "1"]
+        app.launch()
+        defer { app.terminate() }
+        XCTAssertTrue(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "ready"), object: app.staticTexts["paging.ready"])], timeout: 15) == .completed)
+        edgeLocation(app, "2:0")
+        XCTAssertTrue(app.staticTexts["reader.arabic"].firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["reader.arabic"].firstMatch.label.contains("1"))
+        edgeDrag(app, forward: true, slow: true)
+        edgeLocation(app, "2:1")
+        XCTAssertTrue(app.staticTexts["reader.arabic"].firstMatch.label.contains("11"))
+        XCTAssertTrue(app.buttons["reader.hadithLabel"].firstMatch.label.contains("11"))
+        XCTAssertFalse(element("reader.pageLoading", in: app).exists)
+        edgeDrag(app, forward: false)
+        edgeLocation(app, "2:0")
+        XCTAssertTrue(app.staticTexts["reader.arabic"].firstMatch.label.contains("1"))
+        XCTAssertTrue(app.buttons["reader.hadithLabel"].firstMatch.label.contains("1"))
+        XCTAssertFalse(app.staticTexts["a5.requests"].label.contains("live-fetch"))
+    }
+
+    func testInactiveTranslationGrowthPreservesSemanticLanding() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-A5ContentsNavigationFixture"]
+        app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "PAGING_RECENT": "1", "PAGING_TRANSLATION_GROWTH": "1"]
+        app.launch()
+        defer { app.terminate() }
+        let translation = app.staticTexts["reader.translation"].firstMatch
+        XCTAssertTrue(translation.waitForExistence(timeout: 10))
+        XCTAssertEqual(translation.label, "Short private translation.")
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
+        let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2))
+        start.press(forDuration: 0.1, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0)
+        Thread.sleep(forTimeInterval: 0.8)
+        func viewport() -> (fraction: Double, height: Double) {
+            let values = app.staticTexts["paging.viewport"].label.split(separator: "|").compactMap { Double($0) }
+            XCTAssertEqual(values.count, 2)
+            guard values.count == 2, values[1] > 0 else { return (-1, 0) }
+            return (-values[0] / values[1], values[1])
+        }
+        let before = viewport()
+        XCTAssertGreaterThan(before.fraction, 0.01)
+        edgeDrag(app, forward: true)
+        XCTAssertTrue(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "1"), object: app.staticTexts["paging.page"])], timeout: 5) == .completed)
+        app.buttons["paging.expandTranslation"].tap()
+        edgeDrag(app, forward: false)
+        XCTAssertTrue(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "0"), object: app.staticTexts["paging.page"])], timeout: 5) == .completed)
+        XCTAssertTrue(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS %@", "Expanded private translation."), object: translation)], timeout: 5) == .completed)
+        Thread.sleep(forTimeInterval: 0.8)
+        let after = viewport()
+        XCTAssertGreaterThan(after.height, before.height)
+        XCTAssertEqual(after.fraction, before.fraction, accuracy: 0.005)
+    }
+
+    func testContinueRestoresPersistedSemanticPositionForShortAndTallRows() {
+        for tall in [false, true] {
+            let app = XCUIApplication()
+            app.launchArguments = ["-A5ContentsNavigationFixture"]
+            app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "PAGING_CONTINUE": "1", "PAGING_CONTINUE_TALL": tall ? "1" : "0"]
+            app.launch()
+            defer { app.terminate() }
+            let geometry = app.staticTexts["paging.continueViewport"]
+            XCTAssertTrue(geometry.waitForExistence(timeout: 10))
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.7))
+            let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: tall ? 0.25 : 0.48))
+            start.press(forDuration: 0.1, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0)
+            Thread.sleep(forTimeInterval: 0.8)
+            let initialGeometry = geometry.label
+            let arabicY = app.staticTexts["reader.arabic"].firstMatch.frame.minY
+            let close = app.buttons["reader.close"]
+            if !close.isHittable { app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.4)).tap() }
+            XCTAssertTrue(close.waitForExistence(timeout: 5))
+            close.tap()
+            let resume = app.buttons["paging.continue"]
+            XCTAssertTrue(resume.waitForExistence(timeout: 5))
+            resume.tap()
+            print("CONTINUE_DIAG \(app.staticTexts["paging.continueDiagnostics"].firstMatch.label)")
+            let persisted = app.staticTexts["paging.persisted"]
+            XCTAssertTrue(persisted.waitForExistence(timeout: 10))
+            XCTAssertTrue(geometry.waitForExistence(timeout: 10))
+            Thread.sleep(forTimeInterval: 0.8)
+            let saved = persisted.label.split(separator: "|")
+            let restored = geometry.label.split(separator: "|")
+            print("CONTINUE_FIXTURE tall=\(tall) before=\(initialGeometry) saved=\(persisted.label) after=\(geometry.label) arabicY=\(arabicY)->\(app.staticTexts["reader.arabic"].firstMatch.frame.minY)")
+            XCTAssertGreaterThanOrEqual(saved.count, 3)
+            XCTAssertEqual(restored.count, 5)
+            guard saved.count >= 3, restored.count == 5,
+                  let fraction = Double(saved[1]), let rowY = Double(restored[1]), let rowHeight = Double(restored[2]), rowHeight > 0 else { continue }
+            XCTAssertEqual(String(restored[0]), String(saved[0]), "Continue must restore the persisted provider anchor")
+            XCTAssertGreaterThan(fraction, 0.01, "The fixture must capture a partial row")
+            XCTAssertEqual(max(0, -rowY / rowHeight), fraction, accuracy: 0.01, "Continue must restore the saved semantic fraction")
+            app.terminate()
+        }
+    }
+
     func testUnavailableTurnKeepsOutgoingUntilReleased() {
         let app = XCUIApplication()
         app.launchArguments = ["-A5ContentsNavigationFixture"]
@@ -74,14 +296,14 @@ final class ReaderR5UITests: XCTestCase {
         XCTAssertTrue(arabic.waitForExistence(timeout: 5))
         Thread.sleep(forTimeInterval: 0.5)
         XCTAssertEqual(arabic.frame.minY, before, accuracy: 3, "A recreated active page must retain its current-reader position")
-        app.swipeLeft()
+        edgeDrag(app, forward: true)
         XCTAssertTrue(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "1"), object: app.staticTexts["paging.page"])], timeout: 5) == .completed)
         let unseen = element("reader.volumeCorner", in: app)
         XCTAssertTrue(unseen.isHittable, "An unseen page starts at its header")
         let unseenY = unseen.frame.minY
         Thread.sleep(forTimeInterval: 0.6)
         XCTAssertEqual(unseen.frame.minY, unseenY, accuracy: 1, "The incoming header cannot shift after landing")
-        app.swipeRight()
+        edgeDrag(app, forward: false)
         XCTAssertTrue(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "0"), object: app.staticTexts["paging.page"])], timeout: 5) == .completed)
         Thread.sleep(forTimeInterval: 1)
         XCTAssertEqual(arabic.frame.minY, before, accuracy: 3, "Final landing must retain A's rendered text position")

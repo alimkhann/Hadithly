@@ -15,7 +15,7 @@ struct ReaderView: View {
     @Environment(Clerk.self) private var clerk
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.colorScheme) private var systemColorScheme
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var uiLocale
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -26,6 +26,14 @@ struct ReaderView: View {
     var openHadithNumber: String?
     var openPosition: ReadingPosition?
     var targetSource: ReaderTargetSource = .collection
+
+    private var reduceMotion: Bool {
+#if DEBUG
+        if ProcessInfo.processInfo.environment["PAGING_EDGES"] == "1",
+           ProcessInfo.processInfo.environment["PAGING_EDGES_REDUCE_MOTION"] == "1" { return true }
+#endif
+        return systemReduceMotion
+    }
 
 #if DEBUG
     static func fixture(model: ReaderModel) -> ReaderView {
@@ -46,6 +54,12 @@ struct ReaderView: View {
     @State private var pageDragOffset: CGFloat = 0
     @State private var pageSettling = false
     @State private var horizontalDragging = false
+    @State private var frozenPrevious: ReaderModel.RenderedPageContext?
+    @State private var frozenNext: ReaderModel.RenderedPageContext?
+    @State private var stripFrozen = false
+    @State private var gestureInvalidated = false
+    @State private var frozenOrigin: ReaderModel.RenderedPageContext?
+    @State private var frozenOriginRevision = 0
     @State private var readerUndoNotice: SavedUndoNotice?
     @State private var scrollProgress = ReaderScrollProgress()
     @State private var progressPillsHeights: [String: CGFloat] = [:]
@@ -478,62 +492,107 @@ struct ReaderView: View {
     /// keeps its volume/page identity across turns and uses the same layout
     /// before and after handoff. Each slot applies the model's landing;
     /// only the active page captures progress and acknowledges commands.
+    private func clearFrozenStrip() {
+        stripFrozen = false
+        frozenPrevious = nil
+        frozenNext = nil
+        frozenOrigin = nil
+    }
+
+    private func frozenOriginIsCurrent(_ model: ReaderModel) -> Bool {
+        guard stripFrozen, let frozenOrigin else { return false }
+        return model.pageGeneration == frozenOrigin.generation
+            && model.navigationRevision == frozenOriginRevision
+            && model.isCommitted(frozenOrigin)
+    }
+
     private func pageStrip(_ model: ReaderModel, viewportWidth: CGFloat) -> some View {
         let targets = stripTargets(model)
         let slots = ReaderDragStrip.slots(hasPrevious: targets.previous, hasNext: targets.next, pageDirection: pagingPolicy.pageDirection)
-        let index = model.pageIndex
-        let indices = [slots.left.map { index + ($0 == .previous ? -1 : 1) }, index,
-                       slots.right.map { index + ($0 == .previous ? -1 : 1) }].compactMap { $0 }
+        let useFrozenStrip = frozenOriginIsCurrent(model)
+        let previous = useFrozenStrip ? frozenPrevious : model.renderedNeighbor(.previous)
+        let next = useFrozenStrip ? frozenNext : model.renderedNeighbor(.next)
+        let current = useFrozenStrip ? frozenOrigin : model.renderedCurrentPage()
+        func slot(_ turn: ReaderPageTurn) -> ReaderStripPage {
+            let context = turn == .previous ? previous : next
+            return ReaderStripPage(id: context?.id ?? "missing:\(turn)", context: context)
+        }
+        let center = ReaderStripPage(id: current?.id ?? "missing:current", context: current)
+        let strip = [slots.left.map(slot), center, slots.right.map(slot)].compactMap { $0 }
         return HStack(spacing: 0) {
-            ForEach(indices, id: \.self) { page in
+            ForEach(strip) { page in
                 Group {
-                    if model.pages.indices.contains(page), !model.pages[page].isPlaceholder {
+                    if let context = page.context {
+                        let active = model.isCommitted(context)
                         ReaderPageView(
-                            model: model, hadiths: model.pages[page].items,
+                            model: model, context: context,
                             arabicFontSize: arabicFontSizeBinding.wrappedValue,
                             preferences: environment.preferences.preferences,
-                            verticalLanding: model.landingForPage(page),
-                            currentPageIndex: page,
-                            pageCount: model.pages.count,
                             topContentInset: windowSafeAreaInsets.top + 8 + progressPillsHeight + 24,
                             palette: palette,
                             onTurn: { turnPage(model, turn: $0) },
                             onTap: { toggleChrome(model) },
                             onShowPaywall: { showQuotaPaywall = true },
-                            onScrollFraction: page == index ? { scrollProgress.fraction = $0 } : nil
+                            onScrollFraction: active ? { scrollProgress.fraction = $0 } : nil
                         )
-                        .scrollDisabled(page != index || horizontalDragging || pageSettling)
-                        .allowsHitTesting(page == index && !pageSettling)
-                        .accessibilityHidden(page != index)
+                        .scrollDisabled(!active || horizontalDragging || pageSettling)
+                        .allowsHitTesting(active && !pageSettling)
+                        .accessibilityHidden(!active)
                     } else {
                         Color.clear.accessibilityHidden(true)
                     }
                 }
-                .id("\(model.selectedVolumeId ?? ""):\(page):\(model.pages.indices.contains(page) ? model.pages[page].pageKey ?? "legacy" : "pending"):\(model.pages.indices.contains(page) ? model.pages[page].contentVersion ?? "legacy" : "pending")")
                 .frame(width: viewportWidth)
             }
         }
-        .offset(x: (slots.left == nil ? 0 : -viewportWidth) + pageDragOffset)
+        .offset(x: (slots.left == nil ? 0 : -viewportWidth) + (useFrozenStrip ? pageDragOffset : 0))
+        .transaction { transaction in
+            if stripFrozen && !useFrozenStrip { transaction.animation = nil; transaction.disablesAnimations = true }
+        }
         .ignoresSafeArea(edges: [.top, .bottom])
         .frame(width: viewportWidth, alignment: .leading)
         .clipped()
         .contentShape(Rectangle())
         .onChange(of: viewportWidth, initial: true) { _, width in dragViewportWidth = width }
+        .onChange(of: useFrozenStrip) { _, valid in
+            if !valid && stripFrozen {
+                var transaction = Transaction(animation: nil)
+                transaction.disablesAnimations = true
+                withTransaction(transaction) {
+                    clearFrozenStrip()
+                    pageDragOffset = 0
+                    horizontalDragging = false
+                    gestureInvalidated = !pageSettling
+                }
+            }
+        }
     }
 
     /// Gesture-driven progress: clamped to the available drag targets so a
     /// swipe with no neighbor goes nowhere. Any horizontal movement locks
     /// the vertical scroll out until release (axis lock, vice versa).
     private func dragProgress(_ model: ReaderModel, offset: CGFloat) {
-        guard !pageSettling else { return }
+        guard !pageSettling, !gestureInvalidated else { return }
         let targets = stripTargets(model)
         let slots = ReaderDragStrip.slots(hasPrevious: targets.previous, hasNext: targets.next, pageDirection: pagingPolicy.pageDirection)
+        if !stripFrozen && offset != 0 {
+            frozenPrevious = model.renderedNeighbor(.previous)
+            frozenNext = model.renderedNeighbor(.next)
+            frozenOrigin = model.renderedCurrentPage()
+            frozenOriginRevision = model.navigationRevision
+            stripFrozen = true
+        }
         let direction = offset > 0 ? slots.left : slots.right
-        let targetIndex = direction.map { model.pageIndex + ($0 == .previous ? -1 : 1) }
-        let loaded = targetIndex.map { model.pages.indices.contains($0) && !model.pages[$0].isPlaceholder } ?? false
+        let loaded = direction.map { $0 == .previous ? frozenPrevious != nil : frozenNext != nil } ?? false
         pageDragOffset = loaded ? offset : 0
         let dragging = abs(offset) > 8
-        if dragging && !horizontalDragging { model.cancelPendingTurn() }
+        if dragging && !horizontalDragging {
+#if DEBUG
+            model.navigationTraceForUITest?("drag-start")
+#endif
+            model.cancelPendingTurn()
+            frozenOriginRevision = model.navigationRevision
+        }
         if dragging != horizontalDragging {
             horizontalDragging = dragging
         }
@@ -545,24 +604,46 @@ struct ReaderView: View {
     /// the swap is invisible and nothing ever flickers. Anything short
     /// springs back in place. No haptic: page settle is silent (round 5).
     private func dragReleased(_ model: ReaderModel, turn: ReaderPageTurn?) {
+        if gestureInvalidated {
+            gestureInvalidated = false
+            return
+        }
         guard !pageSettling else { return }
-        guard let turn else {
-            horizontalDragging = false
-            if pageDragOffset != 0 {
-                withAnimation(reduceMotion ? nil : .timingCurve(0.22, 1, 0.36, 1, duration: InterfaceMotion.step)) {
-                    pageDragOffset = 0
-                }
+        guard frozenOriginIsCurrent(model) else {
+            var transaction = Transaction(animation: nil)
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                pageDragOffset = 0
+                horizontalDragging = false
+                clearFrozenStrip()
             }
             return
         }
-        let targetIndex = model.pageIndex + (turn == .next ? 1 : -1)
-        let loadedNeighbor = model.pages.indices.contains(targetIndex) && !model.pages[targetIndex].isPlaceholder
+        guard let turn else {
+            horizontalDragging = false
+            if pageDragOffset != 0, !reduceMotion {
+                pageSettling = true
+                withAnimation(.timingCurve(0.22, 1, 0.36, 1, duration: InterfaceMotion.step)) {
+                    pageDragOffset = 0
+                } completion: {
+                    clearFrozenStrip()
+                    pageSettling = false
+                }
+            } else {
+                pageDragOffset = 0
+                clearFrozenStrip()
+            }
+            return
+        }
+        let destination = turn == .previous ? frozenPrevious : frozenNext
+        let loadedNeighbor = destination != nil
         if !loadedNeighbor {
             var transaction = Transaction(animation: nil)
             transaction.disablesAnimations = true
             withTransaction(transaction) {
                 pageDragOffset = 0
                 horizontalDragging = false
+                clearFrozenStrip()
                 turnPage(model, turn: turn)
             }
             return
@@ -593,17 +674,19 @@ struct ReaderView: View {
                        model.pages.indices.contains(originIndex),
                        model.pages[originIndex].pageKey == originPageKey,
                        model.pages[originIndex].contentVersion == originContentVersion {
-                        turnPage(model, turn: turn)
+                        if let destination { _ = model.commitRenderedPage(destination) }
                     }
                     pageDragOffset = 0
                     horizontalDragging = false
                     pageSettling = false
+                    clearFrozenStrip()
                 }
             }
         } else {
             pageDragOffset = 0
             horizontalDragging = false
-            turnPage(model, turn: turn)
+            if let destination { _ = model.commitRenderedPage(destination) }
+            clearFrozenStrip()
         }
     }
 
@@ -1247,16 +1330,22 @@ private struct ReaderViewportTracking: ViewModifier {
     }
 }
 
+private struct ReaderStripPage: Identifiable {
+    let id: String
+    let context: ReaderModel.RenderedPageContext?
+}
+
 struct ReaderPageView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
     let model: ReaderModel
-    let hadiths: [ReaderHadith]
+    let context: ReaderModel.RenderedPageContext
+    private var hadiths: [ReaderHadith] { context.payload.items }
+    private var currentPageIndex: Int { context.index }
+    private var verticalLanding: ReaderVerticalLandingRequest? { model.isCommitted(context) ? model.verticalLanding : context.landing }
+    private var isActive: Bool { model.isCommitted(context) }
     let arabicFontSize: Double
     let preferences: ReaderPreferences
-    let verticalLanding: ReaderVerticalLandingRequest?
-    let currentPageIndex: Int
-    let pageCount: Int
     let topContentInset: CGFloat
     let palette: ReaderPalette
     let onTurn: (ReaderPageTurn) -> Void
@@ -1274,6 +1363,7 @@ struct ReaderPageView: View {
     @State private var initializedLanding = false
 #if DEBUG
     @State private var debugViewport = ""
+    @State private var debugContinueViewport = ""
 #endif
     @State private var appliedLandingToken: Int?
     @State private var appliedLandingLayout: ReaderViewportLayout?
@@ -1291,20 +1381,14 @@ struct ReaderPageView: View {
     }
 
     /// The selected volume backing this page, for the volume-start header.
-    private var selectedVolume: OutlineVolume? {
-        guard let id = model.selectedVolumeId else { return nil }
-        return model.volumes.first { $0.volumeId == id }
-    }
+    private var selectedVolume: OutlineVolume? { context.volume }
 
-    /// Page-top corner text: the volume title, plus the `: first–last`
-    /// hadith-number range after all source page endpoints are known. Nil when no volume is selected.
     private var volumeCornerText: String? {
-        guard let rawTitle = model.currentVolumeTitle else { return nil }
-        let title = localizedVolumeTitle(rawTitle, preferences: preferences, locale: locale)
-        if let range = model.knownVolumeRange {
+        let title = localizedVolumeTitle(context.volume.title, preferences: preferences, locale: locale)
+        if let range = context.range {
             return range.first == range.last ? "\(title): \(range.first)" : "\(title): \(range.first)–\(range.last)"
         }
-        return ReaderVolumeRange.cornerText(volumeTitle: title, pages: model.pages)
+        return title
     }
 
     /// Fixed header slot (round 7): the corner label (other pages) or the
@@ -1322,7 +1406,7 @@ struct ReaderPageView: View {
                     palette: palette,
                     arabicVisible: preferences.arabicVisible,
                     translationVisible: preferences.translationVisible,
-                    volumeNumber: model.volumes.firstIndex(where: { $0.volumeId == volume.volumeId }).map { $0 + 1 }
+                    volumeNumber: context.volumeNumber
                 )
             } else {
                 ReaderVolumeHeaderPlaceholder(palette: palette)
@@ -1395,7 +1479,7 @@ struct ReaderPageView: View {
                     let readingHeight = max(1, viewport.size.height - topContentInset)
                     let readingFrames = framesInReadingArea(frames)
                     let activePage = ReaderVerticalLandingPage(
-                        volumeId: model.selectedVolumeId ?? "",
+                        volumeId: context.volume.volumeId,
                         pageIndex: currentPageIndex
                     )
                     let candidate = verticalLanding ?? initialLanding
@@ -1412,8 +1496,8 @@ struct ReaderPageView: View {
                             appliedLandingLayout = layout
                             initialLanding = nil
                             scroll.setContentOffset(CGPoint(x: scroll.contentOffset.x, y: snapshot.offsetY), animated: false)
-                            if currentPageIndex == model.pageIndex {
-                                DispatchQueue.main.async { model.acknowledgeVerticalLanding(landing) }
+                            if isActive {
+                                DispatchQueue.main.async { if isActive { model.acknowledgeVerticalLanding(landing) } }
                             }
                             return
                         }
@@ -1424,9 +1508,10 @@ struct ReaderPageView: View {
                             initialLanding = nil
                             proxy.scrollTo("reader.page.top.\(currentPageIndex)", anchor: .top)
                             DispatchQueue.main.async {
-                                guard currentPageIndex == model.pageIndex else { return }
+                                guard isActive else { return }
                                 model.acknowledgeVerticalLanding(landing)
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                                    guard isActive else { return }
                                     model.observeVisibleContent(hadiths: hadiths, frames: framesInReadingArea(liveAnchorFrames.value), viewport: readingHeight)
                                     if !inspectedEntry { inspectedEntry = true
                                         model.inspectInitialTarget(hadiths: hadiths, frames: framesInReadingArea(liveAnchorFrames.value), viewport: readingHeight)
@@ -1436,7 +1521,9 @@ struct ReaderPageView: View {
                             return
                         case .semantic(let providerHadithId, let normalizedOffset):
                             guard let targetIndex = hadiths.firstIndex(where: { $0.providerHadithId == providerHadithId }),
-                                  let frame = frames[hadiths[targetIndex].internalId]
+                                  let frame = frames[hadiths[targetIndex].internalId],
+                                  let scroll = liveAnchorFrames.scrollView,
+                                  scroll.contentSize.height > 0, liveAnchorFrames.scrollState != nil
                             else { return }
                             let target = hadiths[targetIndex]
                             appliedLandingToken = landing.id
@@ -1445,17 +1532,18 @@ struct ReaderPageView: View {
                             if normalizedOffset == 0, chapterOpenings.contains(targetIndex) {
                                 proxy.scrollTo("reader.chapter.\(target.internalId)", anchor: .top)
                             } else {
-                                let anchorY = ReaderScrollRestoration.anchorY(
-                                    normalizedOffset: normalizedOffset,
-                                    itemHeight: frame.height,
-                                    viewportHeight: readingHeight
-                                )
-                                proxy.scrollTo(target.internalId, anchor: UnitPoint(x: 0.5, y: anchorY))
+                                let targetY = topContentInset - CGFloat(normalizedOffset) * frame.height
+                                let offset = scroll.contentOffset.y + frame.minY - targetY
+                                let minimum = -scroll.adjustedContentInset.top
+                                let maximum = max(minimum, scroll.contentSize.height - scroll.bounds.height + scroll.adjustedContentInset.bottom)
+                                scroll.setContentOffset(CGPoint(x: scroll.contentOffset.x,
+                                    y: min(maximum, max(minimum, offset))), animated: false)
                             }
                             DispatchQueue.main.async {
-                                guard currentPageIndex == model.pageIndex else { return }
+                                guard isActive else { return }
                                 model.acknowledgeVerticalLanding(landing)
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                                    guard isActive else { return }
                                     model.observeVisibleContent(hadiths: hadiths, frames: framesInReadingArea(liveAnchorFrames.value), viewport: readingHeight)
                                     if !inspectedEntry { inspectedEntry = true
                                         model.inspectInitialTarget(hadiths: hadiths, frames: framesInReadingArea(liveAnchorFrames.value), viewport: readingHeight)
@@ -1466,12 +1554,12 @@ struct ReaderPageView: View {
                         }
                     }
 
-                    guard currentPageIndex == model.pageIndex else { return }
+                    guard isActive else { return }
                     if let landing = landingRequest, appliedLandingToken == landing.id {
-                        DispatchQueue.main.async { model.acknowledgeVerticalLanding(landing) }
+                        DispatchQueue.main.async { if isActive { model.acknowledgeVerticalLanding(landing) } }
                         return
                     }
-                    if currentPageIndex == model.pageIndex {
+                    if isActive {
                         model.observeVisibleContent(hadiths: hadiths, frames: readingFrames, viewport: readingHeight)
                     }
                     let indexed = hadiths.enumerated().compactMap { index, hadith in
@@ -1482,6 +1570,10 @@ struct ReaderPageView: View {
                     if ProcessInfo.processInfo.environment["PAGING_RECENT"] == "1" {
                         let diagnostic = "\(leading.1.minY)|\(leading.1.height)"
                         if diagnostic != debugViewport { DispatchQueue.main.async { debugViewport = diagnostic } }
+                    }
+                    if ProcessInfo.processInfo.environment["PAGING_CONTINUE"] == "1" {
+                        let diagnostic = "\(hadiths[leading.0].providerHadithId)|\(leading.1.minY)|\(leading.1.height)|\(readingHeight)|\(topContentInset)"
+                        if diagnostic != debugContinueViewport { DispatchQueue.main.async { debugContinueViewport = diagnostic } }
                     }
 #endif
                     model.captureStableScroll(
@@ -1497,7 +1589,7 @@ struct ReaderPageView: View {
                 let handleScrollState: (ReaderScrollState) -> Void = { state in
                     liveAnchorFrames.scrollState = state
                     handleFrames(liveAnchorFrames.value)
-                    guard currentPageIndex == model.pageIndex, let onScrollFraction else { return }
+                    guard isActive, let onScrollFraction else { return }
                     let scrolled = max(0, topContentInset - state.minY)
                     let raw = ReaderProgressBars.scrollFraction(
                         contentHeight: state.contentHeight,
@@ -1528,7 +1620,7 @@ struct ReaderPageView: View {
                                                 arabicTitle: ReaderChapterLine.arabicTitle(
                                                     forChapterId: hadith.chapterId,
                                                     in: model.volumes,
-                                                    volumeId: model.selectedVolumeId
+                                                    volumeId: context.volume.volumeId
                                                 ),
                                                 arabicVisible: preferences.arabicVisible,
                                                 translationVisible: preferences.translationVisible
@@ -1536,7 +1628,7 @@ struct ReaderPageView: View {
                                             arabicTitle: ReaderChapterLine.arabicTitle(
                                                 forChapterId: hadith.chapterId,
                                                 in: model.volumes,
-                                                volumeId: model.selectedVolumeId
+                                                volumeId: context.volume.volumeId
                                             ),
                                             arabicVisible: preferences.arabicVisible,
                                             palette: palette
@@ -1553,7 +1645,11 @@ struct ReaderPageView: View {
 
                             ReaderVolumePills(
                                 policy: ReaderPagingPolicy(preferences: preferences),
-                                state: model.pillState,
+                                state: ReaderPagePills.state(pageIndex: context.index,
+                                    hasPreviousPage: context.index > 0,
+                                    hasNextPage: context.index + 1 < context.payload.totalPages,
+                                    atLoadedPage: true, volumes: model.volumes,
+                                    selectedVolumeId: context.volume.volumeId),
                                 palette: palette,
                                 onFollow: { model.followPill($0) },
                                 arabicVisible: preferences.arabicVisible,
@@ -1597,7 +1693,7 @@ struct ReaderPageView: View {
                 }
                 .onAppear {
                     if !initializedLanding {
-                        initialLanding = model.recentLandingForPage(currentPageIndex)
+                        initialLanding = isActive ? (model.recentLandingForPage(currentPageIndex) ?? context.landing) : context.landing
                         initializedLanding = true
                     }
                     handleFrames(liveAnchorFrames.value)
@@ -1607,12 +1703,12 @@ struct ReaderPageView: View {
                     handleFrames(liveAnchorFrames.value)
                 }
                 .onChange(of: verticalLanding?.id) { _, _ in handleFrames(liveAnchorFrames.value) }
-                .onChange(of: currentPageIndex == model.pageIndex) { _, _ in handleFrames(liveAnchorFrames.value) }
+                .onChange(of: isActive) { _, _ in handleFrames(liveAnchorFrames.value) }
                 .onChange(of: layout) { _, _ in
                     DispatchQueue.main.async { handleFrames(liveAnchorFrames.value) }
                 }
                 .modifier(ReaderScrollActivityModifier(onActivityChanged: { active in
-                    guard !active || currentPageIndex == model.pageIndex else { return }
+                    guard isActive else { return }
                     model.setViewportActive(active, id: viewportMotionID)
                 }))
 
@@ -1627,8 +1723,11 @@ struct ReaderPageView: View {
         .accessibilityIdentifier("reader.page")
 #if DEBUG
         .overlay(alignment: .bottomLeading) {
-            if ProcessInfo.processInfo.environment["PAGING_RECENT"] == "1", currentPageIndex == model.pageIndex {
+            if ProcessInfo.processInfo.environment["PAGING_RECENT"] == "1", isActive {
                 Text(debugViewport).font(.caption2).accessibilityIdentifier("paging.viewport").allowsHitTesting(false)
+            }
+            if ProcessInfo.processInfo.environment["PAGING_CONTINUE"] == "1", isActive {
+                Text(debugContinueViewport).font(.caption2).accessibilityIdentifier("paging.continueViewport").allowsHitTesting(false)
             }
         }
 #endif
@@ -3418,8 +3517,10 @@ struct ReaderR6ATestFixtureView: View {
                 if productionFixtureReady { ReaderView.fixture(model: model) }
                 else { Color.clear.task { model.seedPagesForUITest(cachedPages(for: selectedVolumeId)); productionFixtureReady = true } }
             } else if ProcessInfo.processInfo.environment["PAGING_RENDER"] != nil {
-                ReaderPageView(model: model, hadiths: currentHadiths, arabicFontSize: 26, preferences: preferences,
-                    verticalLanding: nil, currentPageIndex: 0, pageCount: 2, topContentInset: 74,
+                ReaderPageView(model: model, context: .init(volume: selectedVolume, volumeNumber: volumes.firstIndex(where: { $0.volumeId == selectedVolumeId }).map { $0 + 1 }, index: 0,
+                    payload: ReaderPageResult(items: currentHadiths, page: 1, pageSize: currentHadiths.count, totalPages: 2, hasMore: true, contentVersion: nil, paginationVersion: nil, pageKey: nil),
+                    range: nil, landing: nil, generation: model.pageGeneration, storeGeneration: 0), arabicFontSize: 26, preferences: preferences,
+                    topContentInset: 74,
                     palette: palette, onTurn: { _ in }, onTap: {}, onShowPaywall: {})
             } else if loadingVolumeId != nil {
                 ArticleLoadingView(title: "Loading page")
@@ -3611,6 +3712,16 @@ struct ChromeCopyAuditFixture: View {
 #endif
 
 #if DEBUG
+private struct ReaderOfflineFixtureTransport: OfflineDownloadTransport {
+    let bytes: Data
+    func download(from url: URL, resumingFrom offset: Int64, progress: @Sendable @escaping (Double) -> Void) async throws -> Data {
+        progress(1)
+        return bytes
+    }
+    func cancel() async {}
+    func lastStatusCode() async -> Int { 200 }
+}
+
 @MainActor
 struct ContentsNavigationFixture: View {
     @Environment(AppEnvironment.self) private var environment
@@ -3621,15 +3732,46 @@ struct ContentsNavigationFixture: View {
     @State private var releaseTarget: (() -> Void)?
     @State private var requests = ""
     @State private var readerRevision = 0
+    @State private var edgeReady = false
+    @State private var offlineReady = false
+    @State private var continuePosition: ReadingPosition?
+    @State private var continueDiagnostic = "idle"
+    @State private var continueClosed = "unclosed"
+    @State private var continueStoreURL: URL?
+    @State private var edgeStore: ReaderPageContentStore?
+    @State private var fixtureOfflineStore: OfflineStore?
 
     init() {
         let convex = ConvexClientWithAuth(deploymentUrl: "https://example.invalid", authProvider: ClerkConvexAuthProvider())
-        let library = UserLibraryModel(guestData: GuestDataStore(inMemory: true))
+        let isContinueFixture = ProcessInfo.processInfo.environment["PAGING_CONTINUE"] == "1"
+        let storeURL = isContinueFixture ? FileManager.default.temporaryDirectory.appendingPathComponent("reader-continue-\(UUID().uuidString).sqlite") : nil
+        _continueStoreURL = State(initialValue: storeURL)
+        let library = UserLibraryModel(guestData: GuestDataStore(inMemory: !isContinueFixture, storeURL: storeURL))
         library.refresh()
-        let model = ReaderModel(convex: convex, collectionSlug: "bukhari", collectionName: "Original %@ مصدر", language: "en", isSignedIn: { false }, library: library)
+        let isEdgeFixture = ProcessInfo.processInfo.environment["PAGING_EDGES"] == "1"
+        let isOfflineFixture = ProcessInfo.processInfo.environment["PAGING_OFFLINE"] == "1"
+        _fixtureOfflineStore = State(initialValue: isOfflineFixture ? Self.makeOfflineStore() : nil)
+        let store: ReaderPageContentStore? = isEdgeFixture ? ReaderPageContentStore { request in
+            Self.edgePage(volume: request.volume, index: request.index)
+        } : nil
+        _edgeStore = State(initialValue: store)
+        let model = ReaderModel(convex: convex, collectionSlug: "bukhari", collectionName: "Original %@ مصدر", language: "en", isSignedIn: { false }, library: library, pageStore: store)
         _library = State(initialValue: library)
-        model.seedForUITest(volumes: [OutlineVolume(volumeId: "1", title: "Original %@ مصدر", hadithCount: 100)], selectedVolumeId: "1")
-        if ProcessInfo.processInfo.environment["PAGING_RECENT"] == "1" {
+        if isContinueFixture {
+            model.seedForUITest(volumes: [OutlineVolume(volumeId: "1", title: "Continue volume", hadithCount: 11)], selectedVolumeId: "1")
+            model.seedPagesForUITest([Self.continuePage()])
+        } else if isOfflineFixture {
+            model.seedForUITest(volumes: [OutlineVolume(volumeId: "2", title: "Offline volume", hadithCount: 11)], selectedVolumeId: "2")
+        } else if isEdgeFixture {
+            model.seedForUITest(volumes: (1...3).map { OutlineVolume(volumeId: String($0), title: "Volume \($0)", hadithCount: 2) }, selectedVolumeId: "2")
+            model.seedPagesForUITest([Self.edgePage(volume: "2", index: 0), Self.edgePage(volume: "2", index: 1)])
+            model.pageIndex = 1
+        } else {
+            model.seedForUITest(volumes: [OutlineVolume(volumeId: "1", title: "Original %@ مصدر", hadithCount: 100)], selectedVolumeId: "1")
+        }
+        if isEdgeFixture || isOfflineFixture || isContinueFixture {
+            // The task below prepares the selected fixture before enabling it.
+        } else if ProcessInfo.processInfo.environment["PAGING_RECENT"] == "1" {
             let fixturePages = (1...3).map { number in
                 let base = Self.page(String(number))
                 let original = base.items[0]
@@ -3644,6 +3786,9 @@ struct ContentsNavigationFixture: View {
                     contentVersion: "cv1:paging", paginationVersion: 1, pageKey: "pg1:paging\(number)")
             }
             model.seedPagesForUITest(ProcessInfo.processInfo.environment["PAGING_PENDING"] == "1" ? [fixturePages[0]] : fixturePages)
+            if ProcessInfo.processInfo.environment["PAGING_TRANSLATION_GROWTH"] == "1" {
+                model.seedQ1TranslationForUITest(id: Self.page("1").items[0].internalId, state: .loaded(Self.growthTranslation(long: false)), allowance: nil)
+            }
         } else if ProcessInfo.processInfo.environment["A5_CONTROLS_ONLY"] == "1" {
             model.seedPagesForUITest([Self.page("1"), Self.page("2"), Self.page("57")])
             model.pageIndex = 2
@@ -3654,13 +3799,125 @@ struct ContentsNavigationFixture: View {
         _model = State(initialValue: model)
     }
 
+    static func continuePage() -> ReaderPageResult {
+        let tall = ProcessInfo.processInfo.environment["PAGING_CONTINUE_TALL"] == "1"
+        let rows = (1...11).map { number in
+            let original = page(String(number)).items[0]
+            return ReaderHadith(_id: original.internalId, provider: original.provider, canonicalId: original.canonicalId,
+                providerHadithId: original.providerHadithId, collectionSlug: original.collectionSlug, volumeId: "1", chapterId: nil,
+                arabicText: number == 1 && tall ? String(repeating: "نص عربي طويل ", count: 140) : "نص عربي \(number)",
+                englishText: "Continue fixture translation \(number).", narrator: nil, referenceDisplay: "Bukhari \(number)",
+                collectionName: original.collectionName, chapterName: nil, authenticity: original.authenticity)
+        }
+        return ReaderPageResult(items: rows, page: 1, pageSize: rows.count, totalPages: 1, hasMore: false,
+            contentVersion: "cv1:continue", paginationVersion: 1, pageKey: "pg1:continue")
+    }
+
+    static func growthTranslation(long: Bool) -> ReaderTranslation {
+        ReaderTranslation(translationId: "fixture-growth", translation: long
+            ? String(repeating: "Expanded private translation. ", count: 80) : "Short private translation.",
+            confidence: nil, riskFlags: [], glossaryNotes: [], source: "official", sourceLabel: "Official",
+            aiModel: nil, groundingUsed: false, citations: [], sourceReferenceUrl: nil, cached: true)
+    }
+
+    static func makeOfflineStore() -> OfflineStore {
+        let version = String(repeating: "a", count: 64)
+        let license = """
+        {"sourceKey":"sunnah_now","sourceName":"Sunnah.now","sourceUrl":"https://sunnah.now", \
+        "terms":{"kind":"verified","licenseName":"Sunnah.now early-access data grant", \
+        "licenseUrl":"https://github.com/sunnah-now/database","permitsDisplay":true, \
+        "permitsRedistribution":false,"permitsOfflineDistribution":true,"verifiedAt":1700000000000}}
+        """
+        let rows = (1...11).map { number in
+            """
+            {"canonicalId":"sunnah_now:bukhari:\(number)","provider":"sunnah_now","collectionSlug":"bukhari", \
+            "providerHadithId":"\(number)","volumeId":"2","arabicText":"نص \(number)", \
+            "referenceDisplay":"Sahih al-Bukhari · Hadith \(number)","collectionName":"Sahih al-Bukhari", \
+            "authenticity":{"kind":"collection_scope","normalizedGrade":"sahih","claimScope":"collection", \
+            "sourceLabel":"Documented Sahih collection","sourceName":"Sunnah.now", \
+            "sourceUrl":"https://sunnah.now","verificationMethod":"manual_collection_mapping"}}
+            """
+        }.joined(separator: ",")
+        let bytes = Data("""
+            {"format":"hadithly-base-dump","schemaVersion":1,"collectionSlug":"bukhari", \
+            "collectionName":"Sahih al-Bukhari","contentVersion":"od1:\(version)", \
+            "generatedAt":1700000000000,"license":\(license),"hadiths":[\(rows)]}
+            """.utf8)
+        let manifestData = Data("""
+            {"format":"hadithly-offline-manifest","schemaVersion":1,"kind":"base","collectionSlug":"bukhari", \
+            "contentVersion":"od1:\(version)","byteSize":\(bytes.count), \
+            "sha256":"\(OfflineDumpValidation.sha256Hex(bytes))","minAppVersion":"0.1.0", \
+            "generatedAt":1700000000000,"license":\(license),"compatiblePacks":[], \
+            "downloadUrl":"https://example.invalid/bukhari.json"}
+            """.utf8)
+        let manifest = try! JSONDecoder().decode(OfflineManifest.self, from: manifestData)
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("reader-offline-fixture-\(UUID().uuidString)")
+        let store = OfflineStore(rootURL: root, transport: ReaderOfflineFixtureTransport(bytes: bytes), appVersion: "0.1.0",
+            manifestProvider: { _ in OfflineManifestsResponse(bases: [manifest], packs: []) })
+        store.noteManifests(bases: [manifest])
+        return store
+    }
+
+    static func edgePage(volume: String, index: Int) -> ReaderPageResult {
+        let number = "\(volume)0\(index + 1)"
+        let source = page(number).items[0]
+        let hadith = ReaderHadith(_id: "edge-" + number, provider: source.provider,
+            canonicalId: "sunnah_now:bukhari:" + number, providerHadithId: number,
+            collectionSlug: "bukhari", volumeId: volume, chapterId: nil,
+            arabicText: String(repeating: "نص تجريبي \(number) ", count: 25),
+            englishText: String(repeating: "Controlled page \(number). ", count: 20), narrator: nil,
+            referenceDisplay: "Bukhari \(number)", collectionName: source.collectionName,
+            chapterName: nil, authenticity: source.authenticity)
+        return ReaderPageResult(items: [hadith], page: index + 1, pageSize: 1, totalPages: 2,
+            hasMore: index == 0, contentVersion: "cv1:edge-\(volume)-\(index)", paginationVersion: 1,
+            pageKey: "pg1:edge-\(volume)-\(index)")
+    }
+
     static func page(_ number: String, more: Bool = false) -> ReaderPageResult {
         let hadith = ReaderHadith(_id: "fixture-" + number, provider: "sunnah_now", canonicalId: "sunnah_now:bukhari:" + number, providerHadithId: number, collectionSlug: "bukhari", volumeId: "1", chapterId: nil, arabicText: "نص تجريبي %@", englishText: "Controlled original %@ text " + number, narrator: nil, referenceDisplay: "Original %@ " + number, collectionName: "Original %@ مصدر", chapterName: nil, authenticity: ReaderAuthenticity(kind: "unknown", normalizedGrade: "unknown", claimScope: "hadith", sourceLabel: "Original %@", sourceName: "Fixture", sourceUrl: "", verificationMethod: "fixture"))
-        return ReaderPageResult(items: [hadith], page: number == "57" ? 3 : number == "2" ? 2 : 1, pageSize: 1, totalPages: 3, hasMore: more, contentVersion: nil, paginationVersion: nil, pageKey: nil)
+        return ReaderPageResult(items: [hadith], page: number == "57" ? 3 : number == "2" ? 2 : 1, pageSize: 1, totalPages: 3, hasMore: more, contentVersion: "cv1:contents-\(number)", paginationVersion: 1, pageKey: "pg1:contents-\(number)")
     }
 
     var body: some View {
-        if ProcessInfo.processInfo.environment["A5_CORE_SAVED"] == "1" {
+        if ProcessInfo.processInfo.environment["PAGING_CONTINUE"] == "1" {
+            Button("Continue fixture") {
+                guard let storeURL = continueStoreURL else { return }
+                let reopenedLibrary = UserLibraryModel(guestData: GuestDataStore(storeURL: storeURL))
+                reopenedLibrary.refresh()
+                if reopenedLibrary.progress(for: "bukhari")?.position == nil {
+                    let probe = GuestDataStore(storeURL: storeURL)
+                    let drafts = probe.progressDrafts()
+                    continueDiagnostic = "no-position closed=\(continueClosed) disk=\(drafts.count)|\(drafts.first { $0.collectionSlug == "bukhari" }?.position != nil)"
+                    return
+                }
+                guard let position = reopenedLibrary.progress(for: "bukhari")?.position else {
+                    continueDiagnostic = "no-position closed=\(continueClosed)"
+                    return
+                }
+                continueDiagnostic = String(format: "restored %.4f|%@|raw %.1f", position.normalizedOffset,
+                    position.anchor.providerHadithId, position.rawPageOffset)
+                continuePosition = position
+                library = reopenedLibrary
+                let convex = ConvexClientWithAuth(deploymentUrl: "https://example.invalid", authProvider: ClerkConvexAuthProvider())
+                let reopened = ReaderModel(convex: convex, collectionSlug: "bukhari", collectionName: "Bukhari",
+                    language: "en", isSignedIn: { false }, library: reopenedLibrary, openPosition: position, targetSource: .continueReading)
+                reopened.seedForUITest(volumes: [OutlineVolume(volumeId: "1", title: "Continue volume", hadithCount: 11)], selectedVolumeId: "1")
+                reopened.pageFetchForUITest = { _, _, _ in Self.continuePage() }
+                model = reopened
+                readerRevision += 1
+                showReader = true
+                Task { await reopened.startContinueForUITest() }
+            }.accessibilityIdentifier("paging.continue")
+            Text(verbatim: continueDiagnostic).accessibilityIdentifier("paging.continueDiagnostics")
+            .onChange(of: showReader) { _, shown in
+                guard !shown, continueDiagnostic == "idle", let storeURL = continueStoreURL else { return }
+                let probe = GuestDataStore(storeURL: storeURL)
+                let memory = library.progress(for: "bukhari")?.position
+                let disk = probe.progressDrafts().first { $0.collectionSlug == "bukhari" }
+                continueDiagnostic = "closed mem:\(memory != nil) disk:\(disk?.position != nil)" + (memory.map { String(format: " fraction %.4f raw %.1f", $0.normalizedOffset, $0.rawPageOffset) } ?? "")
+            }
+                .fullScreenCover(isPresented: $showReader) { reader }
+        } else if ProcessInfo.processInfo.environment["A5_CORE_SAVED"] == "1" {
             ReaderSavedShortcutSheet(onOpen: { ref in
                 model.jumpToHadith(volumeId: ref.volumeId, hadithNumber: ref.hadithNumber ?? "57")
                 showReader = true
@@ -3687,9 +3944,21 @@ struct ContentsNavigationFixture: View {
                         Button("Recreate reader") { readerRevision += 1 }.accessibilityIdentifier("paging.recreate")
                         Button("Larger text") { environment.preferences.setArabicFontSize(40); environment.preferences.setTranslationFontSize(22) }
                             .accessibilityIdentifier("paging.grow")
+                        if ProcessInfo.processInfo.environment["PAGING_TRANSLATION_GROWTH"] == "1" {
+                            Button("Expand translation") {
+                                model.seedQ1TranslationForUITest(id: Self.page("1").items[0].internalId, state: .loaded(Self.growthTranslation(long: true)), allowance: nil)
+                            }.accessibilityIdentifier("paging.expandTranslation")
+                        }
+                    }
+                    if let position = continuePosition {
+                        Text("\(position.anchor.providerHadithId)|\(position.normalizedOffset)|\(position.rawPageOffset)|\(position.layoutSignature)")
+                            .accessibilityIdentifier("paging.persisted")
                     }
                     Text(String(model.pageIndex)).accessibilityIdentifier("paging.page")
-                    Text(model.verticalLanding == nil ? "ready" : "landing").accessibilityIdentifier("paging.ready")
+                    Text((edgeStore == nil || edgeReady) && (fixtureOfflineStore == nil || offlineReady) && model.verticalLanding == nil ? "ready" : "landing").accessibilityIdentifier("paging.ready")
+                    if edgeStore != nil || fixtureOfflineStore != nil {
+                        Text("\(model.selectedVolumeId ?? "-"):\(model.pageIndex)").accessibilityIdentifier("paging.location")
+                    }
                     Text(requests).accessibilityIdentifier("a5.requests")
                     if ProcessInfo.processInfo.environment["A5_CORE_SAVED"] == "1" {
                         Text(verbatim: "b:\(library.bookmarks.count)|f:\(library.favorites.count)|n:\(library.notes.count)|rows:\(library.savedItems.count)|note:\(library.notes.first?.noteContent ?? "")").accessibilityIdentifier("a5.savedState")
@@ -3706,6 +3975,49 @@ struct ContentsNavigationFixture: View {
                 }.font(.caption2).dynamicTypeSize(.large).padding(.bottom, 160)
             }
             .task {
+                if ProcessInfo.processInfo.environment["PAGING_CONTINUE"] == "1" {
+                    environment.preferences.setReadingDirection(.ltr)
+                    environment.preferences.setTranslationLocale("en")
+                    return
+                }
+                if let fixtureOfflineStore {
+                    environment.preferences.setReadingDirection(.ltr)
+                    model.pageFetchForUITest = { _, _, _ in
+                        requests += "|live-fetch"
+                        throw OfflineFetchTimeout.timedOut
+                    }
+                    guard fixtureOfflineStore.enqueue(slug: "bukhari", kind: "base", locale: nil) == .started else { return }
+                    for _ in 0..<200 where fixtureOfflineStore.registry.record(for: "bukhari").activeBase == nil {
+                        try? await Task.sleep(for: .milliseconds(10))
+                    }
+                    guard let first = fixtureOfflineStore.offlinePage(slug: "bukhari", volumeId: "2", page: 0, locale: nil),
+                          first.totalPages == 2 else { return }
+                    model.offlineStore = fixtureOfflineStore
+                    model.seedPagesForUITest([first])
+                    offlineReady = true
+                    return
+                }
+                if let edgeStore {
+                    model.navigationTraceForUITest = { event in
+                        requests += "|" + event
+                        guard event == "drag-start", ProcessInfo.processInfo.environment["PAGING_EDGES_INTERRUPT"] == "1" else { return }
+                        Task { @MainActor in
+                            try? await Task.sleep(for: .milliseconds(100))
+                            model.selectVolume("3")
+                            requests += "|interrupt-select"
+                        }
+                    }
+                    let rtl = ProcessInfo.processInfo.environment["PAGING_EDGES_RTL"] == "1"
+                    environment.preferences.setReadingDirection(rtl ? .rtl : .ltr)
+                    environment.preferences.setTranslationLocale("en")
+                    for volume in ["1", "2", "3"] {
+                        for index in 0...1 {
+                            _ = try? await edgeStore.load(.init(collection: "bukhari", volume: volume, index: index))
+                        }
+                    }
+                    edgeReady = true
+                    return
+                }
                 if ProcessInfo.processInfo.environment["PAGING_RECENT"] == "1" {
                     environment.preferences.setReadingDirection(.ltr)
                     environment.preferences.setTranslationLocale("en")

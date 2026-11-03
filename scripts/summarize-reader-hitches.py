@@ -15,12 +15,24 @@ def summarize(path, duration_seconds):
         return definitions[element.get('ref')] if element.get('ref') else element
 
     intervals = []
+    unattributed = 0
+    outside_window = 0
+    window_end = int(duration_seconds * 1e9)
     for row in root.findall('.//row'):
-        if not resolve(row.find('process')).get('fmt', '').startswith('Hadithly ('):
+        process = row.find('process')
+        if process is None:
+            unattributed += 1
+            continue
+        if not resolve(process).get('fmt', '').startswith('Hadithly ('):
             continue
         start = int(resolve(row.find('start-time')).text)
         duration = int(resolve(row.find('duration')).text)
-        intervals.append((start, start + duration))
+        end = min(window_end, start + duration)
+        start = max(0, start)
+        if end <= start:
+            outside_window += 1
+            continue
+        intervals.append((start, end))
     merged = []
     for start, end in sorted(intervals):
         if merged and start <= merged[-1][1]:
@@ -32,6 +44,8 @@ def summarize(path, duration_seconds):
     return {
         'trace_duration_seconds': duration_seconds,
         'app_hitches': len(intervals),
+        'unattributed_hitch_rows': unattributed,
+        'app_hitches_outside_window': outside_window,
         'hitch_interval_union_ms': total_ms,
         'hitch_interval_ratio': total_ms / (duration_seconds * 1000),
         'median_hitch_ms': statistics.median(durations) if durations else None,

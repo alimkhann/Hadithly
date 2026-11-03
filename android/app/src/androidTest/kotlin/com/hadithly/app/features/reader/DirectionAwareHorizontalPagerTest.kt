@@ -10,6 +10,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
@@ -29,6 +31,9 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 
@@ -58,6 +63,158 @@ class DirectionAwareHorizontalPagerTest {
         }
         compose.waitForIdle()
         compose.onNodeWithTag("page-0").assertIsDisplayed()
+    }
+
+    @Test fun missingPageDragKeepsCurrentContentAndSignalsOnRelease() {
+        lateinit var pager: PagerState
+        var requested: Int? = null
+        compose.setContent {
+            pager = rememberPagerState(initialPage = 1, pageCount = { 3 })
+            DirectionAwareHorizontalPager(
+                state = pager, policy = ReaderPagingPolicy(PageDirection.LTR),
+                isMissingPage = { it == 2 }, onMissingPage = { requested = it },
+                modifier = Modifier.fillMaxSize().testTag("pager"),
+            ) { page -> TestPage(page, longContent = false) }
+        }
+        compose.onNodeWithTag("pager").performTouchInput { down(centerRight); moveTo(centerLeft, delayMillis = 250) }
+        compose.runOnIdle {
+            assertEquals(1, pager.currentPage)
+            assertEquals(0f, pager.currentPageOffsetFraction, .001f)
+            assertEquals(null, requested)
+        }
+        compose.onNodeWithTag("pager").performTouchInput { up() }
+        compose.waitForIdle()
+        compose.runOnIdle {
+            assertEquals(1, pager.settledPage)
+            assertEquals(2, requested)
+        }
+    }
+
+    @Test fun reverseFromLoadedTowardMissingStopsAtCenter() {
+        lateinit var pager: PagerState
+        var requested: Int? = null
+        compose.setContent {
+            pager = rememberPagerState(initialPage = 1, pageCount = { 3 })
+            DirectionAwareHorizontalPager(
+                state = pager, policy = ReaderPagingPolicy(PageDirection.LTR),
+                isMissingPage = { it == 0 }, onMissingPage = { requested = it },
+                modifier = Modifier.fillMaxSize().testTag("pager"),
+            ) { page -> TestPage(page, longContent = false) }
+        }
+        compose.onNodeWithTag("pager").performTouchInput {
+            down(center); moveTo(Offset(center.x - width * .3f, center.y), delayMillis = 200)
+            moveTo(Offset(center.x + width * .3f, center.y), delayMillis = 400)
+        }
+        compose.runOnIdle {
+            assertEquals(1, pager.currentPage)
+            assertTrue("Pager crossed into missing page: ${pager.currentPageOffsetFraction}", pager.currentPageOffsetFraction >= -.005f)
+            assertNull(requested)
+        }
+        compose.onNodeWithTag("page-0").assertIsNotDisplayed()
+        compose.onNodeWithTag("pager").performTouchInput { up() }
+        compose.waitForIdle()
+        compose.runOnIdle { assertEquals(0, requested); assertEquals(1, pager.settledPage) }
+    }
+
+    @Test fun reverseFromMissingDoesNotRequestOriginalDirection() {
+        var requested: Int? = null
+        compose.setContent {
+            val pager = rememberPagerState(initialPage = 1, pageCount = { 3 })
+            DirectionAwareHorizontalPager(
+                state = pager, policy = ReaderPagingPolicy(PageDirection.LTR),
+                isMissingPage = { it == 0 }, onMissingPage = { requested = it },
+                modifier = Modifier.fillMaxSize().testTag("pager"),
+            ) { page -> TestPage(page, longContent = false) }
+        }
+        compose.onNodeWithTag("pager").performTouchInput {
+            down(center); moveTo(Offset(center.x + width * .3f, center.y), delayMillis = 200)
+            moveTo(Offset(center.x - width * .3f, center.y), delayMillis = 400); up()
+        }
+        compose.waitForIdle()
+        compose.runOnIdle { assertNull(requested) }
+    }
+
+    @Test fun missingDragRejectsInvalidatedOriginOnRelease() {
+        var originValid = true
+        var requested: Int? = null
+        compose.setContent {
+            val pager = rememberPagerState(initialPage = 1, pageCount = { 3 })
+            DirectionAwareHorizontalPager(
+                state = pager, policy = ReaderPagingPolicy(PageDirection.LTR),
+                isMissingPage = { it == 2 }, onMissingPage = { requested = it },
+                captureGestureValidity = { { originValid } },
+                modifier = Modifier.fillMaxSize().testTag("pager"),
+            ) { page -> TestPage(page, longContent = false) }
+        }
+        compose.onNodeWithTag("pager").performTouchInput { down(centerRight); moveTo(centerLeft, delayMillis = 250) }
+        compose.runOnIdle { originValid = false }
+        compose.onNodeWithTag("pager").performTouchInput { up() }
+        compose.waitForIdle()
+        compose.runOnIdle { assertNull(requested) }
+    }
+
+    @Test fun shortSlowSwipeNativePagerBaseline() = shortSlowSwipeBaseline(false, false)
+    @Test fun shortSlowSwipeNativePagerAfterRejectedEdge() = shortSlowSwipeBaseline(true, false)
+    @Test fun shortSlowSwipeAfterRejectedEdgeAndRecenter() = shortSlowSwipeBaseline(true, true)
+
+    private fun shortSlowSwipeBaseline(edgeFirst: Boolean, recenter: Boolean) {
+        lateinit var pager: PagerState
+        compose.setContent {
+            pager = rememberPagerState(initialPage = 1, pageCount = { 3 })
+            DirectionAwareHorizontalPager(
+                state = pager, policy = ReaderPagingPolicy(PageDirection.LTR),
+                isMissingPage = { it == 0 }, onMissingPage = {},
+                modifier = Modifier.fillMaxSize().testTag("pager"),
+            ) { page -> TestPage(page, longContent = false) }
+        }
+        if (edgeFirst) {
+            compose.onNodeWithTag("pager").performTouchInput {
+                swipe(start = centerLeft, end = centerRight, durationMillis = 400)
+            }
+            compose.waitForIdle()
+            compose.runOnIdle {
+                android.util.Log.i("HadithlyPagingProof", "rejected-edge current=${pager.currentPage} settled=${pager.settledPage} target=${pager.targetPage} offset=${pager.currentPageOffsetFraction} scrolling=${pager.isScrollInProgress}")
+                assertEquals(1, pager.settledPage)
+                if (recenter) pager.requestScrollToPage(1) else {
+                    assertEquals(1, pager.currentPage)
+                    assertEquals(1, pager.targetPage)
+                    assertEquals(0f, pager.currentPageOffsetFraction, .001f)
+                    assertFalse(pager.isScrollInProgress)
+                }
+            }
+            if (recenter) compose.waitForIdle()
+        }
+        compose.onNodeWithTag("pager").performTouchInput {
+            swipe(start = center, end = Offset(center.x - width * .04f, center.y), durationMillis = 350)
+        }
+        compose.waitForIdle()
+        compose.runOnIdle {
+            android.util.Log.i("HadithlyPagingProof", "after-short current=${pager.currentPage} settled=${pager.settledPage} target=${pager.targetPage} offset=${pager.currentPageOffsetFraction} scrolling=${pager.isScrollInProgress} recenter=$recenter")
+            assertEquals(1, pager.settledPage)
+        }
+    }
+
+    @Test fun shortSlowSwipeAfterNativePagerBoundary() {
+        lateinit var pager: PagerState
+        compose.setContent {
+            pager = rememberPagerState(initialPage = 0, pageCount = { 2 })
+            DirectionAwareHorizontalPager(
+                state = pager, policy = ReaderPagingPolicy(PageDirection.LTR),
+                modifier = Modifier.fillMaxSize().testTag("pager"),
+            ) { page -> TestPage(page, longContent = false) }
+        }
+        compose.onNodeWithTag("pager").performTouchInput { swipe(start = centerLeft, end = centerRight, durationMillis = 400) }
+        compose.waitForIdle()
+        compose.runOnIdle {
+            android.util.Log.i("HadithlyPagingProof", "native-edge current=${pager.currentPage} settled=${pager.settledPage} target=${pager.targetPage} offset=${pager.currentPageOffsetFraction} scrolling=${pager.isScrollInProgress}")
+            assertEquals(0, pager.settledPage)
+            assertEquals(0f, pager.currentPageOffsetFraction, .001f)
+        }
+        compose.onNodeWithTag("pager").performTouchInput {
+            swipe(start = center, end = Offset(center.x - width * .04f, center.y), durationMillis = 350)
+        }
+        compose.waitForIdle()
+        compose.runOnIdle { assertEquals(0, pager.settledPage) }
     }
 
     @Test

@@ -21,6 +21,10 @@ import org.junit.Test
 
 class ReaderPageReuseTest {
     @get:Rule val compose = createComposeRule()
+    private val noTranslationReads = ReaderTranslationReads(
+        defaults = { _, _ -> emptyList() },
+        publications = { kotlinx.coroutines.flow.flow { kotlinx.coroutines.awaitCancellation() } },
+    )
 
     @Test fun adjacentWarmAndForegroundShareRequest() {
         val app = ApplicationProvider.getApplicationContext<HadithlyApplication>()
@@ -33,7 +37,7 @@ class ReaderPageReuseTest {
         lateinit var model: ReaderViewModel
         try {
             compose.runOnUiThread {
-                model = ReaderViewModel(app, "bukhari", null, null, null, ReaderTargetSource.COLLECTION,
+                model = ReaderViewModel(app, "bukhari", null, null, null, ReaderTargetSource.COLLECTION, translationReads = noTranslationReads,
                     library = library,
                     outlineLoader = { CollectionOutlineResult(listOf(OutlineVolume("1", "One"), OutlineVolume("2", "Two"))) },
                     pageLoader = { volume, index, _ ->
@@ -161,7 +165,7 @@ class ReaderPageReuseTest {
         lateinit var model: ReaderViewModel
         try {
             compose.runOnUiThread {
-                model = ReaderViewModel(app, "bukhari", null, null, null, ReaderTargetSource.COLLECTION, library = library,
+                model = ReaderViewModel(app, "bukhari", null, null, null, ReaderTargetSource.COLLECTION, translationReads = noTranslationReads, library = library,
                     outlineLoader = { CollectionOutlineResult(listOf(OutlineVolume("1", "One"), OutlineVolume("2", "Two"))) },
                     pageLoader = { volume, index, _ ->
                         if (volume == "2" && index == 4) { edgeCalls++; edgeGate.await() }
@@ -197,7 +201,7 @@ class ReaderPageReuseTest {
         lateinit var model: ReaderViewModel
         try {
             compose.runOnUiThread {
-                model = ReaderViewModel(app, "bukhari", null, null, null, ReaderTargetSource.COLLECTION,
+                model = ReaderViewModel(app, "bukhari", null, null, null, ReaderTargetSource.COLLECTION, translationReads = noTranslationReads,
                     library = UserLibraryModel(GuestDataStore(context), scope),
                     outlineLoader = { CollectionOutlineResult(listOf(OutlineVolume("1", "One"))) },
                     pageLoader = { volume, index, target ->
@@ -236,7 +240,7 @@ class ReaderPageReuseTest {
             compose.runOnUiThread {
                 app.preferences.adoptServer(original.copy(uiLocale = "en", translationLocale = "en", arabicVisible = true,
                     translationVisible = true, readingDirection = com.hadithly.app.core.preferences.ReadingDirection.LTR, updatedAt = original.updatedAt + 1))
-                model = ReaderViewModel(app, "bukhari", null, null, null, ReaderTargetSource.COLLECTION, library = library,
+                model = ReaderViewModel(app, "bukhari", null, null, null, ReaderTargetSource.COLLECTION, translationReads = noTranslationReads, library = library,
                     outlineLoader = { CollectionOutlineResult(listOf(OutlineVolume("2", "Fixture", hadithCount = 60.0))) },
                     pageLoader = { _, index, _ ->
                         requests.add(index)
@@ -291,7 +295,7 @@ class ReaderPageReuseTest {
         lateinit var model: ReaderViewModel
         try {
             compose.runOnUiThread {
-                model = ReaderViewModel(app, "bukhari", null, null, null, ReaderTargetSource.COLLECTION, library = library,
+                model = ReaderViewModel(app, "bukhari", null, null, null, ReaderTargetSource.COLLECTION, translationReads = noTranslationReads, library = library,
                     outlineLoader = { CollectionOutlineResult(listOf(OutlineVolume("1", "One"), OutlineVolume("2", "Two"))) }, pageStore = store)
             }
             compose.waitUntil(10_000) { model.state.value.pages.size >= 2 && !model.state.value.isLoadingPage }

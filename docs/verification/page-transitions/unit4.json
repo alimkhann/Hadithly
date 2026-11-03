@@ -1,0 +1,124 @@
+{
+  "unit": 4,
+  "status": "Native paging scope verified; original program gates unchanged",
+  "date": "2026-11-03",
+  "binarySHA256": "f2f4c2dd335f5cf4d6aaaff146d446c3459c9f69f5be4a23d5145339267a3484",
+  "verification": {
+    "iosCore": "unit4-ios-prototype-native3:30 pass,22 model/store/offline and8 ReaderView cases",
+    "iosSurrounding": "6 pass in unit4-ios-surrounding-native; Contents setup corrected then passes in unit4-ios-position-growth-native",
+    "iosFinalLanding": "unit4-ios-closeout-landing:Continue short/tall, private growth and reflow pass; shorthand swipe canceled, then actual controlled return and both edges pass in unit4-ios-final-turns (3/3)",
+    "iosPhysicalContinue": "unit4-final-continue-verified:actual Today Continue replay passes strict3pt position check",
+    "androidCore": "47-case Reduced Motion,29-case ordinary animations,39-case continuation reader/cache/position runs pass in their recorded scopes",
+    "androidPrivate": "Continue, delayed private growth and inactive revocation pass in unit4-android-private-native;2 Contents/Saved fixtures repaired and pass unit4-android-contents-closeout2",
+    "androidFinalRecenter": "recorded cached-edge replay and2 RTL/explicit-selection regressions pass after atomic mapping/recenter repair",
+    "summaryToolTests": 3
+  },
+  "physicalFrames": {
+    "iosVideo": "unit4-after-edges.mov",
+    "iosSHA256": "b522da4f866dea6e05fbc311c40418685f9973e747c874a7d939c9d4c6f53bf1",
+    "iosInspectedConsecutiveLandingFrames": 87,
+    "iosScope": "Earlier Unit4 candidate da510; final semantic writer additionally proved by final native short/tall, reflow, edge/return and physical Continue tests",
+    "androidBefore": "unit4-android-edge-before-recenter.mp4",
+    "androidAfter": "unit4-android-edge-after-recenter.mp4",
+    "androidObservedBeforeFlashSeconds": 8.644,
+    "limits": "Decoded source frames, with capture cadence limitations; not native appFPS or universal absence-of-flash proof."
+  },
+  "horizontal": {
+    "scope": "Fixed75s physical warm same-volume four-turn trace including quiet and driver-start periods. Not isolated animation CPU, FPS or billed savings.",
+    "controlCommit": "8ef463a",
+    "controlBinarySHA256": "d67527ec9328f7ad9e9a4e95c742568684ab3b08460b27b443d81f92038430fa",
+    "control": {
+      "scope": "Fixed75s physical warm same-volume four-turn trace including quiet and driver-start periods. Not isolated animation CPU, FPS or billed savings.",
+      "coverage": {
+        "journeyExit": 0,
+        "captureStillRecordingAtJourneyEnd": true,
+        "scope": "Trace-ready notification before driver launch; no time-limit/end marker at driver completion. Native journey must independently prove four successful gestures."
+      },
+      "samples": 75,
+      "first": {
+        "seconds": 0.0,
+        "cpuSeconds": 13.185590541,
+        "memoryBytes": 162121808.0
+      },
+      "last": {
+        "seconds": 74.804818458,
+        "cpuSeconds": 18.964773957,
+        "memoryBytes": 161417296.0
+      },
+      "cpuDeltaSeconds": 5.779183415999999,
+      "hitches": {
+        "trace_duration_seconds": 75,
+        "app_hitches": 11,
+        "unattributed_hitch_rows": 1,
+        "app_hitches_outside_window": 0,
+        "hitch_interval_union_ms": 200.034081,
+        "hitch_interval_ratio": 0.00266712108,
+        "median_hitch_ms": 16.6695,
+        "p95_hitch_ms": 33.339,
+        "max_hitch_ms": 33.339,
+        "interpretation": "App-attributed hitch intervals, merged to avoid overlap. This is not an average display FPS measurement."
+      },
+      "traceSave": "Wrapper90s save wait expired after native time limit; SIGTERM during save completed trace. TOC/data exported successfully, recorded duration75.890885s."
+    },
+    "final": {
+      "scope": "Fixed75s physical warm same-volume four-turn trace including quiet and driver-start periods. Not isolated animation CPU, FPS or billed savings.",
+      "coverage": {
+        "journeyExit": 0,
+        "captureStillRecordingAtJourneyEnd": true,
+        "scope": "Trace-ready notification before driver launch; no time-limit/end marker at driver completion. Native journey must independently prove four successful gestures."
+      },
+      "samples": 75,
+      "first": {
+        "seconds": 0.0,
+        "cpuSeconds": 6.466443207,
+        "memoryBytes": 161548392.0
+      },
+      "last": {
+        "seconds": 74.467410625,
+        "cpuSeconds": 11.346758874,
+        "memoryBytes": 161876072.0
+      },
+      "cpuDeltaSeconds": 4.8803156670000005,
+      "hitches": {
+        "trace_duration_seconds": 75,
+        "app_hitches": 6,
+        "unattributed_hitch_rows": 4,
+        "app_hitches_outside_window": 0,
+        "hitch_interval_union_ms": 250.0425,
+        "hitch_interval_ratio": 0.0033339,
+        "median_hitch_ms": 33.339,
+        "p95_hitch_ms": 83.3475,
+        "max_hitch_ms": 83.3475,
+        "interpretation": "App-attributed hitch intervals, merged to avoid overlap. This is not an average display FPS measurement."
+      }
+    },
+    "interpretation": "One mixed pair. Fewer known hitches and lower CPU delta, greater known hitch duration and more unattributed rows. No overall smoothness/FPS/causal saving claim."
+  },
+  "vertical": {
+    "scope": "Same short Unit1 slow driver,3 iterations; final optimized iPhone build, profile enabled only for measurement and normal launch restored afterward",
+    "appHitchRatiosMsPerSecond": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "appHitchCounts": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "appCpuSeconds": [
+      5.459623,
+      5.369377,
+      5.494884
+    ],
+    "meanAppCpuSeconds": 5.441294666666667,
+    "clockSeconds": [
+      12.908692,
+      12.285601,
+      12.901772
+    ],
+    "limits": "Frame-count fields were zero. No new FPS or strict30-second below1ms/s acceptance claim; accepted vertical scope retained."
+  },
+  "review": "Independent narrow source review found no further consequential issue after final recenter/semantic repairs. Native evidence retained separately.",
+  "preservation": "13 incoming project/scheme/catalog/Python files preserved; no backend/cloud/schema/deployment/migration/paid-model/publication change; no push. All original gates unchanged."
+}

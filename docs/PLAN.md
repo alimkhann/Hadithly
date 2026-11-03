@@ -4,40 +4,53 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-## Active owner continuation: all paging units, November 2
+## Paging completion checkpoint, November 3
 
-The owner expanded this chat from Unit 1 to all four units in
-[PAGE_TRANSITION_PLAN.md](PAGE_TRANSITION_PLAN.md), followed by an Android
-scrolling parity audit. Execute and commit the units in order without pushing.
-The older Unit 1 stop below is historical and no longer limits this chat.
-Unit 1 is verified on both native apps. It retains bounded recent positions,
-uses compatible viewport restoration and reanchors semantically when layout or
-text changes. The iPhone before/after captures resolve both observed jumps;
-the owner watched the installed repair and said, "no jerk, it was good."
-[PAGE_TRANSITION_VERIFICATION.md](PAGE_TRANSITION_VERIFICATION.md) records the
-native scopes, test results, source/build provenance, original-frame inspection,
-Android scrolling audit and bounded iPhone scrolling recheck. The reviewed signed
-build and exact tracked source archive remain outside the checkout for comparison.
-Unit 2 public content reuse and shared in-flight requests are also verified in
-[PAGE_TRANSITION_REUSE_VERIFICATION.md](PAGE_TRANSITION_REUSE_VERIFICATION.md).
-Resume/adjacent warming shares the bounded public store with foreground turns.
-A retained last page no longer requires fetching its evicted first page. Native
-request/cancellation/eviction regressions, the iPhone process-memory pair and an
-Android 68-turn rendered retention check pass in their recorded scopes. Two-page
-lookahead remains disabled. The owner additionally reports horizontal swipes feel
-laggier than vertical scrolling and repeated volume loading. Unit 3 now owns
-stable outgoing content while targets load; Unit 4 must inspect/profile horizontal
-tracking and settling. Do not infer turn smoothness from accepted vertical scrolls.
-Unit 3 stable pending turns are now verified in
-[PAGE_TRANSITION_PENDING_VERIFICATION.md](PAGE_TRANSITION_PENDING_VERIFICATION.md).
-Both apps retain readable committed content through loading/error/retry/cancel;
-source identity, explicit navigation and account fences pass native regressions.
-The physical volume-edge and original fresh-backward journeys remove the full
-loading-page handoff in sampled frames. Unit 4 remains active: prepare actual
-cached cross-volume previews for tracking, investigate unusual recorded frames,
-profile horizontal motion and close the full native matrix. Do not call the
-paging goal complete from the pending repair alone. Incoming project, scheme, catalog
-and Python cache bytes remain preserved. All original gates stay open.
+The owner expanded this chat to all four units in PAGE_TRANSITION_PLAN.md and an
+Android scrolling parity audit, then asked to wrap Unit 4. The paging scope is
+verified and committed without pushing. Units 1–3 are `8c544b7`, `fe0a74f` and
+`8ef463a`; the final Unit 4 implementation and evidence are the current session
+commit. Stop after this paging closeout.
+
+Unit 1 retains bounded recent positions and compatible native viewport snapshots,
+with semantic restoration when layout changes and explicit entry intent taking
+priority. Its physical repair received the owner's "no jerk, it was good"
+acceptance. Unit 2 reuses 28 public payloads with bounded renderer pins and four
+shared in-flight requests. Two-page lookahead stays disabled. Unit 3 retains
+readable committed content while pending targets load, fail, retry or cancel.
+See PAGE_TRANSITION_VERIFICATION.md, PAGE_TRANSITION_REUSE_VERIFICATION.md and
+PAGE_TRANSITION_PENDING_VERIFICATION.md for their original scopes.
+
+[PAGE_TRANSITION_MOTION_VERIFICATION.md](PAGE_TRANSITION_MOTION_VERIFICATION.md)
+and verification/page-transitions/unit4.json close Unit 4. Both apps carry the
+actual cached destination volume, content and landing through the swipe. Android's
+recorded recenter flash is repaired by changing mapping and center together. iOS
+Continue now preserves partial short and tall rows through its existing landing
+writer. Native edge/boundary, cancellation, explicit navigation, offline,
+recent/restored positions, reflow, translation growth/revocation, controls,
+RTL/large/Reduced Motion and accessibility-action checks pass in their recorded
+scopes. The final optimized iPhone build is installed and its real Today Continue
+replay passes. Android already had debounced saves and IO-backed storage; its
+vertical/diagonal native regressions pass without an iOS writer port.
+
+The physical four-edge recording has 87 consecutively inspected handoff frames.
+The final horizontal profile is one mixed 75-second pair: CPU and known hitch
+count fall, while known total hitch duration rises. No universal smoothness/FPS
+or causal saving claim is made. The short vertical recheck reports zero app
+hitches across three iterations. This preserves the accepted scrolling decision;
+the older strict below-1 target remains unachieved, not reopened or relabeled.
+
+Incoming project, schemes, catalog and Python cache bytes remain preserved.
+Preserve all original G01–G41, A1/A3/A4, A7/G38 deferral, E Linear/final audit,
+full physical/accessibility/language/release gates, A2 row mode off and completed
+Convex/A5/B/C/D work. The separate notification/translation-error investigation
+uses a sibling checkout; no backend or sibling-worktree changes belong here.
+No cloud, deployment, migration, paid-model, translation-pack or publication action
+was performed for paging. Leave the phone free for that separate investigation.
+
+Next separate task, when requested: measure collection/page opening latency using
+the shared content path. Sharing, functional pills, offline translation rights,
+Free–Pro/reliability and simulator cleanup retain their separate contracts.
 
 ## Prior checkpoint: page-transition discovery and plan, November 2
 
