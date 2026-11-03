@@ -202,6 +202,7 @@ export const exportCurrentUserData = query({
         generatedAt,
         account: null,
         readerPreferences: null,
+        notificationPreferences: null,
         savedFolders: [],
         savedItems: [],
         readingProgress: [],
@@ -272,6 +273,9 @@ export const exportCurrentUserData = query({
         retirements: syncRetirements.map(row => ({ clientKey: row.clientKey, sequence: row.sequence })) },
       readerPreferences:
         (user.readerPreferences as ReaderPreferences | undefined) ?? null,
+      notificationPreferences: user.dailyNotificationEnabled !== undefined && user.dailyNotificationTime !== undefined
+        ? { enabled: user.dailyNotificationEnabled, dailyTime: user.dailyNotificationTime }
+        : null,
       savedFolders: folders.map((folder) => ({
         name: folder.name,
         createdAt: folder.createdAt,
