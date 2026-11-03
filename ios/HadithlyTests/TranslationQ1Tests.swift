@@ -148,21 +148,72 @@ final class TranslationQ1Tests: XCTestCase {
         XCTAssertEqual(offline.retainedPageCount, 0)
     }
 
-    func testAccountChangeRestartsPendingLastVolumeEdge() async throws {
+    func testPendingTurnKeepsPageUntilSuccessAndAccountClearCancels() async throws {
         let reader = model()
         reader.seedForUITest(volumes: [OutlineVolume(volumeId: "1", title: "One", hadithCount: 5), OutlineVolume(volumeId: "2", title: "Two", hadithCount: 5)], selectedVolumeId: "1")
-        var firstCalls = 0
-        reader.pageFetchForUITest = { index, volume, _ in
-            if volume == "2", index == 0 { firstCalls += 1; try await Task.sleep(for: .milliseconds(100)) }
+        reader.seedPagesForUITest([reusePage(0)])
+        var releases: [CheckedContinuation<ReaderPageResult, Never>] = []
+        reader.pageFetchForUITest = { index, _, _ in
+            await withCheckedContinuation { releases.append($0) }
+        }
+        reader.switchToVolume("2", edge: .first)
+        for _ in 0..<100 where releases.isEmpty { await Task.yield() }
+        XCTAssertEqual(reader.selectedVolumeId, "1")
+        XCTAssertEqual(reader.pageIndex, 0)
+        reader.clearRecentPositions(restartLoading: true)
+        releases.removeFirst().resume(returning: reusePage(0))
+        for _ in 0..<10 { await Task.yield() }
+        XCTAssertEqual(reader.selectedVolumeId, "1")
+        XCTAssertNil(reader.pendingTurn)
+        reader.switchToVolume("2", edge: .first)
+        for _ in 0..<100 where releases.isEmpty { await Task.yield() }
+        releases.removeFirst().resume(returning: reusePage(0))
+        for _ in 0..<100 where reader.selectedVolumeId != "2" { await Task.yield() }
+        XCTAssertEqual(reader.selectedVolumeId, "2")
+        XCTAssertNil(reader.pendingTurn)
+        reader.stop()
+    }
+
+    func testPendingTurnFailureRetryAndExplicitNavigationPriority() async throws {
+        let reader = model()
+        reader.seedForUITest(volumes: [OutlineVolume(volumeId: "1", title: "One", hadithCount: 5), OutlineVolume(volumeId: "2", title: "Two", hadithCount: 5)], selectedVolumeId: "1")
+        reader.seedPagesForUITest([reusePage(0)])
+        var fail = true
+        reader.pageFetchForUITest = { index, _, _ in
+            if fail { fail = false; throw OfflineFetchTimeout.timedOut }
             return self.reusePage(index)
         }
         reader.switchToVolume("2", edge: .last)
-        for _ in 0..<100 where firstCalls == 0 { await Task.yield() }
-        reader.clearRecentPositions(restartLoading: true)
-        for _ in 0..<100 where reader.pageIndex != 4 { try await Task.sleep(for: .milliseconds(10)) }
+        for _ in 0..<100 where reader.pendingTurn?.status != .failed { await Task.yield() }
+        XCTAssertEqual(reader.pendingTurn?.status, .failed)
+        XCTAssertEqual(reader.selectedVolumeId, "1")
+        reader.retryPendingTurn()
+        for _ in 0..<100 where reader.selectedVolumeId != "2" { await Task.yield() }
         XCTAssertEqual(reader.pageIndex, 4)
-        XCTAssertEqual(reader.currentPageHadiths.first?.providerHadithId, "5")
-        XCTAssertEqual(firstCalls, 2)
+        reader.requestTurn(.page("2", 2))
+        reader.selectVolume("2")
+        for _ in 0..<10 { await Task.yield() }
+        XCTAssertEqual(reader.pageIndex, 4)
+        XCTAssertNil(reader.pendingTurn)
+        reader.stop()
+    }
+
+    func testSupersededTurnCannotReplaceNewerTarget() async throws {
+        let reader = model()
+        reader.seedForUITest(volumes: [OutlineVolume(volumeId: "1", title: "One", hadithCount: 5), OutlineVolume(volumeId: "2", title: "Two", hadithCount: 5)], selectedVolumeId: "1")
+        reader.seedPagesForUITest([reusePage(0)])
+        var releases: [Int: CheckedContinuation<ReaderPageResult, Never>] = [:]
+        reader.pageFetchForUITest = { index, _, _ in await withCheckedContinuation { releases[index] = $0 } }
+        reader.requestTurn(.page("1", 1))
+        for _ in 0..<100 where releases[1] == nil { await Task.yield() }
+        reader.requestTurn(.page("1", 2))
+        for _ in 0..<100 where releases[2] == nil { await Task.yield() }
+        releases.removeValue(forKey: 2)?.resume(returning: reusePage(2))
+        for _ in 0..<100 where reader.pageIndex != 2 { await Task.yield() }
+        releases.removeValue(forKey: 1)?.resume(returning: reusePage(1))
+        for _ in 0..<10 { await Task.yield() }
+        XCTAssertEqual(reader.pageIndex, 2)
+        XCTAssertNil(reader.pendingTurn)
         reader.stop()
     }
 
@@ -206,6 +257,41 @@ final class TranslationQ1Tests: XCTestCase {
         for _ in 0..<100 where reader.pageIndex != 4 { try await Task.sleep(for: .milliseconds(10)) }
         XCTAssertEqual(reader.pageIndex, 4)
         XCTAssertFalse(calls.contains("2"), "A retained last page must not fetch an evicted first page just to learn the count")
+        reader.stop()
+    }
+
+    func testPendingTurnUsesResolvedOrdinalAndShrunkenPageCount() async throws {
+        let reader = model()
+        reader.seedForUITest(volumes: [OutlineVolume(volumeId: "2", title: "Two", hadithCount: 5)], selectedVolumeId: "2")
+        reader.seedPagesForUITest([reusePage(0), reusePage(1), reusePage(2)])
+        reader.pageFetchForUITest = { _, _, _ in
+            ReaderPageResult(items: self.reusePage(0).items, page: 1, pageSize: 1, totalPages: 1, hasMore: false,
+                contentVersion: "cv1:shrunk", paginationVersion: 2, pageKey: "pg2:shrunk")
+        }
+        reader.requestTurn(.page("2", 3))
+        for _ in 0..<100 where reader.pendingTurn != nil { try await Task.sleep(for: .milliseconds(10)) }
+        XCTAssertEqual(reader.pageIndex, 0)
+        XCTAssertEqual(reader.pages.count, 1)
+        XCTAssertEqual(reader.pages.first?.contentVersion, "cv1:shrunk")
+        XCTAssertFalse(reader.hasNextPage)
+        reader.stop()
+    }
+
+    func testAccountChangeReplaysOrdinaryExplicitPageLoad() async throws {
+        let reader = model()
+        reader.seedForUITest(volumes: [OutlineVolume(volumeId: "1", title: "One", hadithCount: 5), OutlineVolume(volumeId: "2", title: "Two", hadithCount: 5)], selectedVolumeId: "1")
+        var firstCalls = 0
+        reader.pageFetchForUITest = { index, volume, _ in
+            if volume == "2", index == 0 { firstCalls += 1; try await Task.sleep(for: .milliseconds(100)) }
+            return self.reusePage(index)
+        }
+        reader.selectVolume("2")
+        for _ in 0..<100 where firstCalls == 0 { await Task.yield() }
+        reader.clearRecentPositions(restartLoading: true)
+        for _ in 0..<100 where reader.currentPageHadiths.isEmpty { try await Task.sleep(for: .milliseconds(10)) }
+        XCTAssertEqual(reader.selectedVolumeId, "2")
+        XCTAssertEqual(reader.currentPageHadiths.first?.providerHadithId, "1")
+        XCTAssertEqual(firstCalls, 2)
         reader.stop()
     }
 

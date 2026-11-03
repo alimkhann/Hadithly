@@ -62,6 +62,7 @@ class ReaderViewModel(
         app.repository.getReaderPage(collectionSlug, volume, page, target)
     },
     pageStore: ReaderPageContentStore? = null,
+    private val offlineStore: com.hadithly.app.core.offline.OfflineStore = app.offline,
 ) : ViewModel() {
     private val pageStore = pageStore ?: ReaderPageContentStore { request ->
         pageLoader(request.volume, request.index, request.target)
@@ -119,10 +120,123 @@ class ReaderViewModel(
         val translations: Map<String, TranslationUiState> = emptyMap(),
         val translationAllowances: Map<String, com.hadithly.app.core.data.TranslationAllowance> = emptyMap(),
         val verticalLanding: ReaderVerticalLandingRequest? = null,
+        val pendingTurn: PendingTurn? = null,
     )
 
     private val _state = MutableStateFlow(ReaderState(language = app.preferences.preferences.value.translationLocale))
     val state: StateFlow<ReaderState> = _state
+
+    sealed interface TurnTarget {
+        data class Page(val volume: String, val index: Int) : TurnTarget
+        data class VolumeEdge(val volume: String, val edge: ReaderViewModel.VolumeEdge) : TurnTarget
+    }
+    enum class TurnStatus { LOADING, FAILED }
+    data class PendingTurn(val id: Int, val target: TurnTarget, val status: TurnStatus)
+    private data class ResolvedTurn(val volume: String, val index: Int, val page: ReaderPageResult)
+    private var turnGeneration = 0
+    private var turnJob: Job? = null
+
+    fun cancelPendingTurn() {
+        turnGeneration++
+        turnJob?.cancel()
+        turnJob = null
+        _state.update { it.copy(pendingTurn = null) }
+    }
+
+    fun retryPendingTurn() {
+        val target = _state.value.pendingTurn?.target ?: return
+        requestTurn(target)
+    }
+
+    fun requestTurn(target: TurnTarget) {
+        cancelPendingTurn()
+        val id = turnGeneration
+        _state.update { it.copy(pendingTurn = PendingTurn(id, target, TurnStatus.LOADING)) }
+        turnJob = viewModelScope.launch {
+            try {
+                val resolved = withTimeout(FETCH_TIMEOUT_MS) { resolveTurn(target) }
+                if (id != turnGeneration) return@launch
+                commitTurn(resolved)
+            } catch (_: CancellationException) {
+                if (id == turnGeneration && currentCoroutineContext().isActive) {
+                    _state.update { it.copy(pendingTurn = PendingTurn(id, target, TurnStatus.FAILED)) }
+                }
+            } catch (_: Exception) {
+                if (id == turnGeneration) _state.update { it.copy(pendingTurn = PendingTurn(id, target, TurnStatus.FAILED)) }
+            }
+        }
+    }
+
+    private suspend fun resolveTurn(target: TurnTarget): ResolvedTurn = when (target) {
+        is TurnTarget.Page -> {
+            val current = _state.value
+            val currentPage = current.pages.getOrNull(current.pageIndex)
+            if (current.selectedVolumeId == target.volume && currentPage?.isLegacyPage() == true) {
+                val page = offlineStore.offlinePage(collectionSlug, target.volume, target.index, current.language)
+                    ?: throw java.io.IOException("Offline page unavailable")
+                ResolvedTurn(target.volume, maxOf(0, page.pageNumber - 1), page)
+            } else {
+                val page = fetchPage(target.volume, target.index)
+                ResolvedTurn(target.volume, maxOf(0, page.pageNumber - 1), page)
+            }
+        }
+        is TurnTarget.VolumeEdge -> {
+            try {
+                val first = (if (target.edge == VolumeEdge.LAST) pageStore.peekLast(collectionSlug, target.volume) else null)
+                    ?: fetchPage(target.volume, 0)
+                val index = if (target.edge == VolumeEdge.FIRST) 0 else maxOf(0, first.totalPagesInt - 1)
+                val page = if (index == 0 || first.pageNumber - 1 == index) first else fetchPage(target.volume, index)
+                ResolvedTurn(target.volume, maxOf(0, page.pageNumber - 1), page)
+            } catch (cancelled: CancellationException) { throw cancelled }
+            catch (error: Exception) {
+                resolveOfflineEdge(target) ?: throw error
+            }
+        }
+    }
+
+    private fun resolveOfflineEdge(target: TurnTarget.VolumeEdge): ResolvedTurn? {
+        val language = _state.value.language
+        val first = offlineStore.offlinePage(collectionSlug, target.volume, 0, language) ?: return null
+        val index = if (target.edge == VolumeEdge.FIRST) 0 else maxOf(0, first.totalPagesInt - 1)
+        val page = if (index == 0) first else offlineStore.offlinePage(collectionSlug, target.volume, index, language) ?: return null
+        return ResolvedTurn(target.volume, index, page)
+    }
+
+    private fun ReaderPageResult.isLegacyPage() = contentVersion == "legacy" && pageKey == "legacy" && !isPlaceholder
+
+    private fun commitTurn(result: ResolvedTurn) {
+        val old = _state.value
+        val sameVolume = old.selectedVolumeId == result.volume
+        val offline = result.page.isLegacyPage()
+        val pages = if (sameVolume) old.pages.map { page ->
+            if (page.isPlaceholder || page.isLegacyPage() == offline) page else emptyPage()
+        }.toMutableList() else mutableListOf()
+        while (pages.size <= result.index) pages.add(emptyPage())
+        pages[result.index] = result.page
+        val limit = maxOf(result.index + 1, result.page.totalPagesInt)
+        while (pages.size > limit) pages.removeAt(pages.lastIndex)
+        val recent = recentPositions.lastOrNull { it.matches(result.page, result.volume, result.index) }
+        val landing = recent?.request ?: ReaderVerticalLandingRequest(
+            ++nextVerticalLandingToken, ReaderVerticalLandingPage(result.volume, result.index), ReaderVerticalLanding.Header)
+        saveCurrentProgress()
+        cancelPageLoad()
+        if (!sameVolume) {
+            cancelTranslationRun()
+            landingHadithNumber = null
+            restoredPosition = null
+        }
+        _state.update { it.copy(selectedVolumeId = result.volume, pages = pages, pageIndex = result.index,
+            phase = Phase.Reading, verticalLanding = landing, pendingTurn = null,
+            translations = if (sameVolume) it.translations else emptyMap(),
+            translationAllowances = if (sameVolume) it.translationAllowances else emptyMap()) }
+        if (!offline) restoreCachedNeighbors()
+        trimPageSlots()
+        collapseToFocused()
+        scheduleTranslationsForCurrentPage()
+        if (!offline) cacheAdjacentVolumes()
+        if (!offline) prefetchForwardIfNeeded()
+        saveCurrentProgress()
+    }
 
     private var pageJob: Job? = null
     private sealed interface PageLoadOperation {
@@ -187,6 +301,7 @@ class ReaderViewModel(
     fun hasKnownVolumeRange(volume: String) = pageStore.hasCompleteVolume(collectionSlug, volume)
 
     fun closeReaderSession() {
+        cancelPendingTurn()
         saveCurrentProgress()
         clearRecentPositions()
         translationJob?.cancel()
@@ -194,10 +309,13 @@ class ReaderViewModel(
         publicationDeadlineJob?.cancel()
         generationJobs.values.forEach { it.cancel() }
         generationJobs.clear()
+        lastStableAnchor = null
+        lastCapturedAnchor = null
         _state.update { it.copy(pages = emptyList(), translations = emptyMap(), translationAllowances = emptyMap()) }
     }
 
     fun clearRecentPositions(restartLoading: Boolean = false) {
+        cancelPendingTurn()
         val resumeLoad = if (restartLoading && _state.value.isLoadingPage) pageLoadOperation else null
         pageStore.clear()
         if (restartLoading) pageStore.beginReading()
@@ -443,7 +561,7 @@ class ReaderViewModel(
      * is invented. Returns false when no dump is active.
      */
     private fun useOfflineOutline(): Boolean {
-        val outline = app.offline.offlineOutline(collectionSlug) ?: return false
+        val outline = offlineStore.offlineOutline(collectionSlug) ?: return false
         if (outline.volumes.isEmpty()) return false
         usedOfflineForEntry = true
         val target = ReaderTargetResolver.resolve(
@@ -552,6 +670,7 @@ class ReaderViewModel(
     }
 
     fun selectVolume(volumeId: String) {
+        cancelPendingTurn()
         if (volumeId == _state.value.selectedVolumeId) return
         saveCurrentProgress()
         cancelPageLoad()
@@ -582,27 +701,11 @@ class ReaderViewModel(
     /**
      * Saves the current R1 anchor, then fetches the requested edge of an
      * adjacent source-provided volume. The new edge becomes the R2 target;
-     * a first visit remains visibly loading until that exact page is ready.
+     * the committed page remains readable until that exact edge is ready.
      */
     fun switchToVolume(volumeId: String, edge: VolumeEdge) {
-        if (volumeId == _state.value.selectedVolumeId) return
-        if (_state.value.volumes.none { it.volumeId == volumeId }) return
-        saveCurrentProgress()
-        cancelPageLoad()
-        cancelTranslationRun()
-        landingHadithNumber = null
-        restoredPosition = null
-        _state.update {
-            it.copy(
-                selectedVolumeId = volumeId,
-                pages = emptyList(),
-                pageIndex = 0,
-                isLoadingPage = true,
-                translations = emptyMap(), translationAllowances = emptyMap(),
-                verticalLanding = null,
-            )
-        }
-        startVolumeEdge(volumeId, edge)
+        if (volumeId == _state.value.selectedVolumeId || _state.value.volumes.none { it.volumeId == volumeId }) return
+        requestTurn(TurnTarget.VolumeEdge(volumeId, edge))
     }
 
     private fun startVolumeEdge(volumeId: String, edge: VolumeEdge) {
@@ -673,6 +776,7 @@ class ReaderViewModel(
     }
 
     private fun selectVolumeFallback(volumeId: String) {
+        cancelPendingTurn()
         cancelPageLoad()
         landingHadithNumber = null
         restoredPosition = null
@@ -691,6 +795,7 @@ class ReaderViewModel(
 
     /** Resets onto [volumeId] and lands the pager on the page holding [hadithNumber]. */
     private fun jumpToHadith(volumeId: String, hadithNumber: String) {
+        cancelPendingTurn()
         cancelPageLoad()
         landingHadithNumber = hadithNumber
         restoredPosition = null
@@ -709,6 +814,7 @@ class ReaderViewModel(
 
     fun setLanguage(code: String) {
         if (code == _state.value.language) return
+        cancelPendingTurn()
         app.preferences.setTranslationLocale(code)
         cancelTranslationRun()
         _state.update { it.copy(language = code, translations = emptyMap(), translationAllowances = emptyMap()) }
@@ -783,8 +889,9 @@ class ReaderViewModel(
      * the reader. Returns false when no dump covers the request.
      */
     private fun useOfflinePage(index: Int, volumeId: String, jumpToHadithNumber: String?): Boolean {
+        if (jumpToHadithNumber == null && _state.value.pages.any { !it.isPlaceholder && !it.isLegacyPage() }) return false
         usedOfflineForEntry = true
-        val store = app.offline
+        val store = offlineStore
         val language = _state.value.language
         jumpToHadithNumber?.let { jump ->
             store.offlineHadith("sunnah_now:$collectionSlug:$jump", collectionSlug, language)?.let { hadith ->
@@ -823,7 +930,13 @@ class ReaderViewModel(
     /** Swiping back onto a skipped-by-jump page loads it on demand. */
     fun onPageSettled(index: Int) {
         val s = _state.value
-        if (index == s.pageIndex) return
+        if (index == s.pageIndex) { cancelPendingTurn(); return }
+        val volume = s.selectedVolumeId ?: return
+        if (s.pages.getOrNull(index)?.isPlaceholder != false) {
+            requestTurn(TurnTarget.Page(volume, index))
+            return
+        }
+        cancelPendingTurn()
         _state.update { it.copy(pageIndex = index) }
         restoreCachedNeighbors()
         requestRecentLanding(index)
@@ -848,7 +961,7 @@ class ReaderViewModel(
      */
     private fun prefetchForwardIfNeeded() {
         val s = _state.value
-        if (s.isLoadingPage) return
+        if (s.isLoadingPage || s.pages.getOrNull(s.pageIndex)?.isLegacyPage() == true) return
         val lastPage = s.pages.lastOrNull() ?: return
         if (!lastPage.hasMore) return
         if (s.pageIndex < s.pages.size - 1) return
@@ -874,6 +987,7 @@ class ReaderViewModel(
 
     private fun restoreCachedNeighbors() {
         val state = _state.value
+        if (state.pages.getOrNull(state.pageIndex)?.isLegacyPage() == true) return
         val volume = state.selectedVolumeId ?: return
         val pages = state.pages.toMutableList()
         for (index in listOf(state.pageIndex - 1, state.pageIndex, state.pageIndex + 1)) {

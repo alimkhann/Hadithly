@@ -11,6 +11,50 @@ final class ReaderR5UITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    func testUnavailableTurnKeepsOutgoingUntilReleased() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-A5ContentsNavigationFixture"]
+        app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "PAGING_RECENT": "1", "PAGING_PENDING": "1"]
+        app.launch()
+        defer { app.terminate() }
+        let arabic = app.staticTexts["reader.arabic"].firstMatch
+        XCTAssertTrue(arabic.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["paging.release"].waitForExistence(timeout: 5))
+        XCTAssertTrue(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "ready"), object: app.staticTexts["paging.ready"])], timeout: 5) == .completed)
+        let right = app.coordinate(withNormalizedOffset: CGVector(dx: 0.82, dy: 0.5))
+        let left = app.coordinate(withNormalizedOffset: CGVector(dx: 0.18, dy: 0.5))
+        right.press(forDuration: 0.05, thenDragTo: left, withVelocity: XCUIGestureVelocity(rawValue: 500), thenHoldForDuration: 0)
+        XCTAssertTrue(element("reader.pendingTurn", in: app).waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["paging.page"].label, "0")
+        XCTAssertTrue(arabic.isHittable, "The outgoing reading text must remain visible while waiting")
+        let waiting = XCTAttachment(screenshot: app.screenshot()); waiting.name = "pending-outgoing-readable"; waiting.lifetime = .keepAlways; add(waiting)
+        app.buttons["paging.release"].tap()
+        XCTAssertTrue(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "1"), object: app.staticTexts["paging.page"])], timeout: 5) == .completed)
+        XCTAssertFalse(element("reader.pendingTurn", in: app).exists)
+        let landed = XCTAttachment(screenshot: app.screenshot()); landed.name = "pending-target-landed"; landed.lifetime = .keepAlways; add(landed)
+    }
+
+    func testReverseGestureCancelsDelayedTurnWithoutLateLanding() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-A5ContentsNavigationFixture"]
+        app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "PAGING_RECENT": "1", "PAGING_PENDING": "1"]
+        app.launch()
+        defer { app.terminate() }
+        XCTAssertTrue(app.staticTexts["reader.arabic"].firstMatch.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["paging.release"].waitForExistence(timeout: 5))
+        XCTAssertTrue(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "ready"), object: app.staticTexts["paging.ready"])], timeout: 5) == .completed)
+        let right = app.coordinate(withNormalizedOffset: CGVector(dx: 0.82, dy: 0.5))
+        let left = app.coordinate(withNormalizedOffset: CGVector(dx: 0.18, dy: 0.5))
+        right.press(forDuration: 0.05, thenDragTo: left, withVelocity: XCUIGestureVelocity(rawValue: 500), thenHoldForDuration: 0)
+        XCTAssertTrue(element("reader.pendingTurn", in: app).waitForExistence(timeout: 5))
+        left.press(forDuration: 0.05, thenDragTo: right, withVelocity: XCUIGestureVelocity(rawValue: 500), thenHoldForDuration: 0)
+        XCTAssertFalse(element("reader.pendingTurn", in: app).exists)
+        app.buttons["paging.release"].tap()
+        XCTAssertEqual(app.staticTexts["paging.page"].label, "0")
+        Thread.sleep(forTimeInterval: 0.5)
+        XCTAssertEqual(app.staticTexts["paging.page"].label, "0", "A reversed gesture must fence the delayed destination")
+    }
+
     func testRecentPageReturnKeepsRenderedPosition() {
         let app = XCUIApplication()
         app.launchArguments = ["-A5ContentsNavigationFixture"]

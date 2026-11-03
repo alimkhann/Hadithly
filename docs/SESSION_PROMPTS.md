@@ -18,7 +18,8 @@ Discovery and the owner interview are recorded in PAGE_TRANSITION_BASELINE.md
 and PAGE_TRANSITION_PLAN.md. Unit 1 is now verified in PAGE_TRANSITION_VERIFICATION.md.
 The owner expanded this chat to all four units plus an Android scrolling audit.
 Unit 2 reuse is verified in PAGE_TRANSITION_REUSE_VERIFICATION.md.
-Follow NEXT_SESSION_PROMPT.md for Unit 3, then Unit 4 and the full matrix. The original Unit 1 scope was:
+Unit 3 pending behavior is verified in PAGE_TRANSITION_PENDING_VERIFICATION.md.
+Follow NEXT_SESSION_PROMPT.md for Unit 4 and the full matrix. The original Unit 1 scope was:
 restore recently visited pages during the current reader session and make the
 drag preview match the committed vertical landing on both apps. Reproduce the
 recorded A → B → A reset, then verify the repair on the same native journey.

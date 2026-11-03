@@ -1,0 +1,97 @@
+{
+  "unit": 3,
+  "status": "Stable pending behavior verified on both native apps; Unit4 motion/fullmatrix remains active",
+  "date": "2026-11-03",
+  "verification": {
+    "android": 25,
+    "androidScope": "unit3-android-closeout; pending10,reuse9,recent6",
+    "iosModelStore": 16,
+    "iosVerifiedOffline": 1,
+    "iosRendered": 4,
+    "iosScope": "Unit1twoUI in unit3-ios-final; two controlled pending UI in unit3-ios-controlled-pending; final model count from unit3-ios-model-close"
+  },
+  "physical": {
+    "binarySHA256": "1c8c891c4f5a3987e2a2b6dd550fccf7578118c1f1628afa3c6f1d338de1eddf",
+    "scope": "iPhone16Pro; Bukhari7 volume1last ->8 volume2first ->7 ->8 ->7; slow-left,fast-right,fast-left,slow-right",
+    "beforeVideoSHA256": "bf6a613472b7d6942002c619738e4adbbdbe1e030cfc1d4b6b5335b5ef287f71",
+    "afterVideoSHA256": "b4a7b7d5243bae880df223072dc37f1933f15785e19d7b57946e5d7e10284362",
+    "beforeFrames": 3386,
+    "afterFrames": 2683,
+    "afterCaptureMeanFramesPerSecond": 56.77045577425916,
+    "afterCaptureMaxIntervalSeconds": 0.06666699999999537,
+    "inspectedAfterWindows": [
+      [
+        22.7,
+        23.1
+      ],
+      [
+        25.6,
+        25.95
+      ],
+      [
+        28.5,
+        28.9
+      ],
+      [
+        33.8,
+        34.2
+      ]
+    ],
+    "unresolvedFramesWindow": [
+      31.658883,
+      31.67675
+    ],
+    "limits": [
+      "Capture cadence is not appFPS.",
+      "Classifier is an inspection locator, not no-flash proof.",
+      "Physical source predates final live-prefetch fallback guard and DEBUG readiness label.",
+      "Cached crossvolume tracking and all full matrix requirements remain Unit4."
+    ],
+    "freshBackwardReplay": {
+      "scope": "Cold canonical7184 process entry, slow-right to7181 thenfast-left return7184; same original backward-loader path",
+      "videoSHA256": "175f74bab661d86859cd207f6870c57dbc454838085f06329dd6e7b690bef12f",
+      "frames": 1720,
+      "codec": "h264",
+      "quality": "QuickTime Maximum selected; not lossless",
+      "inspectedWindows": [
+        [
+          17.12,
+          17.2
+        ],
+        [
+          20.4,
+          20.55
+        ],
+        [
+          22.0,
+          22.55
+        ]
+      ],
+      "observations": [
+        "Outgoing7184 body retained until7181 isready; nofullskeleton transition in classifiedtargethandoff",
+        "Return7184 remainscachednative strip journey",
+        "One unusualbodyframe17.155833s retainedforUnit4 investigation, notzero-flashclaim"
+      ]
+    },
+    "backwardVideoLimit": "Different capture quality from baseline; no appFPS/causalperformanceclaim."
+  },
+  "regressionFindings": [
+    "Warm volume strips exposed full skeletons despite retained content",
+    "Android could render destination content at prior pager index",
+    "iOS pending could commit during a new gesture or displaced strip",
+    "A failed live prefetch could append an unrelated offline ordinal",
+    "Actual returned ordinal and smaller total must determine committed slots"
+  ],
+  "preservation": {
+    "incomingFilesUnchanged": 13,
+    "backendChanges": false,
+    "push": false,
+    "originalGates": "Unchanged"
+  },
+  "remaining": [
+    "Unit4prepared cached crossvolume motion and native horizontal profiling",
+    "Investigate unusual body frames and owner flash/jerk report",
+    "All original gates retain scopes",
+    "Full original native matrix beyond these sampled journeys"
+  ]
+}

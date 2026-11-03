@@ -203,12 +203,132 @@ final class ReaderModel {
     private var pageTask: Task<Void, Never>?
     private var warmingTask: Task<Void, Never>?
     private var warmingGeneration = 0
-    private var pageGeneration = 0
+    private(set) var pageGeneration = 0
+    private(set) var navigationRevision = 0
     private enum PageLoadOperation {
         case page(Int, String, String?)
         case edge(String, VolumeEdge)
     }
     private var pageLoadOperation: PageLoadOperation?
+    enum TurnTarget {
+        case page(String, Int)
+        case volumeEdge(String, VolumeEdge)
+    }
+    struct PendingTurn {
+        enum Status { case loading, failed }
+        let id: UUID
+        let target: TurnTarget
+        var status: Status
+    }
+    private(set) var pendingTurn: PendingTurn?
+    private var pendingTurnTask: Task<Void, Never>?
+
+    func cancelPendingTurn() {
+        navigationRevision += 1
+        pendingTurnTask?.cancel()
+        pendingTurnTask = nil
+        pendingTurn = nil
+    }
+
+    func retryPendingTurn() {
+        guard let pending = pendingTurn else { return }
+        requestTurn(pending.target)
+    }
+
+    func requestTurn(_ target: TurnTarget) {
+        cancelPendingTurn()
+        if case let .page(volume, index) = target, volume == selectedVolumeId,
+           pages.indices.contains(index), !pages[index].isPlaceholder {
+            pageIndex = index
+            return
+        }
+        let id = UUID()
+        pendingTurn = PendingTurn(id: id, target: target, status: .loading)
+        pendingTurnTask = Task { [weak self] in await self?.resolveTurn(target, id: id) }
+    }
+
+    private func resolveTurn(_ target: TurnTarget, id: UUID) async {
+        do {
+            let volume: String
+            let index: Int
+            let result: ReaderPageResult
+            switch target {
+            case let .page(v, i):
+                volume = v
+                if v == selectedVolumeId, pages.indices.contains(pageIndex),
+                   isLegacyPage(pages[pageIndex]), !pages[pageIndex].isPlaceholder {
+                    guard let offline = offlinePayload(i, volumeId: v, jumpToHadithNumber: nil) else {
+                        throw OfflineFetchTimeout.timedOut
+                    }
+                    result = offline
+                } else {
+                    result = try await fetchTurnPage(i, volumeId: v)
+                }
+                index = max(0, result.page - 1)
+            case let .volumeEdge(v, edge):
+                volume = v
+                do {
+                    let first: ReaderPageResult
+                    if edge == .last, let cached = pageStore.peekLast(collection: collectionSlug, volume: v) {
+                        first = cached
+                    } else {
+                        first = try await fetchTurnPage(0, volumeId: v)
+                    }
+                    let requested = edge == .first ? 0 : max(0, first.totalPages - 1)
+                    result = requested == 0 || first.page == requested + 1 ? first : try await fetchTurnPage(requested, volumeId: v)
+                } catch {
+                    if Task.isCancelled { throw CancellationError() }
+                    guard let first = offlinePayload(0, volumeId: v, jumpToHadithNumber: nil) else { throw error }
+                    let requested = edge == .first ? 0 : max(0, first.totalPages - 1)
+                    guard let offline = offlinePayload(requested, volumeId: v, jumpToHadithNumber: nil) else { throw error }
+                    result = offline
+                }
+                index = max(0, result.page - 1)
+            }
+            guard pendingTurn?.id == id, !Task.isCancelled else { return }
+            saveCurrentProgress()
+            // An older foreground prefetch must not publish over this committed turn.
+            pageGeneration += 1
+            pageTask?.cancel()
+            pageTask = nil
+            pageLoadOperation = nil
+            isLoadingPage = false
+            if selectedVolumeId != volume {
+                resetReading(preservingPendingTurn: true)
+                selectedVolumeId = volume
+                landingHadithNumber = nil
+                restoredPosition = nil
+            }
+            if isLegacyPage(result) {
+                pages = pages.map { _ in emptyPage() }
+            }
+            while pages.count < index { pages.append(emptyPage()) }
+            if pages.indices.contains(index) { pages[index] = result } else { pages.append(result) }
+            let limit = max(index + 1, result.totalPages)
+            if pages.count > limit { pages.removeSubrange(limit...) }
+            phase = .reading
+            pageIndex = index
+            requestRecentLanding(for: index)
+            scheduleTranslationsForCurrentPage()
+            saveCurrentProgress()
+            trimPageSlots()
+            if !isLegacyPage(result) { warmAdjacentVolumes() }
+            if pendingTurn?.id == id { pendingTurn = nil; pendingTurnTask = nil }
+            prefetchForwardIfNeeded()
+        } catch {
+            guard pendingTurn?.id == id, !Task.isCancelled else { return }
+            pendingTurn?.status = .failed
+            pendingTurnTask = nil
+        }
+    }
+
+    private func fetchTurnPage(_ index: Int, volumeId: String) async throws -> ReaderPageResult {
+#if DEBUG
+        if Self.forceOfflineReader { throw OfflineFetchTimeout.timedOut }
+#endif
+        if await backendUnreachable() { throw OfflineFetchTimeout.timedOut }
+        return try await fetchReaderPage(index, volumeId: volumeId)
+    }
     private var translationTask: Task<Void, Never>?
     private var publicationTask: Task<Void, Never>?
     private var publicationDeadlineTask: Task<Void, Never>?
@@ -286,6 +406,7 @@ final class ReaderModel {
     }
 
     func clearRecentPositions(restartLoading: Bool = false) {
+        cancelPendingTurn()
         let resumeLoad = restartLoading && isLoadingPage ? pageLoadOperation : nil
         warmingTask?.cancel()
         warmingGeneration += 1
@@ -407,6 +528,7 @@ final class ReaderModel {
     }
 
     func stop() {
+        cancelPendingTurn()
         endViewportInteractions()
         flushScrollProgress()
         pageGeneration += 1
@@ -563,6 +685,7 @@ final class ReaderModel {
     }
 
     func selectVolume(_ volumeId: String) {
+        cancelPendingTurn()
         guard volumeId != selectedVolumeId else { return }
         // The R1 position of the page being left is saved before the
         // switch, exactly like the pill/swipe cross-volume path below.
@@ -626,33 +749,23 @@ final class ReaderModel {
             // Same step semantics as the swipe path: forward onto (or
             // toward) the next page, back onto the previous page.
             if index == pageIndex + 1, hasNextPage {
-                pageIndex += 1
+                if let volume = selectedVolumeId { requestTurn(.page(volume, index)) }
             } else if index == pageIndex - 1, hasPreviousPage {
-                pageIndex -= 1
+                if let volume = selectedVolumeId { requestTurn(.page(volume, index)) }
             }
         case .volumeFirst(let volumeId):
             switchToVolume(volumeId, edge: .first)
         case .volumeLast(let volumeId):
             switchToVolume(volumeId, edge: .last)
         }
-    }    /// Jumps to the first (or last) page of another volume. Saves the R1
-    /// position of the page being left first; after the new volume's pages
-    /// arrive, the exact R2 target (page 1, or the last page) is restored
-    /// and saved, so the reader never strands on a stale page. While a
-    /// first-visit volume fetches, the page is empty and the reader shows
-    /// its loading state.
+    }
+
+    /// Request a neighboring volume without replacing the visible page until ready.
     func switchToVolume(_ volumeId: String, edge: VolumeEdge) {
         guard volumeId != selectedVolumeId else { return }
         guard volumes.contains(where: { $0.volumeId == volumeId }) else { return }
-        saveCurrentProgress()
         collapseToFocused()
-        selectedVolumeId = volumeId
-        resetReading()
-        landingHadithNumber = nil
-        restoredPosition = nil
-        pageTask = Task { [weak self] in
-            await self?.loadVolumeEdge(volumeId, edge: edge)
-        }
+        requestTurn(.volumeEdge(volumeId, edge))
     }
 
     /// Loads a volume edge: page 1 for `.first`; for `.last` the first page
@@ -729,8 +842,13 @@ final class ReaderModel {
         return try await pageStore.load(request)
     }
 
+    private func isLegacyPage(_ page: ReaderPageResult) -> Bool {
+        page.pageKey == nil || page.pageKey == "legacy"
+    }
+
     private func restoreCachedNeighbors() {
         guard let volume = selectedVolumeId else { return }
+        if pages.indices.contains(pageIndex), !pages[pageIndex].isPlaceholder, isLegacyPage(pages[pageIndex]) { return }
         for index in [pageIndex - 1, pageIndex, pageIndex + 1] where pages.indices.contains(index) {
             if !pageStore.isCompatible(pages[index], collection: collectionSlug) { pages[index] = emptyPage() }
             guard pages[index].isPlaceholder else { continue }
@@ -877,7 +995,8 @@ final class ReaderModel {
 
     // MARK: - Adjacent-volume prefetch (R6 round 3)
 
-    private func resetReading() {
+    private func resetReading(preservingPendingTurn: Bool = false) {
+        if !preservingPendingTurn { cancelPendingTurn() }
         flushScrollProgress()
         pageGeneration += 1
         pageTask?.cancel()
@@ -1005,36 +1124,9 @@ final class ReaderModel {
     /// the reader. Returns false when no dump covers the request.
     @discardableResult
     private func useOfflinePage(_ index: Int, volumeId: String, jumpToHadithNumber: String?) -> Bool {
+        guard jumpToHadithNumber != nil || !pages.contains(where: { !$0.isPlaceholder && !isLegacyPage($0) }) else { return false }
+        guard let result = offlinePayload(index, volumeId: volumeId, jumpToHadithNumber: jumpToHadithNumber) else { return false }
         usedOfflineForEntry = true
-        guard let store = offlineStore else { return false }
-        if let jump = jumpToHadithNumber,
-           let hadith = store.offlineHadith(
-               canonicalId: "sunnah_now:\(collectionSlug):\(jump)",
-               slug: collectionSlug,
-               locale: offlineLocale
-           )
-        {
-            // pageKey stays nil (→ R1 "legacy"): an offline jump target has
-            // no server page identity; the anchor carries the position.
-            let result = ReaderPageResult(
-                items: [hadith], page: 1, pageSize: 1, totalPages: 1, hasMore: false,
-                contentVersion: nil, paginationVersion: nil, pageKey: nil
-            )
-            while pages.count < index { pages.append(emptyPage()) }
-            if pages.indices.contains(index) {
-                pages[index] = result
-            } else {
-                pages.append(result)
-            }
-            phase = .reading
-            pageIndex = index
-            requestEntryLanding(for: index)
-            return true
-        }
-        guard let result = store.offlinePage(
-            slug: collectionSlug, volumeId: volumeId,
-            page: index, locale: offlineLocale
-        ) else { return false }
         while pages.count < index { pages.append(emptyPage()) }
         if pages.indices.contains(index) {
             pages[index] = result
@@ -1042,6 +1134,11 @@ final class ReaderModel {
             pages.append(result)
         }
         phase = .reading
+        if jumpToHadithNumber != nil {
+            pageIndex = index
+            requestEntryLanding(for: index)
+            return true
+        }
         if pageIndex == index {
             if verticalLanding == nil {
                 requestHeaderLanding(for: index)
@@ -1049,6 +1146,16 @@ final class ReaderModel {
             saveCurrentProgress()
         }
         return true
+    }
+
+    private func offlinePayload(_ index: Int, volumeId: String, jumpToHadithNumber: String?) -> ReaderPageResult? {
+        guard let store = offlineStore else { return nil }
+        if let jump = jumpToHadithNumber,
+           let hadith = store.offlineHadith(canonicalId: "sunnah_now:\(collectionSlug):\(jump)", slug: collectionSlug, locale: offlineLocale) {
+            return ReaderPageResult(items: [hadith], page: 1, pageSize: 1, totalPages: 1, hasMore: false,
+                                    contentVersion: nil, paginationVersion: nil, pageKey: nil)
+        }
+        return store.offlinePage(slug: collectionSlug, volumeId: volumeId, page: index, locale: offlineLocale)
     }
 
     private func emptyPage() -> ReaderPageResult {
@@ -1072,6 +1179,7 @@ final class ReaderModel {
     /// past the last loaded page while its content is in flight.
     func prefetchForwardIfNeeded() {
         guard !isLoadingPage, let volumeId = selectedVolumeId else { return }
+        guard pages.indices.contains(pageIndex), !isLegacyPage(pages[pageIndex]) else { return }
         guard let lastPage = pages.last, lastPage.hasMore else { return }
         guard pageIndex >= pages.count - 1 else { return }
         pageTask?.cancel()

@@ -371,13 +371,36 @@ struct ReaderView: View {
             do { try await Task.sleep(for: .seconds(7)) } catch { return }
             withAnimation(chromeAnimation) { environment.readerExperience.dismissActionHint() }
         }
+        .overlay(alignment: .top) {
+            if let pending = model.pendingTurn {
+                HStack(spacing: 12) {
+                    if pending.status == .loading {
+                        ProgressView()
+                        Text("Loading page")
+                    } else {
+                        Button("Retry") { model.retryPendingTurn() }
+                    }
+                    Button("Cancel") { model.cancelPendingTurn() }
+                }
+                .padding(12)
+                .background(.regularMaterial, in: Capsule())
+                .padding(.top, windowSafeAreaInsets.top + 8)
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("reader.pendingTurn")
+            }
+        }
         .overlay {
             WindowSwipeRecognizer(
                 pageDirection: pagingPolicy.pageDirection,
                 isEnabled: { !showIndex && !showSettings && !showSearch && !showSavedShortcut && !showBookmarkPlacement },
                 onTurn: { _ in },
                 onProgress: { dragProgress(model, offset: $0) },
-                onRelease: { dragReleased(model, turn: $0) }
+                onRelease: { turn in
+#if DEBUG
+                    model.navigationTraceForUITest?(turn == nil ? "drag-cancel" : "drag-turn")
+#endif
+                    dragReleased(model, turn: turn)
+                }
             )
             .frame(width: 0, height: 0)
             .accessibilityHidden(true)
@@ -450,8 +473,8 @@ struct ReaderView: View {
 
     /// The three-page strip: the loaded previous/current/next pages
     /// rendered together so the neighbor is visible mid-gesture, with
-    /// cancel-back when the finger releases short. Cross-volume targets
-    /// show a quiet loading slot until their first page arrives. Every slot
+    /// cancel-back when the finger releases short. An unprepared target
+    /// keeps the outgoing strip still; the pending cue owns loading. Every slot
     /// keeps its volume/page identity across turns and uses the same layout
     /// before and after handoff. Each slot applies the model's landing;
     /// only the active page captures progress and acknowledges commands.
@@ -483,7 +506,7 @@ struct ReaderView: View {
                         .allowsHitTesting(page == index && !pageSettling)
                         .accessibilityHidden(page != index)
                     } else {
-                        ArticleLoadingView(title: "Loading page").accessibilityIdentifier("reader.neighborLoading")
+                        Color.clear.accessibilityHidden(true)
                     }
                 }
                 .id("\(model.selectedVolumeId ?? ""):\(page):\(model.pages.indices.contains(page) ? model.pages[page].pageKey ?? "legacy" : "pending"):\(model.pages.indices.contains(page) ? model.pages[page].contentVersion ?? "legacy" : "pending")")
@@ -505,22 +528,18 @@ struct ReaderView: View {
         guard !pageSettling else { return }
         let targets = stripTargets(model)
         let slots = ReaderDragStrip.slots(hasPrevious: targets.previous, hasNext: targets.next, pageDirection: pagingPolicy.pageDirection)
-        let clamped: CGFloat
-        if offset > 0, slots.left == nil {
-            clamped = 0
-        } else if offset < 0, slots.right == nil {
-            clamped = 0
-        } else {
-            clamped = offset
-        }
-        pageDragOffset = clamped
-        let dragging = abs(clamped) > 8
+        let direction = offset > 0 ? slots.left : slots.right
+        let targetIndex = direction.map { model.pageIndex + ($0 == .previous ? -1 : 1) }
+        let loaded = targetIndex.map { model.pages.indices.contains($0) && !model.pages[$0].isPlaceholder } ?? false
+        pageDragOffset = loaded ? offset : 0
+        let dragging = abs(offset) > 8
+        if dragging && !horizontalDragging { model.cancelPendingTurn() }
         if dragging != horizontalDragging {
             horizontalDragging = dragging
         }
     }
 
-    /// Release: a committed turn first animates the strip onto the fully
+    /// Release: a loaded turn first animates the strip onto the fully
     /// revealed neighbor, then swaps the page index with the offset reset —
     /// the incoming page is pixel-identical to the neighbor just shown, so
     /// the swap is invisible and nothing ever flickers. Anything short
@@ -536,12 +555,30 @@ struct ReaderView: View {
             }
             return
         }
+        let targetIndex = model.pageIndex + (turn == .next ? 1 : -1)
+        let loadedNeighbor = model.pages.indices.contains(targetIndex) && !model.pages[targetIndex].isPlaceholder
+        if !loadedNeighbor {
+            var transaction = Transaction(animation: nil)
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                pageDragOffset = 0
+                horizontalDragging = false
+                turnPage(model, turn: turn)
+            }
+            return
+        }
         let slots = ReaderDragStrip.slots(
             hasPrevious: stripTargets(model).previous,
             hasNext: stripTargets(model).next,
             pageDirection: pagingPolicy.pageDirection
         )
         let width = max(1, dragViewportWidth)
+        let originVolume = model.selectedVolumeId
+        let originIndex = model.pageIndex
+        let originGeneration = model.pageGeneration
+        let originRevision = model.navigationRevision
+        let originPageKey = model.pages.indices.contains(originIndex) ? model.pages[originIndex].pageKey : nil
+        let originContentVersion = model.pages.indices.contains(originIndex) ? model.pages[originIndex].contentVersion : nil
         if !reduceMotion,
            let target = ReaderDragStrip.commitDragOffset(viewportWidth: width, turn: turn, slots: slots) {
             pageSettling = true
@@ -551,7 +588,13 @@ struct ReaderView: View {
                 var transaction = Transaction(animation: nil)
                 transaction.disablesAnimations = true
                 withTransaction(transaction) {
-                    turnPage(model, turn: turn)
+                    if model.selectedVolumeId == originVolume, model.pageIndex == originIndex,
+                       model.pageGeneration == originGeneration, model.navigationRevision == originRevision,
+                       model.pages.indices.contains(originIndex),
+                       model.pages[originIndex].pageKey == originPageKey,
+                       model.pages[originIndex].contentVersion == originContentVersion {
+                        turnPage(model, turn: turn)
+                    }
                     pageDragOffset = 0
                     horizontalDragging = false
                     pageSettling = false
@@ -575,7 +618,7 @@ struct ReaderView: View {
     private func turnPage(_ model: ReaderModel, turn: ReaderPageTurn) {
         if turn == .next {
             if model.hasNextPage {
-                model.pageIndex += 1
+                if let volume = model.selectedVolumeId { model.requestTurn(.page(volume, model.pageIndex + 1)) }
             } else if let next = model.nextVolume {
                 // An outward swipe past the last page advances to the next
                 // volume's first page — the same jump path as the pills.
@@ -583,7 +626,7 @@ struct ReaderView: View {
             }
         } else {
             if model.hasPreviousPage {
-                model.pageIndex -= 1
+                if let volume = model.selectedVolumeId { model.requestTurn(.page(volume, model.pageIndex - 1)) }
             } else if let previous = model.previousVolume {
                 // Before the first page goes to the previous volume's last
                 // page — the same jump path as the pills.
@@ -3587,7 +3630,7 @@ struct ContentsNavigationFixture: View {
         _library = State(initialValue: library)
         model.seedForUITest(volumes: [OutlineVolume(volumeId: "1", title: "Original %@ مصدر", hadithCount: 100)], selectedVolumeId: "1")
         if ProcessInfo.processInfo.environment["PAGING_RECENT"] == "1" {
-            model.seedPagesForUITest((1...3).map { number in
+            let fixturePages = (1...3).map { number in
                 let base = Self.page(String(number))
                 let original = base.items[0]
                 let long = ReaderHadith(_id: original.internalId, provider: original.provider,
@@ -3599,7 +3642,8 @@ struct ContentsNavigationFixture: View {
                     chapterName: nil, authenticity: original.authenticity)
                 return ReaderPageResult(items: [long], page: number, pageSize: 1, totalPages: 3, hasMore: number < 3,
                     contentVersion: "cv1:paging", paginationVersion: 1, pageKey: "pg1:paging\(number)")
-            })
+            }
+            model.seedPagesForUITest(ProcessInfo.processInfo.environment["PAGING_PENDING"] == "1" ? [fixturePages[0]] : fixturePages)
         } else if ProcessInfo.processInfo.environment["A5_CONTROLS_ONLY"] == "1" {
             model.seedPagesForUITest([Self.page("1"), Self.page("2"), Self.page("57")])
             model.pageIndex = 2
@@ -3645,13 +3689,20 @@ struct ContentsNavigationFixture: View {
                             .accessibilityIdentifier("paging.grow")
                     }
                     Text(String(model.pageIndex)).accessibilityIdentifier("paging.page")
+                    Text(model.verticalLanding == nil ? "ready" : "landing").accessibilityIdentifier("paging.ready")
                     Text(requests).accessibilityIdentifier("a5.requests")
                     if ProcessInfo.processInfo.environment["A5_CORE_SAVED"] == "1" {
                         Text(verbatim: "b:\(library.bookmarks.count)|f:\(library.favorites.count)|n:\(library.notes.count)|rows:\(library.savedItems.count)|note:\(library.notes.first?.noteContent ?? "")").accessibilityIdentifier("a5.savedState")
                     }
                     Text("loading:\(model.isLoadingPage)").accessibilityIdentifier("a5.loading")
                     if let releaseTarget { Button("Release target") { releaseTarget() }.accessibilityIdentifier("a5.releaseTarget") }
-                    if let release { Button("Release old page") { release() }.accessibilityIdentifier("a5.release") }
+                    if let release {
+                        if ProcessInfo.processInfo.environment["PAGING_PENDING"] == "1" {
+                            Button("Release page") { release() }.accessibilityIdentifier("paging.release")
+                        } else {
+                            Button("Release old page") { release() }.accessibilityIdentifier("a5.release")
+                        }
+                    }
                 }.font(.caption2).dynamicTypeSize(.large).padding(.bottom, 160)
             }
             .task {
@@ -3670,7 +3721,15 @@ struct ContentsNavigationFixture: View {
                         }
                     }
                     return await withCheckedContinuation { continuation in
-                        release = { continuation.resume(returning: Self.page("2")); release = nil }
+                        release = {
+                            let base = Self.page("2")
+                            let page = ProcessInfo.processInfo.environment["PAGING_PENDING"] == "1"
+                                ? ReaderPageResult(items: base.items, page: 2, pageSize: 1, totalPages: 3, hasMore: true,
+                                                   contentVersion: "cv1:paging", paginationVersion: 1, pageKey: "pg1:paging2")
+                                : base
+                            continuation.resume(returning: page)
+                            release = nil
+                        }
                     }
                 }
                 model.prefetchForwardIfNeeded()

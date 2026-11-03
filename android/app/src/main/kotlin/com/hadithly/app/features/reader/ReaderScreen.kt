@@ -107,6 +107,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
@@ -135,6 +136,8 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -415,10 +418,12 @@ private fun ReadingView(
         readerMenuExpanded = false
     }
 
-    // One extra sentinel page while more content exists; landing on it
-    // triggers the load of the next page.
+    // One extra sentinel while more content exists. A turn toward an
+    // unavailable slot starts a pending request before the pager exposes it.
     val pageCount = state.pages.size + if (state.pages.lastOrNull()?.hasMore == true) 1 else 0
-    val pagerState = rememberPagerState(pageCount = { maxOf(pageCount, 1) })
+    val pagerState = key(state.selectedVolumeId) {
+        rememberPagerState(initialPage = state.pageIndex, pageCount = { maxOf(pageCount, 1) })
+    }
     val currentFirstHadithId = state.pages
         .getOrNull(state.pageIndex)
         ?.items
@@ -508,6 +513,10 @@ private fun ReadingView(
             turn,
         )
         if (destination != null) {
+            if (state.pages.getOrNull(destination)?.isPlaceholder != false) {
+                viewModel.onPageSettled(destination)
+                return true
+            }
             if (reduceMotion) {
                 coroutine.launch { pagerState.scrollToPage(destination) }
             } else {
@@ -580,10 +589,13 @@ private fun ReadingView(
             state = pagerState,
             policy = pagingPolicy,
             onOutwardEdgeTurn = ::turnPage,
+            isMissingPage = { index -> state.pages.getOrNull(index)?.isPlaceholder != false },
+            onMissingPage = viewModel::onPageSettled,
             // A user horizontal drag collapses to focused immediately (no
             // haptic) and closes the menu. Programmatic turns settle through
             // onPageSettled, which collapses there.
             onUserDragStart = {
+                viewModel.cancelPendingTurn()
                 collapseToFocusedAndCloseMenu()
             },
             modifier = Modifier.fillMaxSize(),
@@ -649,6 +661,23 @@ private fun ReadingView(
                 }
         }
 
+        state.pendingTurn?.let { pending ->
+            Surface(
+                modifier = Modifier.align(Alignment.TopCenter).statusBarsPadding().padding(top = 56.dp)
+                    .testTag("reader.pendingTurn")
+                    .semantics { liveRegion = LiveRegionMode.Polite },
+                shape = RoundedCornerShape(16.dp), tonalElevation = 3.dp,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
+                    Text(nativeText(if (pending.status == ReaderViewModel.TurnStatus.LOADING) "Loading page" else "Could not load page"))
+                    if (pending.status == ReaderViewModel.TurnStatus.FAILED) {
+                        TextButton(onClick = viewModel::retryPendingTurn) { Text(nativeText("Retry")) }
+                    }
+                    TextButton(onClick = viewModel::cancelPendingTurn) { Text(nativeText("Cancel")) }
+                }
+            }
+        }
+
         if (!showReaderSaved) {
             Column(
                 modifier = Modifier.align(Alignment.BottomCenter)
@@ -685,11 +714,13 @@ private fun ReadingView(
                         positionedReference = positioned?.referenceDisplay,
                         isPositionedBookmarked = positioned?.let(viewModel::isBookmarked) == true,
                         onContents = {
+                            viewModel.cancelPendingTurn()
                             readerMenuExpanded = false
                             onOpenContents()
                         },
                         onSaved = {
                             readerMenuExpanded = false
+                            viewModel.cancelPendingTurn()
                             showReaderSaved = true
                         },
                         onSettings = {
@@ -705,6 +736,7 @@ private fun ReadingView(
                             showBookmarkPlacement = true
                         },
                         onSearch = {
+                            viewModel.cancelPendingTurn()
                             readerMenuExpanded = false
                             showSearch = true
                         },
@@ -1088,6 +1120,8 @@ internal fun DirectionAwareHorizontalPager(
     state: PagerState,
     policy: ReaderPagingPolicy,
     onOutwardEdgeTurn: ((ReaderPageTurn) -> Boolean)? = null,
+    isMissingPage: (Int) -> Boolean = { false },
+    onMissingPage: (Int) -> Unit = {},
     onUserDragStart: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     content: @Composable PagerScope.(page: Int) -> Unit,
@@ -1100,6 +1134,8 @@ internal fun DirectionAwareHorizontalPager(
             if (interaction is DragInteraction.Start) onUserDragStart?.invoke()
         }
     }
+    val missingPage = rememberUpdatedState(isMissingPage)
+    val requestMissingPage = rememberUpdatedState(onMissingPage)
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         HorizontalPager(
             state = state,
@@ -1107,9 +1143,40 @@ internal fun DirectionAwareHorizontalPager(
             // Neighbors stay rendered during drags so a mid-gesture
             // cancel-back never flashes an empty page.
             beyondViewportPageCount = 1,
-            modifier = modifier.edgeVolumeSwipe(state, policy, onOutwardEdgeTurn),
+            modifier = modifier.missingPageSwipe(state, policy, missingPage, requestMissingPage)
+                .edgeVolumeSwipe(state, policy, onOutwardEdgeTurn),
             pageContent = content,
         )
+    }
+}
+
+private fun Modifier.missingPageSwipe(
+    state: PagerState,
+    policy: ReaderPagingPolicy,
+    isMissingPage: State<(Int) -> Boolean>,
+    onMissingPage: State<(Int) -> Unit>,
+): Modifier = pointerInput(state, policy) {
+    awaitEachGesture {
+        val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+        var blockedTarget: Int? = null
+        var decided = false
+        var deltaX = 0f
+        do {
+            val event = awaitPointerEvent(PointerEventPass.Initial)
+            val change = event.changes.firstOrNull { it.id == down.id } ?: break
+            deltaX = change.position.x - down.position.x
+            val deltaY = change.position.y - down.position.y
+            if (!decided && (kotlin.math.abs(deltaX) > viewConfiguration.touchSlop || kotlin.math.abs(deltaY) > viewConfiguration.touchSlop)) {
+                decided = true
+                if (kotlin.math.abs(deltaX) > kotlin.math.abs(deltaY)) {
+                    val direction = if (deltaX < 0) SwipeDirection.LEFT else SwipeDirection.RIGHT
+                    val target = policy.destination(state.settledPage, state.pageCount, policy.turn(direction))
+                    if (target != null && isMissingPage.value(target)) blockedTarget = target
+                }
+            }
+            if (blockedTarget != null) change.consume()
+        } while (change.pressed)
+        blockedTarget?.let { if (kotlin.math.abs(deltaX) >= 96f) onMissingPage.value(it) }
     }
 }
 

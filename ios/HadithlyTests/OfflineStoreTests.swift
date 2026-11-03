@@ -1,4 +1,6 @@
 import XCTest
+import ClerkConvex
+import ConvexMobile
 @testable import Hadithly
 
 /// O2 gate: fault-injection tests proving interruption or corruption never
@@ -433,6 +435,47 @@ final class OfflineStoreTests: XCTestCase {
         XCTAssertNil(page?.contentVersion)
         XCTAssertNil(page?.pageKey)
         XCTAssertEqual(page?.items.count, 2)
+    }
+
+    func testPendingReaderTurnsKeepVerifiedOfflineNamespace() async throws {
+        let bytes = Self.baseDump(versionHex: String(repeating: "a", count: 64), ids: (1...11).map(String.init))
+        let transport = FakeTransport()
+        transport.handler = { _ in bytes }
+        let (store, root) = makeStore(transport: transport, manifests: FakeManifests(bases: [Self.manifest(versionHex: String(repeating: "a", count: 64), bytes: bytes)]))
+        defer { try? FileManager.default.removeItem(at: root) }
+        XCTAssertEqual(store.enqueue(slug: "bukhari", kind: "base", locale: nil), .started)
+        await waitUntil(store.registry.record(for: "bukhari").activeBase != nil)
+        let first = try XCTUnwrap(store.offlinePage(slug: "bukhari", volumeId: "2", page: 0, locale: nil))
+        XCTAssertEqual(first.totalPages, 2)
+        let reader = ReaderModel(convex: ConvexClientWithAuth(deploymentUrl: "https://example.invalid", authProvider: ClerkConvexAuthProvider()),
+            collectionSlug: "bukhari", collectionName: "Bukhari", language: "en", isSignedIn: { false })
+        reader.offlineStore = store
+        reader.seedForUITest(volumes: [OutlineVolume(volumeId: "2", title: "Two", hadithCount: 11)], selectedVolumeId: "2")
+        reader.seedPagesForUITest([first])
+        var calls = 0
+        reader.pageFetchForUITest = { _, _, _ in calls += 1; throw OfflineFetchTimeout.timedOut }
+        reader.requestTurn(.page("2", 1))
+        await waitUntil(reader.pageIndex == 1 && reader.pendingTurn == nil)
+        XCTAssertEqual(reader.currentPageHadiths.first?.providerHadithId, "11")
+        XCTAssertEqual(calls, 0)
+        reader.requestTurn(.page("2", 0))
+        await waitUntil(reader.pageIndex == 0 && reader.pendingTurn == nil)
+        XCTAssertEqual(reader.currentPageHadiths.first?.providerHadithId, "1")
+        XCTAssertTrue(reader.pages.filter { !$0.isPlaceholder }.allSatisfy { $0.pageKey == nil })
+        XCTAssertEqual(calls, 0, "Offline ordinals cannot start live lookahead")
+        let live = ReaderPageResult(items: first.items, page: 1, pageSize: first.pageSize, totalPages: 2, hasMore: true,
+            contentVersion: "cv1:live", paginationVersion: 1, pageKey: "pg1:live")
+        reader.seedPagesForUITest([live])
+        reader.prefetchForwardIfNeeded()
+        await waitUntil(calls > 0)
+        await waitUntil(!reader.isLoadingPage)
+        XCTAssertEqual(reader.pages.count, 1, "A failed live prefetch cannot append an ordinal offline chunk")
+        XCTAssertEqual(reader.pages.first?.pageKey, "pg1:live")
+        reader.requestTurn(.page("2", 1))
+        await waitUntil(reader.pendingTurn?.status == .failed)
+        XCTAssertEqual(reader.pageIndex, 0)
+        XCTAssertEqual(reader.pages.first?.pageKey, "pg1:live", "A live ordinal failure must not select an unrelated offline chunk")
+        reader.stop()
     }
 
     func testFetchTimeoutBoundsAHungSocket() async {

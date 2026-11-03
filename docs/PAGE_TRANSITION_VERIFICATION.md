@@ -108,8 +108,9 @@ Android release-performance gate. Raw summaries, screenshots and XML are in
 
 Unit 2 content reuse and request deduplication is now verified separately in
 [PAGE_TRANSITION_REUSE_VERIFICATION.md](PAGE_TRANSITION_REUSE_VERIFICATION.md).
-Unit 3 stable pending targets, Unit 4 surrounding motion/layout and the full plan
-matrix remain active. Keep
+Unit 3 stable pending targets are verified in
+[PAGE_TRANSITION_PENDING_VERIFICATION.md](PAGE_TRANSITION_PENDING_VERIFICATION.md).
+Unit 4 surrounding motion/layout and the full plan matrix remain active. Keep
 one-page versus two-page lookahead measured rather than enabling extra work by
 default. Chosen-language offline translation packs retain the separate rights
 and revocation contract gate. Sharing, interactive pills, general opening latency,

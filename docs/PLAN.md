@@ -28,7 +28,15 @@ lookahead remains disabled. The owner additionally reports horizontal swipes fee
 laggier than vertical scrolling and repeated volume loading. Unit 3 now owns
 stable outgoing content while targets load; Unit 4 must inspect/profile horizontal
 tracking and settling. Do not infer turn smoothness from accepted vertical scrolls.
-Continue with Unit 3 separately, then Unit 4 and the full native matrix. Incoming project, scheme, catalog
+Unit 3 stable pending turns are now verified in
+[PAGE_TRANSITION_PENDING_VERIFICATION.md](PAGE_TRANSITION_PENDING_VERIFICATION.md).
+Both apps retain readable committed content through loading/error/retry/cancel;
+source identity, explicit navigation and account fences pass native regressions.
+The physical volume-edge and original fresh-backward journeys remove the full
+loading-page handoff in sampled frames. Unit 4 remains active: prepare actual
+cached cross-volume previews for tracking, investigate unusual recorded frames,
+profile horizontal motion and close the full native matrix. Do not call the
+paging goal complete from the pending repair alone. Incoming project, scheme, catalog
 and Python cache bytes remain preserved. All original gates stay open.
 
 ## Prior checkpoint: page-transition discovery and plan, November 2

@@ -150,7 +150,7 @@ class ReaderPageReuseTest {
         }
     }
 
-    @Test fun accountChangeRestartsPendingLastVolumeEdge() {
+    @Test fun accountChangeCancelsPendingLastVolumeEdge() {
         val app = ApplicationProvider.getApplicationContext<HadithlyApplication>()
         val directory = java.io.File(app.cacheDir, "page-edge-${System.nanoTime()}").apply { mkdirs() }
         val context = object : android.content.ContextWrapper(app) { override fun getFilesDir() = directory }
@@ -170,11 +170,52 @@ class ReaderPageReuseTest {
             }
             compose.waitUntil(10_000) { model.state.value.pages.isNotEmpty() && !model.state.value.isLoadingPage }
             compose.runOnIdle { model.switchToVolume("2", ReaderViewModel.VolumeEdge.LAST) }
-            compose.waitUntil(5_000) { edgeCalls > 0 && model.state.value.isLoadingPage }
-            compose.runOnIdle { model.clearRecentPositions(restartLoading = true); edgeGate.complete(Unit) }
-            compose.waitUntil(10_000) { model.state.value.pageIndex == 4 && !model.state.value.isLoadingPage }
-            compose.runOnIdle { assertEquals("5", model.state.value.pages[4].items.first().providerHadithId); model.closeReaderSession() }
+            compose.waitUntil(5_000) { edgeCalls > 0 && model.state.value.pendingTurn != null }
+            compose.runOnIdle {
+                model.clearRecentPositions(restartLoading = true)
+                edgeGate.complete(Unit)
+                assertNull(model.state.value.pendingTurn)
+                assertEquals("1", model.state.value.selectedVolumeId)
+                assertEquals(0, model.state.value.pageIndex)
+            }
+            compose.waitForIdle()
+            compose.runOnIdle {
+                assertEquals("1", model.state.value.selectedVolumeId)
+                assertEquals(0, model.state.value.pageIndex)
+                model.closeReaderSession()
+            }
         } finally { edgeGate.complete(Unit); scope.cancel(); directory.deleteRecursively() }
+    }
+
+    @Test fun accountChangeReplaysOrdinaryInitialPageLoad() {
+        val app = ApplicationProvider.getApplicationContext<HadithlyApplication>()
+        val directory = java.io.File(app.cacheDir, "page-replay-${System.nanoTime()}").apply { mkdirs() }
+        val context = object : android.content.ContextWrapper(app) { override fun getFilesDir() = directory }
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+        val gate = CompletableDeferred<Unit>()
+        val requests = mutableListOf<Triple<String, Int, String?>>()
+        lateinit var model: ReaderViewModel
+        try {
+            compose.runOnUiThread {
+                model = ReaderViewModel(app, "bukhari", null, null, null, ReaderTargetSource.COLLECTION,
+                    library = UserLibraryModel(GuestDataStore(context), scope),
+                    outlineLoader = { CollectionOutlineResult(listOf(OutlineVolume("1", "One"))) },
+                    pageLoader = { volume, index, target ->
+                        requests.add(Triple(volume, index, target))
+                        gate.await()
+                        page(index).copy(hasMore = false)
+                    })
+            }
+            compose.waitUntil(5_000) { requests.isNotEmpty() && model.state.value.isLoadingPage }
+            compose.runOnIdle { model.clearRecentPositions(restartLoading = true) }
+            compose.waitUntil(5_000) { requests.size >= 2 }
+            compose.runOnIdle {
+                assertEquals(requests.first(), requests[1])
+                gate.complete(Unit)
+            }
+            compose.waitUntil(10_000) { model.state.value.pages.firstOrNull()?.isPlaceholder == false && !model.state.value.isLoadingPage }
+            compose.runOnIdle { assertEquals(0, model.state.value.pageIndex); model.closeReaderSession() }
+        } finally { gate.complete(Unit); scope.cancel(); directory.deleteRecursively() }
     }
 
     @Test fun renderedLongJourneyKeepsPublicPayloadsBounded() {
