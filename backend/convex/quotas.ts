@@ -174,10 +174,11 @@ export const finish = internalMutation({
         if (!text || text.length > 24_000 || !Number.isFinite(args.output.confidence) || args.output.confidence < 0 || args.output.confidence > 1 || args.output.riskFlags.length > 30)
           throw new Error("INVALID_GENERATION_OUTPUT");
         const references = await currentGenerationReferences(ctx, hadith, job.referenceBindings ?? []);
-        const usedIds = args.output.usedReferenceIds ?? [];
-        const validIds = references && usedIds.length <= 3 && new Set(usedIds).size === usedIds.length &&
-          usedIds.every(id => references.some((_, index) => id === `reference:${index}`));
-        if (references && validIds && !await knownMeaningReversal(ctx, hadith, job.language, text)) {
+        // Unknown or duplicate model-reported reference IDs are dropped rather than
+        // rejecting the whole translation; only retained, authorized references are cited.
+        const usedIds = references ? [...new Set((args.output.usedReferenceIds ?? [])
+          .filter(id => references.some((_, index) => id === `reference:${index}`)))].slice(0, 3) : [];
+        if (references && !await knownMeaningReversal(ctx, hadith, job.language, text)) {
           const used = references.filter((_, index) => usedIds.includes(`reference:${index}`));
           groundingUsed = used.length > 0;
           for (const row of await ctx.db.query("translations").withIndex("by_hadith_language_default", q => q.eq("hadithId", hadith._id).eq("language", job.language).eq("isDefault", true)).collect())

@@ -1,12 +1,12 @@
 import { v } from "convex/values";
 import { internalAction, internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { operation, surface, MONTHLY_REPORT_CAP, REPORT_INTERVAL_MS, HEALTH_WINDOW_MS,
+import { operation, surface, failureReason, MONTHLY_REPORT_CAP, REPORT_INTERVAL_MS, HEALTH_WINDOW_MS,
   HEARTBEAT_STALE_MS, diagnosticsEnvironment } from "./lib/diagnosticsPolicy";
 import { DIAGNOSTICS_RELEASE } from "./lib/diagnosticsRelease";
 
 export const recordFailure = internalMutation({
-  args: { operation, surface, webRelease: v.optional(v.string()) },
+  args: { operation, surface, webRelease: v.optional(v.string()), failureReason: v.optional(failureReason) },
   handler: async (ctx, args): Promise<boolean> => {
     if (process.env.DIAGNOSTICS_ENABLED !== "1") return false;
     const now = Date.now(), month = new Date(now).toISOString().slice(0, 7);
@@ -28,6 +28,7 @@ export const recordFailure = internalMutation({
     else await ctx.db.insert("diagnosticsState", values);
     if (send) await ctx.scheduler.runAfter(0, internal.actions.diagnostics.send, {
       operation: args.operation, surface: args.surface,
+      ...(args.surface === "backend" && args.failureReason ? { failureReason: args.failureReason } : {}),
       ...(args.surface === "web" && args.webRelease && /^hadithly@[a-f0-9]{12}$/.test(args.webRelease) ? { release: args.webRelease } : {}),
     });
     return send;
