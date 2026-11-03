@@ -153,7 +153,12 @@ The full backend suite passed 570 cases before the export assertion extension.
 Final integrated notification and export checks passed 28 cases, and typecheck
 passed. The focused deletion case emitted the existing asynchronous cleanup
 teardown warning; no assertion failed. All six incoming regular-file hashes remain
-unchanged. These follow-up code commits have not yet been deployed.
+unchanged. The owner subsequently approved the deployment through `94b0933`.
+`convex dev --once` completed against `festive-cobra-664` on November 4 after
+repository typecheck passed. Convex confirmed adding `pushTokens.by_user_updated_at`
+and reported functions ready. No model request or test notification was initiated.
+A fresh HTTPS readback returned `status: ready`, `environment: development`, and
+`component: notifications`. That heartbeat health result does not prove delivery.
 
 The owner confirmed source reuse/translation permission exists. Its location or
 reference is pending; no verified license URL or broader redistribution/offline

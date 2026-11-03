@@ -15,7 +15,9 @@ and account transfer inheriting the previous owner's notification settings.
 choices, preserve same-account refreshes, default new accounts to disabled,
 and export only the caller's portable choices. The full backend suite passes
 570 cases; final notification/export checks pass 28 cases. These follow-up code
-changes await their own development deployment approval. The source permission
+changes were approved and deployed to `festive-cobra-664` on November 4 through
+`94b0933`, including the added index. Repository typecheck passed before the push.
+No model request or test notification was initiated. The source permission
 exists according to the owner; its reference is pending so the database record
 can be corrected accurately. No further model request or test push occurred.
 
