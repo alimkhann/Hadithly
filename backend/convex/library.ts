@@ -303,7 +303,7 @@ export const savePushToken = mutation({
       lastSeenAt: now,
       updatedAt: now,
     };
-    if (existing) {
+    if (existing && existing.userId === user._id) {
       // Re-registration proves the token is alive: clear retry state so a
       // previously flaky device converges back to normal delivery.
       await ctx.db.patch(existing._id, {
@@ -320,6 +320,20 @@ export const savePushToken = mutation({
       : null;
     const legacyTime = legacy?.dailyTime && normalizeDeliveryBucket(legacy.dailyTime) !== null ? legacy.dailyTime : "08:00";
     const dailyTime = user.dailyNotificationTime ?? legacyTime;
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        ...patch,
+        dailyTime,
+        deliveryBucket: normalizeDeliveryBucket(dailyTime) ?? "08:00",
+        enabled: user.dailyNotificationEnabled ?? legacy?.enabled ?? false,
+        lastSentDate: undefined,
+        consecutiveFailures: 0,
+        lastFailureDate: undefined,
+        nextRetryAt: undefined,
+        lastError: undefined,
+      });
+      return existing._id;
+    }
     return await ctx.db.insert("pushTokens", {
       token: args.token,
       dailyTime,

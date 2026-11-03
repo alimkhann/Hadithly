@@ -216,6 +216,36 @@ describe("N1 push token registration", () => {
 });
 
 describe("N1 daily notification preferences", () => {
+  test("transferring a token applies the new account's preferences and clears the old delivery date", async () => {
+    const t = convexTest(schema, modules);
+    const a = t.withIdentity(identity("notify_transfer_a"));
+    const b = t.withIdentity(identity("notify_transfer_b"));
+    await a.mutation(api.users.ensureCurrentUser, { preferredLanguage: "en" });
+    await b.mutation(api.users.ensureCurrentUser, { preferredLanguage: "en" });
+    await a.mutation(api.library.setDailyNotification, { enabled: true, dailyTime: "07:00" });
+    const id = await a.mutation(api.library.savePushToken, { token: "shared-device", platform: "ios" });
+    await t.mutation(internal.library.markPushSent, { tokenId: id, sentDate: "2026-09-18" });
+    await t.mutation(internal.library.recordPushFailure, { tokenId: id, error: "failed", nextRetryAt: NOW + 60_000, failureDate: "2026-09-18" });
+    await b.mutation(api.library.setDailyNotification, { enabled: false, dailyTime: "18:37" });
+    expect(await b.mutation(api.library.savePushToken, { token: "shared-device", platform: "ios" })).toBe(id);
+    const row = await t.run(ctx => ctx.db.get(id));
+    expect(row).toMatchObject({ enabled: false, dailyTime: "18:37", deliveryBucket: "18:30" });
+    expect(row?.lastSentDate).toBeUndefined();
+    expect(row?.consecutiveFailures).toBe(0);
+    expect(row?.lastFailureDate).toBeUndefined();
+    expect(row?.nextRetryAt).toBeUndefined();
+  });
+  test("transferring to an account without a preference or legacy token defaults off", async () => {
+    const t = convexTest(schema, modules);
+    const a = t.withIdentity(identity("notify_transfer_default_a"));
+    const b = t.withIdentity(identity("notify_transfer_default_b"));
+    await a.mutation(api.users.ensureCurrentUser, { preferredLanguage: "en" });
+    await b.mutation(api.users.ensureCurrentUser, { preferredLanguage: "en" });
+    await a.mutation(api.library.setDailyNotification, { enabled: true, dailyTime: "07:00" });
+    const id = await a.mutation(api.library.savePushToken, { token: "shared-device-default", platform: "ios" });
+    await b.mutation(api.library.savePushToken, { token: "shared-device-default", platform: "ios" });
+    expect(await t.run(ctx => ctx.db.get(id))).toMatchObject({ enabled: false, dailyTime: "08:00", deliveryBucket: "08:00" });
+  });
   test("registration followed by a preference change updates the device and later tokens", async () => {
     const t = convexTest(schema, modules);
     const user = t.withIdentity(identity("notify_registration_first"));
