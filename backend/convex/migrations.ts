@@ -12,6 +12,25 @@ import {
 } from "./lib/contentPolicy";
 import { legacyReadingPosition } from "./lib/readingPositions";
 import { normalizeDeliveryBucket } from "./lib/notifyContent";
+import { isNamedDevelopmentDeployment } from "./generationIntegrity";
+
+export const confirmSunnahNowDevelopmentLicense = internalMutation({
+  args: {},
+  handler: async ctx => {
+    if (!isNamedDevelopmentDeployment()) throw new Error("DEVELOPMENT_ONLY");
+    const existing = await ctx.db.query("licenseRecords")
+      .withIndex("by_source_key", q => q.eq("sourceKey", SUNNAH_NOW_LICENSE_RECORD.sourceKey)).unique();
+    if (existing?.terms.kind === "verified") return existing._id;
+    const now = Date.now();
+    const terms = { kind: "verified" as const, licenseName: "Owner-confirmed Sunnah.now display and AI translation permission",
+      licenseUrl: "", permitsDisplay: true, permitsRedistribution: false, permitsOfflineDistribution: false, verifiedAt: now };
+    if (existing) {
+      await ctx.db.patch(existing._id, { terms, updatedAt: now });
+      return existing._id;
+    }
+    return await ctx.db.insert("licenseRecords", { ...SUNNAH_NOW_LICENSE_RECORD, terms, createdAt: now, updatedAt: now });
+  },
+});
 
 /**
  * Backfills the F1 content contract in bounded, repeatable pages. Re-running
