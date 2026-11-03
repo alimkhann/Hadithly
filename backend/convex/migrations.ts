@@ -3,7 +3,8 @@ import { advanceLibraryVersion } from "./lib/librarySyncVersions";
 import type { Id } from "./_generated/dataModel";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
-import { internalMutation } from "./_generated/server";
+import { internalMutation, internalQuery } from "./_generated/server";
+import type { QueryCtx } from "./_generated/server";
 import {
   SUNNAH_NOW_LICENSE_RECORD,
   authenticityForProviderHadith,
@@ -13,6 +14,43 @@ import {
 import { legacyReadingPosition } from "./lib/readingPositions";
 import { normalizeDeliveryBucket } from "./lib/notifyContent";
 import { isNamedDevelopmentDeployment } from "./generationIntegrity";
+
+async function bukhariSeven(ctx: Pick<QueryCtx, "db">) {
+  return await ctx.db.query("hadiths").withIndex("by_provider_ref", q =>
+    q.eq("provider", "sunnah_now").eq("collectionSlug", "bukhari").eq("providerHadithId", "7")).unique();
+}
+
+export const inspectBukhariSevenLicense = internalQuery({
+  args: {},
+  handler: async ctx => {
+    if (!isNamedDevelopmentDeployment()) throw new Error("DEVELOPMENT_ONLY");
+    const hadith = await bukhariSeven(ctx);
+    if (!hadith) return null;
+    const linked = hadith.licenseRecordId ? await ctx.db.get(hadith.licenseRecordId) : null;
+    const canonical = await ctx.db.query("licenseRecords").withIndex("by_source_key", q =>
+      q.eq("sourceKey", SUNNAH_NOW_LICENSE_RECORD.sourceKey)).unique();
+    return { pointer: !hadith.licenseRecordId ? "missing" : linked ? "linked" : "dangling",
+      linkedSourceKey: linked?.sourceKey ?? null, linkedTermsKind: linked?.terms.kind ?? null,
+      matchesCanonicalSourceLicense: !!linked && linked._id === canonical?._id };
+  },
+});
+
+export const repairBukhariSevenLicense = internalMutation({
+  args: {},
+  handler: async ctx => {
+    if (!isNamedDevelopmentDeployment()) throw new Error("DEVELOPMENT_ONLY");
+    const hadith = await bukhariSeven(ctx);
+    if (!hadith) throw new Error("HADITH_NOT_FOUND");
+    const canonical = await ctx.db.query("licenseRecords").withIndex("by_source_key", q =>
+      q.eq("sourceKey", SUNNAH_NOW_LICENSE_RECORD.sourceKey)).unique();
+    if (!canonical || canonical.terms.kind !== "verified" || !canonical.terms.permitsDisplay) throw new Error("SOURCE_LICENSE_UNAVAILABLE");
+    const linked = hadith.licenseRecordId ? await ctx.db.get(hadith.licenseRecordId) : null;
+    if (linked?._id === canonical._id) return "already_linked";
+    if (linked) throw new Error("EXISTING_LICENSE_BINDING");
+    await ctx.db.patch(hadith._id, { licenseRecordId: canonical._id });
+    return "repaired";
+  },
+});
 
 export const confirmSunnahNowDevelopmentLicense = internalMutation({
   args: {},
