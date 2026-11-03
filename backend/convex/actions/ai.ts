@@ -1,6 +1,6 @@
 "use node";
 import { GoogleGenAI, Type } from "@google/genai";
-import { ConvexError, v } from "convex/values";
+import { ConvexError, v, type Infer } from "convex/values";
 import { action, internalAction } from "../_generated/server";
 import type { ActionCtx } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
@@ -8,7 +8,7 @@ import { internal } from "../_generated/api";
 import { requireIdentity } from "../lib/identity";
 import { parseTranslationPayload, untrustedProviderDataBlock } from "../lib/grounding";
 import { parseInternalHadithId } from "../lib/sunnahNow";
-import { GENERATION_MODEL, PROVIDER_TIMEOUT_MS, generationLanguage } from "../lib/generationPolicy";
+import { GENERATION_MODEL, PROVIDER_TIMEOUT_MS, generationFailureReason, generationLanguage } from "../lib/generationPolicy";
 import { integrityProof } from "../generationIntegrity";
 import { reportFailure } from "../lib/reportFailure";
 import { verifyGenerationProof } from "./generationIntegrity";
@@ -30,9 +30,11 @@ function result(row: Doc<"translations">, cached: boolean): TranslationResult {
 async function generate(ctx: ActionCtx, admission: { jobId: Id<"aiGenerationJobs">; attempt: number; hadith: Doc<"hadiths">; references: GenerationReference[] }, language: string): Promise<TranslationResult> {
   const startedAt = Date.now();
   let telemetry = { inputTokens: 0, outputTokens: 0, thinkingTokens: 0, tokenUsageKnown: false, durationMs: 0 };
+  let failureReason: Infer<typeof generationFailureReason> = "service_unavailable";
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) throw new Error("AI_SERVICE_UNAVAILABLE");
+    failureReason = "provider_error";
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({ model: GENERATION_MODEL,
       contents: ["You are a careful translator of hadith (Prophetic narrations).",
@@ -55,17 +57,19 @@ async function generate(ctx: ActionCtx, admission: { jobId: Id<"aiGenerationJobs
     telemetry = { inputTokens: response.usageMetadata?.promptTokenCount ?? 0,
       outputTokens: response.usageMetadata?.candidatesTokenCount ?? 0, thinkingTokens: response.usageMetadata?.thoughtsTokenCount ?? 0,
       tokenUsageKnown: response.usageMetadata !== undefined, durationMs: Math.min(120_000, Date.now() - startedAt) };
+    failureReason = "invalid_response";
     const payload = parseTranslationPayload(response.text ?? "");
     if (!payload?.translation.trim() || payload.translation.length > 24_000 || payload.riskFlags.length > 30) throw new Error("AI_INVALID_RESPONSE");
+    failureReason = "completion_error";
     const completed = await ctx.runMutation(internal.quotas.finish, { jobId: admission.jobId, attempt: admission.attempt, telemetry,
       output: { translation: payload.translation, confidence: payload.confidence, riskFlags: payload.riskFlags, usedReferenceIds: payload.usedReferenceIds } });
-    if (!completed) throw new Error("AI_GENERATION_RETRY");
+    if (!completed) { failureReason = "completion_rejected"; throw new Error("AI_GENERATION_RETRY"); }
     return result(completed.translation, completed.cached);
   } catch {
     await reportFailure(ctx, "generation");
     // No provider exception, prompt, response text, proof, or account enters telemetry.
     await ctx.runMutation(internal.quotas.finish, { jobId: admission.jobId, attempt: admission.attempt,
-      telemetry: { ...telemetry, durationMs: Math.min(120_000, Date.now() - startedAt) } });
+      telemetry: { ...telemetry, failureReason, durationMs: Math.min(120_000, Date.now() - startedAt) } });
     throw new Error("AI_GENERATION_RETRY");
   }
 }

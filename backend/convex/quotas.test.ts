@@ -167,6 +167,9 @@ describe("Q1 global success invariant", () => {
     await f.t.run(ctx => ctx.db.patch(f.hadithIds[0], { arabicText: "changed source" }));
     expect(await f.t.mutation(internal.quotas.finish, { jobId: claim.jobId, attempt: claim.attempt, telemetry, output })).toBeNull();
     expect(await f.t.run(ctx => ctx.db.query("aiUsageEvents").collect())).toHaveLength(0);
+    const cost = await f.t.run(ctx => ctx.db.query("aiCostEvents").unique());
+    expect(cost).toMatchObject({ outcome: "stale" });
+    expect(cost).not.toHaveProperty("failureReason");
   });
   test("deletion keeps global flight/cache/event; erases private charges/credentials", async () => {
     const f = await fixture(); const claim = await f.admit(); if (claim.kind !== "claimed") throw new Error("No claim");
@@ -266,6 +269,7 @@ describe("Q1 generation and abuse boundary", () => {
     expect(config.tools).toBeUndefined(); expect(config.httpOptions.retryOptions.attempts).toBe(1);
     const cost = await f.t.run(ctx => ctx.db.query("aiCostEvents").unique());
     expect(cost).toMatchObject({ estimatedMicroUsd: 400, outcome: "published", groundingUsed: false });
+    expect(cost).not.toHaveProperty("failureReason");
     for (const text of [output.translation, "Public source", "نص عربي", "q1-owner", "prompt", "proof"]) expect(JSON.stringify(cost)).not.toContain(text);
     expect(tokenCostMicroUsd({ inputTokens: 2000, outputTokens: 400, thinkingTokens: 100 })).toBe(400);
   });
@@ -273,7 +277,19 @@ describe("Q1 generation and abuse boundary", () => {
     const f = await fixture(); vi.stubEnv("GEMINI_API_KEY", "fixture-not-real"); provider.mockResolvedValue({ text: "not JSON", usageMetadata: { promptTokenCount: 100 } });
     await expect(f.t.action(internal.actions.ai.generateServiceTranslation, { hadithId: f.hadithIds[0], language: "ru" })).rejects.toThrow("AI_GENERATION_RETRY");
     expect(provider).toHaveBeenCalledTimes(1); expect(await f.t.run(ctx => ctx.db.query("aiUsageEvents").collect())).toHaveLength(0);
-    expect(await f.t.run(ctx => ctx.db.query("aiCostEvents").unique())).toMatchObject({ outcome: "failed", inputTokens: 100 });
+    expect(await f.t.run(ctx => ctx.db.query("aiCostEvents").collect())).toMatchObject([{ outcome: "failed", inputTokens: 100, failureReason: "invalid_response" }]);
+  });
+  test("failure diagnostics are allowlisted and never retain provider errors", async () => {
+    const f = await fixture(); vi.stubEnv("GEMINI_API_KEY", "fixture-not-real");
+    provider.mockRejectedValue(new Error("private provider response"));
+    await expect(f.t.action(internal.actions.ai.generateServiceTranslation, { hadithId: f.hadithIds[0], language: "ru" })).rejects.toThrow("AI_GENERATION_RETRY");
+    const costs = await f.t.run(ctx => ctx.db.query("aiCostEvents").collect());
+    expect(costs).toMatchObject([{ outcome: "failed", failureReason: "provider_error" }]);
+    expect(JSON.stringify(costs)).not.toContain("private provider response");
+    const claim = await f.admit(1); if (claim.kind !== "claimed") throw new Error("Missing generation claim");
+    await expect(f.t.mutation(internal.quotas.finish, { jobId: claim.jobId, attempt: claim.attempt,
+      // @ts-expect-error Exercise the runtime validator with an untrusted value.
+      telemetry: { ...telemetry, failureReason: "private provider response" } })).rejects.toThrow();
   });
 });
 

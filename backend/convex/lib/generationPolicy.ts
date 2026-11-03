@@ -73,8 +73,10 @@ export function rollingAllowance(input: { now: number; limit: number; successes:
     windowMs: WINDOW_MS };
 }
 
+export const generationFailureReason = v.union(v.literal("service_unavailable"), v.literal("provider_error"),
+  v.literal("invalid_response"), v.literal("completion_rejected"), v.literal("completion_error"));
 export const telemetryValidator = v.object({ inputTokens: v.number(), outputTokens: v.number(), thinkingTokens: v.number(),
-  tokenUsageKnown: v.boolean(), durationMs: v.number() });
+  tokenUsageKnown: v.boolean(), durationMs: v.number(), failureReason: v.optional(generationFailureReason) });
 
 export function tokenCostMicroUsd(input: { inputTokens: number; outputTokens: number; thinkingTokens: number }) {
   for (const count of [input.inputTokens, input.outputTokens, input.thinkingTokens]) {

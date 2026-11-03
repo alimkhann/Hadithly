@@ -57,6 +57,7 @@ export type PushTokenLike = {
   timezone?: string;
   lastSentDate?: string;
   consecutiveFailures?: number;
+  lastFailureDate?: string;
   nextRetryAt?: number;
 };
 
@@ -170,7 +171,7 @@ export function selectDueTokens<T extends PushTokenLike>(
       skipped.push({ token, reason: "duplicate-local-date" });
       continue;
     }
-    const failures = token.consecutiveFailures ?? 0;
+    const failures = token.lastFailureDate === local.date ? token.consecutiveFailures ?? 0 : 0;
     const isRetry = failures > 0;
     if (isRetry) {
       if (failures >= MAX_ATTEMPTS_PER_DATE) {

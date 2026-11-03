@@ -93,6 +93,7 @@ test("invented and duplicate reference IDs fail without success or allowance con
     await expect(generate(f)).rejects.toThrow("AI_GENERATION_RETRY");
     expect(await f.owner.query(api.quotas.getTranslationAllowance, {})).toMatchObject({ used: 0, reserved: 0, remaining: 5 });
     expect(await f.t.run(ctx => ctx.db.query("aiUsageEvents").collect())).toEqual([]);
+    expect(await f.t.run(ctx => ctx.db.query("aiCostEvents").collect())).toMatchObject([{ outcome: "failed", failureReason: "completion_rejected" }]);
   }
 });
 

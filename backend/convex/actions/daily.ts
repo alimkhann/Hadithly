@@ -327,6 +327,7 @@ type PushTokenDoc = {
   enabled: boolean;
   lastSentDate?: string;
   consecutiveFailures?: number;
+  lastFailureDate?: string;
   nextRetryAt?: number;
   lastError?: string;
   lastSeenAt?: number;
@@ -471,6 +472,13 @@ export async function runDuePushes(
       }
       for (const { token, localDate } of due) {
         if (result.sent + result.failed >= MAX_SENDS_PER_RUN) break;
+        const providerOk =
+          (token.platform === "ios" && hasApns) ||
+          (token.platform === "android" && hasFcm);
+        if (!providerOk) {
+          skip("provider-unconfigured");
+          continue;
+        }
         const timezone = token.timezone as string;
         const locale = (token.translationLocale ?? "en").trim() || "en";
         if (!picks.has(timezone)) {
@@ -519,13 +527,6 @@ export async function runDuePushes(
           providerHadithId: picked.providerHadithId,
           volumeId: picked.volumeId,
         });
-        const providerOk =
-          (token.platform === "ios" && hasApns) ||
-          (token.platform === "android" && hasFcm);
-        if (!providerOk) {
-          skip("provider-unconfigured");
-          continue;
-        }
         try {
           if (token.platform === "ios") {
             await senders.sendApns(token.token, {
@@ -558,8 +559,9 @@ export async function runDuePushes(
             await io.runMutation(internal.library.recordPushFailure, {
               tokenId: token._id,
               error: "push_provider_failure",
+              failureDate: localDate,
               nextRetryAt: now + retryDelayMs(
-                (token.consecutiveFailures ?? 0) + 1,
+                (token.lastFailureDate === localDate ? token.consecutiveFailures ?? 0 : 0) + 1,
               ),
             });
             result.failed += 1;
@@ -570,8 +572,9 @@ export async function runDuePushes(
             await io.runMutation(internal.library.recordPushFailure, {
               tokenId: token._id,
               error: "push_provider_failure",
+              failureDate: localDate,
               nextRetryAt: now + retryDelayMs(
-                (token.consecutiveFailures ?? 0) + 1,
+                (token.lastFailureDate === localDate ? token.consecutiveFailures ?? 0 : 0) + 1,
               ),
             });
             result.failed += 1;

@@ -309,6 +309,7 @@ export const savePushToken = mutation({
       await ctx.db.patch(existing._id, {
         ...patch,
         consecutiveFailures: 0,
+        lastFailureDate: undefined,
         nextRetryAt: undefined,
         lastError: undefined,
       });
@@ -370,6 +371,7 @@ export const setDailyNotification = mutation({
         // for a new time, so today's stamp must not suppress it.
         lastSentDate: undefined,
         consecutiveFailures: 0,
+        lastFailureDate: undefined,
         nextRetryAt: undefined,
         lastError: undefined,
         lastSeenAt: now,
@@ -418,6 +420,7 @@ export const markPushSent = internalMutation({
     await ctx.db.patch(args.tokenId, {
       lastSentDate: args.sentDate,
       consecutiveFailures: 0,
+      lastFailureDate: undefined,
       nextRetryAt: undefined,
       lastError: undefined,
       lastSeenAt: Date.now(),
@@ -431,12 +434,14 @@ export const recordPushFailure = internalMutation({
     tokenId: v.id("pushTokens"),
     error: v.string(),
     nextRetryAt: v.number(),
+    failureDate: v.string(),
   },
   handler: async (ctx, args) => {
     const row = await ctx.db.get(args.tokenId);
     if (!row) return;
     await ctx.db.patch(args.tokenId, {
-      consecutiveFailures: (row.consecutiveFailures ?? 0) + 1,
+      consecutiveFailures: (row.lastFailureDate === args.failureDate ? row.consecutiveFailures ?? 0 : 0) + 1,
+      lastFailureDate: args.failureDate,
       nextRetryAt: args.nextRetryAt,
       lastError: args.error.slice(0, 300),
       lastSeenAt: Date.now(),

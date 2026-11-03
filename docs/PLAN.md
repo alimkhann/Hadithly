@@ -4,6 +4,25 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
+## Sentry repair checkpoint, November 3
+
+Notification retries now reset by local date, and unavailable providers are
+checked before content or AI generation. AI cost records retain only a fixed
+failure stage. Three notification regressions failed before and pass after;
+the complete backend suite passes 564 tests. See
+[SENTRY_REPAIR_VERIFICATION.md](SENTRY_REPAIR_VERIFICATION.md).
+Implementation was isolated on `fix/sentry-notifications-translations-20261103`
+while the reader chat completed `3807fe9`. The owner approved development deploy
+`90edb59` and one physical-device retry. Deployment to `festive-cobra-664` passed.
+The phone's Bukhari 7 retry again failed with `AI_SOURCE_UNAVAILABLE` before
+provider generation. Its cached source license remains unverified; its 22,307-byte
+source is within the generation bound. The displayed 5/5 allowance is consistent
+with not charging a failed request. No native file changed for this repair.
+FCM credentials are absent; physical delivery, actual translation success and
+the unsymbolicated iOS crash remain open. No historical Sentry issue is claimed
+resolved. Grounding pricing and the owner's proposed Free/Pro cache split are
+research only. Preserve every reader and original-program gate below.
+
 ## Paging completion checkpoint, November 3
 
 The owner expanded this chat to all four units in PAGE_TRANSITION_PLAN.md and an

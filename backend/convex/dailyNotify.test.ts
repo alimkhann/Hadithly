@@ -111,6 +111,22 @@ function recordingSenders(): PushSenders & {
   };
 }
 
+test("does not generate a translation when the device provider is unavailable", async () => {
+  const t = convexTest(schema, modules);
+  const asUser = t.withIdentity(identity("notify_no_provider"));
+  await asUser.mutation(api.users.ensureCurrentUser, { preferredLanguage: "en" });
+  await asUser.mutation(api.library.savePushToken, {
+    token: "no-provider", platform: "ios", timezone: "Asia/Almaty", translationLocale: "kk",
+  });
+  const hadithId = await seedHadith(t);
+  await persistToday(t, "Asia/Almaty", hadithId);
+  let generations = 0;
+  const io = { ...stubIo(t), runAction: async () => { generations += 1; return { content: "translation" }; } };
+  const result = await runDuePushes(io, NOW, recordingSenders(), { hasApns: false, hasFcm: true });
+  expect(generations).toBe(0);
+  expect(result.skippedReasons["provider-unconfigured"]).toBe(1);
+});
+
 describe("N1 push token registration", () => {
   test("stores IANA zone, locales, and the delivery bucket", async () => {
     const t = convexTest(schema, modules);
@@ -184,6 +200,7 @@ describe("N1 push token registration", () => {
       tokenId,
       error: "socket hang up",
       nextRetryAt: NOW + 60_000,
+      failureDate: "2026-09-18",
     });
     await asUser.mutation(api.library.savePushToken, {
       token: "flaky-token",
@@ -193,6 +210,7 @@ describe("N1 push token registration", () => {
     const row = await t.run(async (ctx) => ctx.db.get(tokenId));
     expect(row?.consecutiveFailures).toBe(0);
     expect(row?.nextRetryAt).toBeUndefined();
+    expect(row?.lastFailureDate).toBeUndefined();
   });
 });
 
@@ -203,11 +221,14 @@ describe("N1 daily notification preferences", () => {
     await asUser.mutation(api.users.ensureCurrentUser, {
       preferredLanguage: "en",
     });
-    await asUser.mutation(api.library.savePushToken, {
+    const tokenId = await asUser.mutation(api.library.savePushToken, {
       token: "pref-token",
       platform: "android",
       timezone: "Asia/Almaty",
       translationLocale: "en",
+    });
+    await t.mutation(internal.library.recordPushFailure, {
+      tokenId, error: "socket hang up", nextRetryAt: NOW + 60_000, failureDate: "2026-09-18",
     });
     await expect(
       asUser.mutation(api.library.setDailyNotification, {
@@ -232,6 +253,7 @@ describe("N1 daily notification preferences", () => {
       consecutiveFailures: 0,
     });
     expect(rows[0].lastSentDate).toBeUndefined();
+    expect(rows[0].lastFailureDate).toBeUndefined();
   });
 });
 
@@ -311,10 +333,24 @@ describe("N1 bucket paging and retry bookkeeping", () => {
       tokenId,
       error: "socket hang up",
       nextRetryAt: NOW + 120_000,
+      failureDate: "2026-09-18",
     });
     row = await t.run(async (ctx) => ctx.db.get(tokenId));
     expect(row?.consecutiveFailures).toBe(1);
     expect(row?.nextRetryAt).toBe(NOW + 120_000);
+    for (let i = 0; i < 2; i++) {
+      await t.mutation(internal.library.recordPushFailure, {
+        tokenId, error: "socket hang up", nextRetryAt: NOW + 120_000, failureDate: "2026-09-18",
+      });
+    }
+    row = await t.run(async (ctx) => ctx.db.get(tokenId));
+    expect(row?.consecutiveFailures).toBe(3);
+    await t.mutation(internal.library.recordPushFailure, {
+      tokenId, error: "socket hang up", nextRetryAt: NOW + 86_520_000, failureDate: "2026-09-19",
+    });
+    row = await t.run(async (ctx) => ctx.db.get(tokenId));
+    expect(row?.consecutiveFailures).toBe(1);
+    expect(row?.lastFailureDate).toBe("2026-09-19");
   });
 });
 
@@ -354,6 +390,34 @@ describe("N1 migration", () => {
 });
 
 describe("N1 cron loop", () => {
+  test("exhausted failures rearm and use first-attempt backoff on each new local date", async () => {
+    const t = convexTest(schema, modules);
+    const asUser = t.withIdentity(identity("notify_date_rollover"));
+    await asUser.mutation(api.users.ensureCurrentUser, { preferredLanguage: "en" });
+    const tokenId = await asUser.mutation(api.library.savePushToken, {
+      token: "date-rollover", platform: "ios", timezone: "Asia/Almaty", translationLocale: "en",
+    });
+    const hadithId = await seedHadith(t);
+    await persistToday(t, "Asia/Almaty", hadithId);
+    for (let i = 0; i < 3; i++) {
+      await t.mutation(internal.library.recordPushFailure, {
+        tokenId, error: "socket hang up", nextRetryAt: NOW - 86_400_000, failureDate: "2026-09-17",
+      });
+    }
+    const senders = recordingSenders();
+    senders.sendApns = async () => { throw new Error("socket hang up"); };
+    const providers = { hasApns: true, hasFcm: true };
+    const first = await runDuePushes(stubIo(t), NOW, senders, providers);
+    expect(first.failed).toBe(1);
+    let row = await t.run(ctx => ctx.db.get(tokenId));
+    expect(row).toMatchObject({ consecutiveFailures: 1, lastFailureDate: "2026-09-18", nextRetryAt: NOW + 120_000 });
+    const tomorrow = NOW + 86_400_000;
+    await t.mutation(internal.dailySelections.persist, { localDate: "2026-09-19", timezone: "Asia/Almaty", hadithId });
+    const second = await runDuePushes(stubIo(t), tomorrow, senders, providers);
+    expect(second.failed).toBe(1);
+    row = await t.run(ctx => ctx.db.get(tokenId));
+    expect(row).toMatchObject({ consecutiveFailures: 1, lastFailureDate: "2026-09-19", nextRetryAt: tomorrow + 120_000 });
+  });
   test("an idle tick uses one bounded token query instead of 96 empty buckets", async () => {
     const t = convexTest(schema, modules);
     const io = stubIo(t);

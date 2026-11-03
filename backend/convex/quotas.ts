@@ -196,7 +196,9 @@ export const finish = internalMutation({
         }
       }
     }
-    await ctx.db.insert("aiCostEvents", { ...args.telemetry, jobId: job._id, attempt: args.attempt, model: GENERATION_MODEL,
+    const { failureReason, ...numericTelemetry } = args.telemetry;
+    await ctx.db.insert("aiCostEvents", { ...numericTelemetry, jobId: job._id, attempt: args.attempt, model: GENERATION_MODEL,
+      ...(outcome === "failed" ? { failureReason: args.output ? "completion_rejected" as const : failureReason } : {}),
       pricingVersion: PRICING_VERSION, estimatedMicroUsd, groundingUsed, outcome, createdAt: now });
     if (!stale) await ctx.db.patch(job._id, { status: translation ? "completed" : "failed", translationId: translation?._id, expiresAt: now });
     return translation ? { translation, cached: outcome === "cached" } : null;

@@ -14,7 +14,7 @@ import { permissionGrant, publicCitation, reviewPass, sourcePolicy } from "./lib
 import { caseReason, caseState } from "./lib/evidenceCasePolicy";
 import { supportFields, noticeKind } from "./lib/supportPolicy";
 import { firstReadingSource } from "./lib/firstReadingPolicy";
-import { generationReferenceBinding } from "./lib/generationPolicy";
+import { generationFailureReason, generationReferenceBinding } from "./lib/generationPolicy";
 
 const authenticityGrade = v.union(
   v.literal("sahih"),
@@ -118,7 +118,7 @@ export default defineSchema({
     pricingVersion: v.string(), inputTokens: v.number(), outputTokens: v.number(), thinkingTokens: v.number(),
     estimatedMicroUsd: v.number(), tokenUsageKnown: v.boolean(), durationMs: v.number(),
     outcome: v.union(v.literal("published"), v.literal("cached"), v.literal("failed"), v.literal("stale")),
-    groundingUsed: v.boolean(), createdAt: v.number(),
+    groundingUsed: v.boolean(), failureReason: v.optional(generationFailureReason), createdAt: v.number(),
   }).index("by_job_attempt", ["jobId", "attempt"]).index("by_time", ["createdAt"]),
   aiRateLimits: defineTable({ key: v.string(), userId: v.optional(v.id("users")), startedAt: v.number(), count: v.number() })
     .index("by_key", ["key"]).index("by_user", ["userId"]),
@@ -627,9 +627,9 @@ export default defineSchema({
     // Local date (YYYY-MM-DD in the token's IANA zone) of the last daily
     // push actually sent, guarding the 15-minute cron against double sends.
     lastSentDate: v.optional(v.string()),
-    // Bounded transient-retry state: failures since the last success and
-    // the earliest time a retry may run again.
+    // Bounded transient-retry state for one local date.
     consecutiveFailures: v.optional(v.number()),
+    lastFailureDate: v.optional(v.string()),
     nextRetryAt: v.optional(v.number()),
     // Last provider error, observable forops without exposing the token.
     lastError: v.optional(v.string()),

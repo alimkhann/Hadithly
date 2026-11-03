@@ -66,6 +66,24 @@ describe("IANA local clock", () => {
 });
 
 describe("selectDueTokens", () => {
+  test("yesterday's exhausted attempts do not block today's window", () => {
+    const yesterday = { ...token({ consecutiveFailures: 3, nextRetryAt: ALMATY_0805 - 60_000 }), lastFailureDate: "2026-09-17" };
+    expect(selectDueTokens([yesterday], ALMATY_0805).due).toHaveLength(1);
+  });
+  test("yesterday's retry does not send before today's window", () => {
+    const yesterday = { ...token({ consecutiveFailures: 1, nextRetryAt: Date.parse("2026-09-17T03:07:00Z") }), lastFailureDate: "2026-09-17" };
+    expect(selectDueTokens([yesterday], Date.parse("2026-09-18T02:55:00Z")).due).toHaveLength(0);
+  });
+  test("legacy undated failures wait for the scheduled window", () => {
+    const legacy = token({ consecutiveFailures: 3, nextRetryAt: 0 });
+    expect(selectDueTokens([legacy], Date.parse("2026-09-18T02:55:00Z")).due).toHaveLength(0);
+    expect(selectDueTokens([legacy], ALMATY_0805).due).toHaveLength(1);
+  });
+  test("a retry crossing midnight waits for the next local scheduled window", () => {
+    const retry = token({ dailyTime: "23:59", consecutiveFailures: 1, lastFailureDate: "2026-09-17", nextRetryAt: Date.parse("2026-09-17T19:01:00Z") });
+    expect(selectDueTokens([retry], Date.parse("2026-09-17T19:02:00Z")).due).toHaveLength(0);
+    expect(selectDueTokens([retry], Date.parse("2026-09-18T18:59:00Z")).due).toHaveLength(1);
+  });
   test("marks a token due inside its window", () => {
     const { due, skipped } = selectDueTokens([token()], ALMATY_0805);
     expect(due).toHaveLength(1);
@@ -114,6 +132,7 @@ describe("selectDueTokens", () => {
       [
         token({
           consecutiveFailures: 1,
+          lastFailureDate: "2026-09-18",
           nextRetryAt: ALMATY_0805 - 60_000,
           dailyTime: "08:00",
         }),
@@ -124,13 +143,13 @@ describe("selectDueTokens", () => {
     expect(retry.due).toHaveLength(1);
     expect(retry.due[0].isRetry).toBe(true);
     const exhausted = selectDueTokens(
-      [token({ consecutiveFailures: 3, nextRetryAt: 0 })],
+      [token({ consecutiveFailures: 3, lastFailureDate: "2026-09-18", nextRetryAt: 0 })],
       ALMATY_0805,
     );
     expect(exhausted.due).toHaveLength(0);
     expect(exhausted.skipped[0].reason).toBe("retry-exhausted");
     const waiting = selectDueTokens(
-      [token({ consecutiveFailures: 1, nextRetryAt: ALMATY_0805 + 60_000 })],
+      [token({ consecutiveFailures: 1, lastFailureDate: "2026-09-18", nextRetryAt: ALMATY_0805 + 60_000 })],
       ALMATY_0805,
     );
     expect(waiting.due).toHaveLength(0);
