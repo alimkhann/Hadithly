@@ -15,6 +15,27 @@ import { legacyReadingPosition } from "./lib/readingPositions";
 import { normalizeDeliveryBucket } from "./lib/notifyContent";
 import { isNamedDevelopmentDeployment } from "./generationIntegrity";
 
+export const repairSunnahNowLinks = internalMutation({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, { paginationOpts }) => {
+    if (!isNamedDevelopmentDeployment()) throw new Error("DEVELOPMENT_ONLY");
+    if (!Number.isInteger(paginationOpts.numItems) || paginationOpts.numItems < 1 || paginationOpts.numItems > 100) throw new Error("INVALID_PAGE_SIZE");
+    const license = await ctx.db.query("licenseRecords").withIndex("by_source_key", q =>
+      q.eq("sourceKey", SUNNAH_NOW_LICENSE_RECORD.sourceKey)).unique();
+    if (!license || license.terms.kind !== "verified" || !license.terms.permitsDisplay) throw new Error("SOURCE_LICENSE_UNAVAILABLE");
+    const page = await ctx.db.query("hadiths").withIndex("by_collection", q => q.eq("provider", "sunnah_now")).paginate(paginationOpts);
+    let repaired = 0, conflicts = 0;
+    for (const hadith of page.page) {
+      if (hadith.licenseRecordId === license._id) continue;
+      const linked = hadith.licenseRecordId ? await ctx.db.get(hadith.licenseRecordId) : null;
+      if (linked) { conflicts++; continue; }
+      await ctx.db.patch(hadith._id, { licenseRecordId: license._id });
+      repaired++;
+    }
+    return { scanned: page.page.length, repaired, conflicts, continueCursor: page.continueCursor, isDone: page.isDone };
+  },
+});
+
 async function bukhariSeven(ctx: Pick<QueryCtx, "db">) {
   return await ctx.db.query("hadiths").withIndex("by_provider_ref", q =>
     q.eq("provider", "sunnah_now").eq("collectionSlug", "bukhari").eq("providerHadithId", "7")).unique();
