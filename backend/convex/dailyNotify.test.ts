@@ -229,7 +229,7 @@ describe("N1 daily notification preferences", () => {
     await b.mutation(api.library.setDailyNotification, { enabled: false, dailyTime: "18:37" });
     expect(await b.mutation(api.library.savePushToken, { token: "shared-device", platform: "ios" })).toBe(id);
     const row = await t.run(ctx => ctx.db.get(id));
-    expect(row).toMatchObject({ enabled: false, dailyTime: "18:37", deliveryBucket: "18:30" });
+    expect(row).toMatchObject({ enabled: false, dailyTime: "18:37", deliveryBucket: "18:30", preferenceOrigin: "chosen" });
     expect(row?.lastSentDate).toBeUndefined();
     expect(row?.consecutiveFailures).toBe(0);
     expect(row?.lastFailureDate).toBeUndefined();
@@ -244,7 +244,7 @@ describe("N1 daily notification preferences", () => {
     await a.mutation(api.library.setDailyNotification, { enabled: true, dailyTime: "07:00" });
     const id = await a.mutation(api.library.savePushToken, { token: "shared-device-default", platform: "ios" });
     await b.mutation(api.library.savePushToken, { token: "shared-device-default", platform: "ios" });
-    expect(await t.run(ctx => ctx.db.get(id))).toMatchObject({ enabled: false, dailyTime: "08:00", deliveryBucket: "08:00" });
+    expect(await t.run(ctx => ctx.db.get(id))).toMatchObject({ enabled: false, dailyTime: "08:00", deliveryBucket: "08:00", preferenceOrigin: "default" });
   });
   test("registration followed by a preference change updates the device and later tokens", async () => {
     const t = convexTest(schema, modules);

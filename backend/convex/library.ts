@@ -254,6 +254,16 @@ export const listReadingProgress = query({
 
 // ── Push tokens ──────────────────────────────────────────────────────────
 
+async function latestNotificationChoice(ctx: MutationCtx, userId: Id<"users">) {
+  const latest = (origin: "chosen" | undefined) => ctx.db.query("pushTokens")
+    .withIndex("by_user_preference_origin_updated_at", q => q.eq("userId", userId).eq("preferenceOrigin", origin))
+    .order("desc").first();
+  const [chosen, legacy] = await Promise.all([latest("chosen"), latest(undefined)]);
+  if (!chosen) return legacy;
+  if (!legacy) return chosen;
+  return chosen.updatedAt >= legacy.updatedAt ? chosen : legacy;
+}
+
 /**
  * Registers (or refreshes) a device push token. Upserts by token so
  * re-registrations never pile up rows, and never clobbers the user's
@@ -317,7 +327,7 @@ export const savePushToken = mutation({
       return existing._id;
     }
     const legacy = user.dailyNotificationEnabled === undefined || user.dailyNotificationTime === undefined
-      ? await ctx.db.query("pushTokens").withIndex("by_user_updated_at", q => q.eq("userId", user._id)).order("desc").first()
+      ? await latestNotificationChoice(ctx, user._id)
       : null;
     const legacyTime = legacy?.dailyTime && normalizeDeliveryBucket(legacy.dailyTime) !== null ? legacy.dailyTime : "08:00";
     const dailyTime = user.dailyNotificationTime ?? legacyTime;
@@ -327,6 +337,7 @@ export const savePushToken = mutation({
         dailyTime,
         deliveryBucket: normalizeDeliveryBucket(dailyTime) ?? "08:00",
         enabled: user.dailyNotificationEnabled ?? legacy?.enabled ?? false,
+        preferenceOrigin: user.dailyNotificationEnabled !== undefined || legacy ? "chosen" : "default",
         lastSentDate: undefined,
         consecutiveFailures: 0,
         lastFailureDate: undefined,
@@ -340,6 +351,7 @@ export const savePushToken = mutation({
       dailyTime,
       deliveryBucket: normalizeDeliveryBucket(dailyTime) ?? "08:00",
       enabled: user.dailyNotificationEnabled ?? legacy?.enabled ?? false,
+      preferenceOrigin: user.dailyNotificationEnabled !== undefined || legacy ? "chosen" : "default",
       consecutiveFailures: 0,
       ...patch,
     });
@@ -384,6 +396,7 @@ export const setDailyNotification = mutation({
     for (const row of rows) {
       await ctx.db.patch(row._id, {
         enabled: args.enabled,
+        preferenceOrigin: "chosen",
         dailyTime: args.dailyTime,
         deliveryBucket: bucket,
         timezone: args.timezone ?? row.timezone,
@@ -402,6 +415,43 @@ export const setDailyNotification = mutation({
       });
     }
     return rows.length;
+  },
+});
+
+export const initializeDailyNotification = mutation({
+  args: {
+    capability: v.string(),
+    timezone: v.optional(v.string()),
+    uiLocale: v.optional(v.string()),
+    translationLocale: v.optional(v.string()),
+    tzOffsetMinutes: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const { user } = await requireLibraryBinding(ctx, args.capability);
+    if (args.timezone !== undefined) assertIanaTimezone(args.timezone);
+    for (const tag of [args.uiLocale, args.translationLocale]) {
+      if (tag !== undefined && canonicalizeLocaleTag(tag) === null) throw new Error(`Invalid locale: ${tag}`);
+    }
+    if (user.dailyNotificationEnabled !== undefined) {
+      return { enabled: user.dailyNotificationEnabled, dailyTime: user.dailyNotificationTime ?? "08:00", initialized: false };
+    }
+    const legacy = await latestNotificationChoice(ctx, user._id);
+    if (legacy) {
+      return { enabled: legacy.enabled, dailyTime: legacy.dailyTime ?? "08:00", initialized: false };
+    }
+    const dailyTime = user.dailyNotificationTime ?? "08:00";
+    await ctx.db.patch(user._id, { dailyNotificationEnabled: true, dailyNotificationTime: dailyTime });
+    const rows = await ctx.db.query("pushTokens").withIndex("by_user", q => q.eq("userId", user._id)).collect();
+    for (const row of rows) {
+      await ctx.db.patch(row._id, {
+        enabled: true, dailyTime, deliveryBucket: normalizeDeliveryBucket(dailyTime) ?? "08:00", preferenceOrigin: "chosen",
+        timezone: args.timezone ?? row.timezone, uiLocale: args.uiLocale ?? row.uiLocale,
+        translationLocale: args.translationLocale ?? row.translationLocale, tzOffsetMinutes: args.tzOffsetMinutes ?? row.tzOffsetMinutes,
+        lastSentDate: undefined, consecutiveFailures: 0, lastFailureDate: undefined, nextRetryAt: undefined,
+        lastError: undefined, lastSeenAt: Date.now(), updatedAt: Date.now(),
+      });
+    }
+    return { enabled: true, dailyTime, initialized: true };
   },
 });
 

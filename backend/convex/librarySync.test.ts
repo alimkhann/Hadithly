@@ -31,6 +31,33 @@ async function fixture() {
   return { t, a, b, hadithId, send };
 }
 
+test("onboarding initializes once and preserves a later explicit notification choice", async () => {
+  const f = await fixture();
+  const binding = await f.a.mutation(open, {});
+  const init = makeFunctionReference<"mutation", { capability: string }, { enabled: boolean; dailyTime: string; initialized: boolean }>("library:initializeDailyNotification");
+  const tokenId = await f.a.mutation(api.library.savePushToken, { token: "auto-registered", platform: "android" });
+  expect(await f.t.run(ctx => ctx.db.get(tokenId))).toMatchObject({ enabled: false, preferenceOrigin: "default" });
+  await expect(f.b.mutation(init, { capability: binding.capability })).rejects.toThrow("SYNC_OWNER_MISMATCH");
+  expect((await f.b.query(api.users.getCurrentUser, {}))?.dailyNotificationEnabled).toBeUndefined();
+  expect(await f.a.mutation(init, { capability: binding.capability })).toEqual({ enabled: true, dailyTime: "08:00", initialized: true });
+  expect(await f.t.run(ctx => ctx.db.get(tokenId))).toMatchObject({ enabled: true, dailyTime: "08:00", preferenceOrigin: "chosen" });
+  await f.a.mutation(api.library.setDailyNotification, { enabled: false, dailyTime: "18:37" });
+  expect(await f.a.mutation(init, { capability: binding.capability })).toEqual({ enabled: false, dailyTime: "18:37", initialized: false });
+  expect(await f.t.run(ctx => ctx.db.get(tokenId))).toMatchObject({ enabled: false, dailyTime: "18:37", preferenceOrigin: "chosen" });
+});
+
+test("onboarding preserves the latest legacy token choice", async () => {
+  const f = await fixture();
+  const binding = await f.a.mutation(open, {});
+  const init = makeFunctionReference<"mutation", { capability: string }, { enabled: boolean; dailyTime: string; initialized: boolean }>("library:initializeDailyNotification");
+  await f.t.run(async ctx => {
+    const user = await ctx.db.query("users").withIndex("by_clerk_id", q => q.eq("clerkId", "sync_fixture_a")).unique();
+    if (!user) throw new Error("missing fixture");
+    await ctx.db.insert("pushTokens", { userId: user._id, token: "legacy", platform: "ios", enabled: false, dailyTime: "19:30", updatedAt: 1 });
+  });
+  expect(await f.a.mutation(init, { capability: binding.capability })).toEqual({ enabled: false, dailyTime: "19:30", initialized: false });
+});
+
 test("notification preference capability fences stale and wrong owners before any writes", async () => {
   vi.useFakeTimers();
   const f = await fixture();

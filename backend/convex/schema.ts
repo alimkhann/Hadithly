@@ -626,6 +626,7 @@ export default defineSchema({
     // The cron scans indexed buckets instead of the whole table.
     deliveryBucket: v.optional(v.string()),
     enabled: v.boolean(),
+    preferenceOrigin: v.optional(v.union(v.literal("default"), v.literal("chosen"))),
     // Local date (YYYY-MM-DD in the token's IANA zone) of the last daily
     // push actually sent, guarding the 15-minute cron against double sends.
     lastSentDate: v.optional(v.string()),
@@ -642,6 +643,7 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_user_updated_at", ["userId", "updatedAt"])
+    .index("by_user_preference_origin_updated_at", ["userId", "preferenceOrigin", "updatedAt"])
     .index("by_token", ["token"])
     .index("by_enabled_bucket", ["enabled", "deliveryBucket"]),
 
