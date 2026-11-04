@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import com.hadithly.app.core.preferences.nativeText
 import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,10 +29,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hadithly.app.core.data.*
+import com.hadithly.app.core.preferences.LocaleFallback
+import com.hadithly.app.core.preferences.ReaderPreferences
+import com.hadithly.app.features.reader.ReaderArabicText
+import com.hadithly.app.features.reader.TranslationText
 import com.hadithly.app.core.theme.LocalHadithlyColors
 import com.hadithly.app.core.theme.InterfaceMotion
 import com.hadithly.app.core.theme.rememberMotionAllowed
@@ -52,6 +59,8 @@ fun SharedSavedItemRow(
     onShare: (HadithRef) -> Unit,
     onSuggestTranslation: (HadithRef) -> Unit,
     loadPreview: suspend (HadithRef) -> HadithRef = { it },
+    preferences: ReaderPreferences = ReaderPreferences(),
+    loadTranslation: suspend (HadithRef, String) -> ReaderTranslation? = { _, _ -> null },
 ) {
     val ref = item.hadith ?: return
     val colors = LocalHadithlyColors.current
@@ -69,13 +78,29 @@ fun SharedSavedItemRow(
     var retry by remember(ref) { mutableStateOf(0) }
     var menuOpen by remember(item.hadithId) { mutableStateOf(false) }
     var folderMenuOpen by remember(item.hadithId) { mutableStateOf(false) }
-    LaunchedEffect(expanded, ref, retry) {
-        if (!expanded || (preview.arabicText.isNotBlank() && !preview.englishText.isNullOrBlank())) return@LaunchedEffect
+    val language = preferences.translationLocale
+    var translationResult by remember(ref, language) { mutableStateOf<Result<ReaderTranslation?>?>(null) }
+    LaunchedEffect(expanded, ref, language, preferences.translationVisible, retry) {
+        if (!expanded || !preferences.translationVisible) return@LaunchedEffect
+        translationResult = null
+        translationResult = try {
+            Result.success(loadTranslation(ref, language))
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            Result.failure(error)
+        }
+    }
+    val needsArabic = preferences.arabicVisible && ref.arabicText.isBlank()
+    val needsEnglish = preferences.translationVisible && language == "en" && ref.englishText.isNullOrBlank()
+    LaunchedEffect(expanded, ref, needsArabic, needsEnglish, retry) {
+        if (!expanded || (!needsArabic && !needsEnglish)) return@LaunchedEffect
+        if ((!needsArabic || preview.arabicText.isNotBlank()) && (!needsEnglish || !preview.englishText.isNullOrBlank())) return@LaunchedEffect
         loading = true
         failed = false
         try {
             preview = loadPreview(ref)
-            failed = preview.arabicText.isBlank() && preview.englishText.isNullOrBlank()
+            failed = needsArabic && preview.arabicText.isBlank()
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (_: Exception) {
@@ -103,10 +128,26 @@ fun SharedSavedItemRow(
         if (showFolder) folders.firstOrNull { it.id == item.folderId }?.let { Text(it.name, fontSize = 12.sp, color = colors.textSecondary) }
         item.noteContent?.takeIf { it.isNotBlank() }?.let { Text(it, fontSize = 13.sp, color = colors.textSecondary, maxLines = if (expanded) Int.MAX_VALUE else 2) }
         if (expanded) {
-            preview.arabicText.takeIf { it.isNotBlank() }?.let { Text(it, fontSize = 19.sp, lineHeight = 31.sp, color = colors.textPrimary, modifier = Modifier.fillMaxWidth()) }
-            preview.englishText?.takeIf { it.isNotBlank() }?.let { Text(it, fontSize = 14.sp, color = colors.textSecondary) }
-            if (loading) CircularProgressIndicator(Modifier.size(20.dp).testTag("saved.preview.loading"), color = colors.textSecondary)
-            if (failed) TextButton(onClick = { retry++ }, modifier = Modifier.testTag("saved.preview.retry")) { Text(stringResource(R.string.saved_preview_retry), color = colors.textSecondary) }
+            if (preferences.arabicVisible && preview.arabicText.isNotBlank()) {
+                ReaderArabicText(preview.arabicText, preferences.arabicFontSize, preferences.arabicFont)
+            }
+            val translationText = translationResult?.getOrNull()?.translation
+                ?: preview.englishText?.takeIf { language == "en" && it.isNotBlank() }
+            if (preferences.translationVisible && translationText != null) {
+                val direction = if (LocaleFallback.isRTL(language)) LayoutDirection.Rtl else LayoutDirection.Ltr
+                CompositionLocalProvider(LocalLayoutDirection provides direction) {
+                    TranslationText(translationText, preferences.translationFontSize)
+                }
+            }
+            if (loading || (preferences.translationVisible && translationResult == null && translationText == null)) {
+                CircularProgressIndicator(Modifier.size(20.dp).testTag("saved.preview.loading"), color = colors.textSecondary)
+            } else if (((needsArabic || needsEnglish) && failed) || (preferences.translationVisible && translationResult?.isFailure == true && translationText == null)) {
+                TextButton(onClick = { retry++ }, modifier = Modifier.testTag("saved.preview.retry")) {
+                    Text(stringResource(R.string.saved_preview_retry), color = colors.textSecondary)
+                }
+            } else if (preferences.translationVisible && translationText == null) {
+                Text(nativeText("No translation yet"), color = colors.textSecondary)
+            }
         }
         DropdownMenu(expanded = folderMenuOpen, onDismissRequest = { folderMenuOpen = false }) {
             DropdownMenuItem(text = { Text(stringResource(R.string.saved_no_folder), color = if (item.folderId == null) colors.accent else colors.textSecondary) }, onClick = { onMove(null); folderMenuOpen = false })

@@ -263,7 +263,7 @@ fun TodayScreen(onOpenTarget: (ReaderOpenTarget) -> Unit, previewState: String? 
     val app = com.hadithly.app.HadithlyApplication.instance(); var pendingRemoval by remember { mutableStateOf<String?>(null) }
     val bookmarkRemovedLabel = stringResource(R.string.saved_bookmark_removed); val favoriteRemovedLabel = stringResource(R.string.saved_favorite_removed)
     val collapse = TodayContentPolicy.needsCollapsedPreview(hadith.arabicText, hadith.translation?.text)
-    val reference = HadithRef(hadith._id, hadith.collectionSlug, hadith.collectionName, hadith.volumeId, hadith.providerHadithId, hadith.arabicText, hadith.translation?.text, hadith.referenceDisplay)
+    val reference = HadithRef(hadith._id, hadith.collectionSlug, hadith.collectionName, hadith.volumeId, hadith.providerHadithId, hadith.arabicText, hadith.englishText, hadith.referenceDisplay)
     fun open() = onOpenTarget(ReaderOpenTarget(hadith.collectionSlug, hadith.collectionName, hadith.volumeId, hadith.providerHadithId, ReaderTargetSource.TODAY))
     val copyHadithLabel = nativeText("Hadith")
     val copyAiLabel = nativeText("AI translation")

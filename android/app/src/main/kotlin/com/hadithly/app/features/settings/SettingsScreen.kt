@@ -55,7 +55,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -105,6 +104,7 @@ import com.hadithly.app.core.push.PushNotificationManager
 import com.hadithly.app.core.push.PushRegistrationState
 import com.hadithly.app.core.theme.HadithlyColors
 import com.hadithly.app.core.theme.LocalHadithlyColors
+import com.hadithly.app.core.theme.paletteSwitchColors
 import com.hadithly.app.features.main.rememberApp
 import com.hadithly.app.features.purchases.QuotaPaywallSheet
 import kotlinx.coroutines.launch
@@ -448,7 +448,7 @@ internal fun AppearanceOptions(
                 Switch(
                     checked = preferences.usesSeparateReaderTheme,
                     onCheckedChange = null,
-                    colors = SwitchDefaults.colors(checkedTrackColor = colors.interactive),
+                    colors = paletteSwitchColors(),
                 )
             }
         }
@@ -597,6 +597,7 @@ private fun OfflineStorageDestination() {
                     checked = store.isWifiOnly(),
                     onCheckedChange = { store.setWifiOnly(it) },
                     modifier = Modifier.testTag("settings.offline.wifiOnly"),
+                    colors = paletteSwitchColors(),
                 )
             }
             TextButton(
@@ -903,7 +904,7 @@ private fun NotificationDestination() {
                                 enableNotifications()
                             }
                         },
-                        colors = SwitchDefaults.colors(checkedThumbColor = colors.onInteractive, checkedTrackColor = colors.interactive),
+                        colors = paletteSwitchColors(),
                         modifier = Modifier.testTag("settings.notificationsToggle"),
                     )
                 }
@@ -1081,7 +1082,7 @@ internal fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
                         onValueChange = { app.analytics.setSharing(it) }).testTag("settings.usageStatistics")) {
                 Text(stringResource(R.string.la2_usage), modifier = Modifier.weight(1f), color = colors.textPrimary)
                 Switch(checked = usageSharing, onCheckedChange = null,
-                    colors = SwitchDefaults.colors(checkedTrackColor = colors.interactive))
+                    colors = paletteSwitchColors())
             }
             Text(nativeText("Share basic app statistics to help improve Hadithly. Your reading text, notes and account details are never included. Turning this off clears pending statistics."), color = colors.textSecondary)
         }
@@ -1095,7 +1096,7 @@ internal fun PrivacyDataDestination(onShowSignIn: () -> Unit) {
                         }).testTag("settings.crashReports")) {
                 Text(stringResource(R.string.diagnostics_consent), modifier = Modifier.weight(1f), color = colors.textPrimary)
                 Switch(checked = crashConsent, onCheckedChange = null,
-                    colors = SwitchDefaults.colors(checkedTrackColor = colors.interactive))
+                    colors = paletteSwitchColors())
             }
             Text(nativeText("Crash reports help us fix problems. They never include your reading text, notes or account details. Turning this off clears pending reports on this device."), fontSize = 14.sp, color = colors.textSecondary)
         }

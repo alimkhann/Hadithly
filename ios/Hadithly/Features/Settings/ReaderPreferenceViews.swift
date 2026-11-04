@@ -36,7 +36,6 @@ struct ReaderPreferenceSections: View {
                 get: { environment.readerExperience.automaticallyTranslates },
                 set: { environment.readerExperience.automaticallyTranslates = $0 }
             ))
-            .tint(palette.textSecondary)
             .accessibilityIdentifier("\(prefix).automaticTranslation")
         } footer: {
             Text("Translate missing text automatically, within your allowance. Turn off to translate on request.")
@@ -76,7 +75,6 @@ struct ReaderPreferenceSections: View {
                 }
             }
         ))
-        .tint(palette.textSecondary)
         .foregroundStyle(palette.textPrimary)
         .accessibilityIdentifier("\(prefix).visibility.\(arabic ? "arabic" : "translation")")
     }
@@ -209,9 +207,13 @@ struct ReaderSettingsFixtureView: View {
     @Environment(\.colorScheme) private var systemScheme
     @State private var showingSettings = false
 
+    private var context: String? { ProcessInfo.processInfo.environment["READER_SETTINGS_CONTEXT"] }
+
     var body: some View {
         NavigationStack {
-            if ProcessInfo.processInfo.environment["READER_SETTINGS_CONTEXT"] == "global" {
+            if context == "disabled" {
+                ReadingTypeView().disabled(true)
+            } else if context == "global" {
                 SettingsView(showSignIn: .constant(false))
             } else {
                 Color.clear
@@ -240,7 +242,7 @@ struct ReaderSettingsFixtureView: View {
             environment.preferences.setArabicFontSize(26)
             environment.preferences.setTranslationFontSize(16)
             _ = environment.preferences.setVisibility(arabic: true, translation: true)
-            showingSettings = values["READER_SETTINGS_CONTEXT"] != "global"
+            showingSettings = context != "global" && context != "disabled"
         }
     }
 }

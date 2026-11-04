@@ -1,3 +1,4 @@
+import ConvexMobile
 import SwiftUI
 import UIKit
 
@@ -156,8 +157,7 @@ struct SharedSavedItemRow: View {
                     Text(note).font(.caption).foregroundStyle(palette.textSecondary).lineLimit(expanded ? nil : 2)
                 }
                 if expanded {
-                    if !ref.arabicText.isEmpty { Text(ref.arabicText).font(Theme.arabic(19)).frame(maxWidth: .infinity, alignment: .trailing).environment(\.layoutDirection, .rightToLeft) }
-                    if let english = ref.englishText, !english.isEmpty { Text(english).font(.subheadline).foregroundStyle(palette.textSecondary) }
+                    SavedHadithPreview(ref: ref)
                 }
             }
             .padding(14)
@@ -175,5 +175,117 @@ struct SharedSavedItemRow: View {
                 Button("Copy") { UIPasteboard.general.string = [ref.arabicText, ref.englishText, ref.referenceDisplay].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: "\n\n") }
                 if let url = URL(string: "https://hadithly.app/hadith/\(ref.collectionSlug)/\(ref.hadithNumber ?? "")") { ShareLink(item: url) { Text("Share") } }
                 Button("Suggest a translation") { onSuggestTranslation(ref) }
+    }
+}
+
+private struct SavedHadithPreview: View {
+    let ref: HadithRef
+    @Environment(AppEnvironment.self) private var environment
+    @Environment(\.readerPalette) private var palette
+    @State private var source: (ref: HadithRef, result: Result<ReaderHadith, Error>)?
+    @State private var stored: (request: TranslationRequest, result: Result<ReaderTranslation?, Error>)?
+    @State private var retry = 0
+
+    private struct SourceRequest: Equatable {
+        let ref: HadithRef
+        let retry: Int
+    }
+
+    private struct TranslationRequest: Equatable {
+        let ref: HadithRef
+        let language: String
+        let retry: Int
+    }
+
+    var body: some View {
+        let preferences = environment.preferences.preferences
+        let language = preferences.translationLocale
+        let request = preferences.translationVisible ? TranslationRequest(ref: ref, language: language, retry: retry) : nil
+        let translationResult = stored?.request == request ? stored?.result : nil
+        let translation = try? translationResult?.get()
+        let needsSource = (preferences.arabicVisible && ref.arabicText.isEmpty)
+            || (preferences.translationVisible && language == "en" && ref.englishText?.isEmpty != false)
+        let sourceResult = source?.ref == ref ? source?.result : nil
+        let hadith = try? sourceResult?.get()
+        let arabic = hadith?.arabicText ?? ref.arabicText
+        let english = language == "en" ? (hadith?.englishText ?? ref.englishText) : nil
+        let text = translation?.translation ?? english
+        VStack(alignment: .leading, spacing: 14) {
+            if preferences.arabicVisible, !arabic.isEmpty {
+                ReaderArabicText(text: arabic, size: preferences.arabicFontSize, font: preferences.arabicFont, color: palette.textPrimary)
+            }
+            if preferences.translationVisible, let text, !text.isEmpty {
+                ReaderStoredTranslationView(text: text, translation: translation, palette: palette, fontSize: preferences.translationFontSize)
+                    .environment(\.layoutDirection, LocaleFallback.isRTL(language) ? .rightToLeft : .leftToRight)
+            }
+            if (needsSource && sourceResult == nil) || (request != nil && translationResult == nil && text == nil) {
+                ProgressView().tint(palette.textSecondary)
+            } else if (needsSource && hadith == nil) || (translationResult?.failed == true && text == nil) {
+                Button("Preview unavailable. Tap to retry.") {
+                    if hadith == nil { source = nil }
+                    retry += 1
+                }.foregroundStyle(palette.textSecondary)
+            } else if preferences.translationVisible, text?.isEmpty != false {
+                Text("No translation yet").foregroundStyle(palette.textSecondary)
+            }
+        }
+        .task(id: needsSource ? SourceRequest(ref: ref, retry: retry) : nil) {
+            guard needsSource, source?.ref != ref else { return }
+            do {
+                let hadith = try await loadSource()
+                try Task.checkCancellation()
+                source = (ref, .success(hadith))
+            } catch {
+                if !Task.isCancelled { source = (ref, .failure(error)) }
+            }
+        }
+        .task(id: request) {
+            guard let request else { return }
+            do {
+                let translation = try await loadTranslation(language: request.language)
+                try Task.checkCancellation()
+                stored = (request, .success(translation))
+            } catch {
+                if !Task.isCancelled { stored = (request, .failure(error)) }
+            }
+        }
+    }
+
+    private func loadSource() async throws -> ReaderHadith {
+        guard let number = ref.hadithNumber else { throw PreviewError.unavailable }
+        let volume: String
+        if let knownVolume = ref.volumeId, !knownVolume.isEmpty {
+            volume = knownVolume
+        } else {
+            let outline: CollectionOutlineResult = try await environment.convex.action(
+                "actions/hadithData:getCollectionOutline", with: ["collectionSlug": ref.collectionSlug]
+            )
+            guard let resolved = ReaderModel.volumeId(forHadithNumber: number, in: outline.volumes) else {
+                throw PreviewError.unavailable
+            }
+            volume = resolved
+        }
+        let page = try await environment.readerPages.load(.init(collection: ref.collectionSlug, volume: volume, index: 0, target: number))
+        guard let hadith = page.items.first(where: { $0.providerHadithId == number }) else { throw PreviewError.unavailable }
+        return hadith
+    }
+
+    private func loadTranslation(language: String) async throws -> ReaderTranslation? {
+        guard let number = ref.hadithNumber else { return nil }
+        let id = "sunnah_now:\(ref.collectionSlug):\(number)"
+        let rows = environment.convex.subscribe(to: "translations:getReaderDefaults", with: [
+            "hadithInternalIds": [id], "language": language,
+        ], yielding: [ReaderDefaultTranslation].self)
+        for try await value in rows.values { return value.first?.translation?.readerTranslation }
+        return nil
+    }
+
+    private enum PreviewError: Error { case unavailable }
+}
+
+private extension Result {
+    var failed: Bool {
+        if case .failure = self { return true }
+        return false
     }
 }

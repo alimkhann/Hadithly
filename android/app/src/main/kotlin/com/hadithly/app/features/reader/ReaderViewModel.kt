@@ -73,7 +73,7 @@ class ReaderViewModel(
     pageStore: ReaderPageContentStore? = null,
     private val offlineStore: com.hadithly.app.core.offline.OfflineStore = app.offline,
     private val translationReads: ReaderTranslationReads = ReaderTranslationReads(
-        defaults = { hadiths, language -> app.repository.storedReaderTranslations(hadiths, language) },
+        defaults = { hadiths, language -> app.repository.storedReaderTranslations(hadiths.map { it.internalId }, language) },
         publications = { ids -> app.repository.watchPublications(ids) },
     ),
 ) : ViewModel() {

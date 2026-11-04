@@ -2441,7 +2441,6 @@ internal fun HadithBlock(
     library: UserLibraryModel? = null,
 ) {
     val colors = LocalHadithlyColors.current
-    val arabicFamily = com.hadithly.app.core.theme.ArabicTypefaces.forFont(preferences.arabicFont)
     val clipboard = LocalClipboard.current
     val clipboardScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -2582,22 +2581,7 @@ internal fun HadithBlock(
         }
 
         if (preferences.arabicVisible) {
-            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-                Text(
-                    text = hadith.arabicText,
-                    fontSize = arabicFontSize.sp,
-                    fontFamily = arabicFamily,
-                    fontWeight = FontWeight.Medium,
-                    color = colors.textPrimary,
-                    lineHeight = (arabicFontSize * 1.75).sp,
-                    // R6A: start-aligned with RTL shaping kept (never LTR
-                    // glyphs); only the alignment changes.
-                    textAlign = TextAlign.Start,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("reader.arabic"),
-                )
-            }
+            ReaderArabicText(hadith.arabicText, arabicFontSize, preferences.arabicFont)
         }
 
         // Translation-only and mixed modes retain the narrator at the
@@ -2970,13 +2954,13 @@ internal fun TranslationSection(
     val stored = (translationState as? TranslationUiState.Loaded)?.translation
     if (stored != null) {
         com.hadithly.app.core.theme.TranslationReveal(com.hadithly.app.core.theme.TranslationPresentationPhase.Available) {
-            TranslationText(text = stored.translation, storedTranslation = stored, fontSize = fontSize)
+            TranslationText(text = stored.translation, fontSize = fontSize)
         }
         GlossaryNotes(stored.glossaryNotes)
         return
     }
     if (language == "en" && !hadith.englishText.isNullOrEmpty()) {
-        TranslationText(text = hadith.englishText, storedTranslation = null, fontSize = fontSize)
+        TranslationText(text = hadith.englishText, fontSize = fontSize)
         return
     }
 
@@ -3050,9 +3034,28 @@ private fun TranslationAction(title: String, tag: String, enabled: Boolean = tru
 }
 
 @Composable
-private fun TranslationText(
+internal fun ReaderArabicText(
     text: String,
-    storedTranslation: ReaderTranslation?,
+    fontSize: Float,
+    font: com.hadithly.app.core.preferences.ArabicFont,
+) {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        Text(
+            text = text,
+            fontSize = fontSize.sp,
+            fontFamily = com.hadithly.app.core.theme.ArabicTypefaces.forFont(font),
+            fontWeight = FontWeight.Medium,
+            color = LocalHadithlyColors.current.textPrimary,
+            lineHeight = (fontSize * 1.75).sp,
+            textAlign = TextAlign.Start,
+            modifier = Modifier.fillMaxWidth().testTag("reader.arabic"),
+        )
+    }
+}
+
+@Composable
+internal fun TranslationText(
+    text: String,
     fontSize: Float,
 ) {
     val colors = LocalHadithlyColors.current
@@ -3744,6 +3747,7 @@ internal fun ReaderSavedSheet(
 ) {
     val colors = LocalHadithlyColors.current
     val app = com.hadithly.app.HadithlyApplication.instance()
+    val preferences by app.preferences.preferences.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
@@ -3802,7 +3806,11 @@ internal fun ReaderSavedSheet(
             TextButton(onClick = library::refresh) { Text(nativeText("Retry")) }
         }
         else if (visible.isEmpty()) com.hadithly.app.features.saved.SavedEmptyState(tab.ordinal, folderId != null, Icons.Filled.BookmarkBorder, Modifier.weight(1f).testTag("reader.saved.empty"))
-        else LazyColumn(Modifier.weight(1f).testTag("reader.saved.rows"), verticalArrangement = Arrangement.spacedBy(10.dp)) { items(visible, key = { it.hadithId }) { item -> com.hadithly.app.features.saved.SharedSavedItemRow(item, folders, folderId == null, onOpen, { facet, saved, ref -> val request = Triple(facet, saved, ref); removalScope = actionScope; if (app.savedSafety.confirmsRemoval) removal = request else remove(request) }, { library.assignFolder(item.hadithId, it, actionScope) }, { ref -> scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(ref.referenceDisplay, listOfNotNull(ref.arabicText, ref.englishText, ref.referenceDisplay).joinToString("\n\n")))) } }, { ref -> context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "https://hadithly.app/hadith/${ref.collectionSlug}/${ref.hadithNumber}"), null)) }, onOpen, { ref -> withContext(Dispatchers.IO) { app.repository.loadSavedPreview(ref) } }) } }
+        else LazyColumn(Modifier.weight(1f).testTag("reader.saved.rows"), verticalArrangement = Arrangement.spacedBy(10.dp)) { items(visible, key = { it.hadithId }) { item -> com.hadithly.app.features.saved.SharedSavedItemRow(item, folders, folderId == null, onOpen, { facet, saved, ref -> val request = Triple(facet, saved, ref); removalScope = actionScope; if (app.savedSafety.confirmsRemoval) removal = request else remove(request) }, { library.assignFolder(item.hadithId, it, actionScope) }, { ref -> scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(ref.referenceDisplay, listOfNotNull(ref.arabicText, ref.englishText, ref.referenceDisplay).joinToString("\n\n")))) } }, { ref -> context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "https://hadithly.app/hadith/${ref.collectionSlug}/${ref.hadithNumber}"), null)) }, onOpen,
+            loadPreview = app.repository::loadSavedPreview,
+            preferences = preferences,
+            loadTranslation = app.repository::savedPreviewTranslation,
+        ) } }
         com.hadithly.app.features.saved.SavedUndoBanner(testTag = "reader.saved.undoBanner", controller = library.undo)
         com.hadithly.app.features.saved.SavedFilterBar(tab.ordinal, { tab = ReaderSavedTab.entries[it] }, "reader.saved.tab", Modifier.padding(top = 8.dp))
     }

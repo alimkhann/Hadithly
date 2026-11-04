@@ -1,10 +1,18 @@
 package com.hadithly.app.features.settings
 
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.unit.Density
 import androidx.compose.runtime.CompositionLocalProvider
 import com.hadithly.app.core.theme.LocalHadithlyColors
@@ -17,6 +25,9 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import com.hadithly.app.core.preferences.ReaderPreferences
 import com.hadithly.app.core.preferences.ReaderTheme
 import com.hadithly.app.core.theme.HadithlyTheme
+import com.hadithly.app.core.theme.ReaderPalettes
+import com.hadithly.app.core.theme.paletteSwitchColors
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -26,6 +37,40 @@ class ReaderPreferenceContentTest {
     @Test fun readerControlsPreserveSelectionsSizesAndLastVisibleLayer() = verifyControls("reader")
 
     @Test fun globalControlsPreserveSelectionsSizesAndLastVisibleLayer() = verifyControls("settings", fontScale = 2f)
+
+    @Test fun darkSwitchUsesPaletteAndKeepsItsNativeRoleWhenDisabled() {
+        compose.setContent {
+            var checked by remember { mutableStateOf(false) }
+            HadithlyTheme(theme = ReaderTheme.DARK) {
+                Surface(modifier = Modifier.fillMaxSize(), color = LocalHadithlyColors.current.surface) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Column {
+                            Switch(checked, { checked = it }, Modifier.testTag("switch"), colors = paletteSwitchColors())
+                            Switch(true, {}, Modifier.testTag("disabledSwitch"), enabled = false, colors = paletteSwitchColors())
+                        }
+                    }
+                }
+            }
+        }
+        val role = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Switch)
+        val toggle = compose.onNodeWithTag("switch").assert(role).assertIsOff()
+        val dark = ReaderPalettes.dark
+        capture("dark-switch-off")
+        assertTrue("Off switch uses the elevated surface", dark.surfaceElevated.toArgb() in pixels(toggle))
+        toggle.performClick().assertIsOn()
+        capture("dark-switch-on-disabled")
+        assertTrue(dark.textSecondary.toArgb() in pixels(toggle))
+        assertTrue(dark.background.toArgb() in pixels(toggle))
+        val disabled = compose.onNodeWithTag("disabledSwitch").assert(role).assertIsNotEnabled().assertIsOn()
+        assertTrue(dark.textSecondary.toArgb() !in pixels(disabled))
+    }
+
+    private fun pixels(node: SemanticsNodeInteraction): IntArray {
+        val bitmap = node.captureToImage().asAndroidBitmap()
+        return IntArray(bitmap.width * bitmap.height).apply {
+            bitmap.getPixels(this, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+        }
+    }
 
     private fun capture(name: String) {
         compose.waitForIdle()
@@ -69,7 +114,9 @@ class ReaderPreferenceContentTest {
             }
         }
         compose.onNodeWithTag("$prefix.settings.title").assertIsDisplayed()
-        compose.onNodeWithTag("$prefix.visibility.arabic").performScrollTo().performClick().assertIsOff()
+        compose.onNodeWithTag("$prefix.visibility.arabic")
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Switch))
+            .assertIsOn().performScrollTo().performClick().assertIsOff()
         compose.onNodeWithTag("$prefix.visibility.translation").performClick().assertIsOn()
         capture("$prefix-root")
         compose.onNodeWithTag("$prefix.settings.arabic").performScrollTo().performClick()

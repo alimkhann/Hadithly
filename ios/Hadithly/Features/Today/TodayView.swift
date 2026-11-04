@@ -29,7 +29,7 @@ struct DailyHadith: Codable, Identifiable, Equatable {
     var ref: HadithRef {
         HadithRef(hadithId: _id, collectionSlug: collectionSlug, collectionName: collectionName,
                   volumeId: volumeId, hadithNumber: providerHadithId, arabicText: arabicText,
-                  englishText: translation?.text, referenceDisplay: referenceDisplay)
+                  englishText: englishText, referenceDisplay: referenceDisplay)
     }
     var readerHadith: ReaderHadith {
         ReaderHadith(_id: _id, provider: provider, canonicalId: canonicalId, providerHadithId: providerHadithId,

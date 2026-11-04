@@ -1,5 +1,44 @@
 package com.hadithly.app.features.saved
 
+import android.content.ContextWrapper
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.SemanticsNodeInteraction
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.unit.sp
+import androidx.test.core.app.ApplicationProvider
+import com.hadithly.app.HadithlyApplication
+import com.hadithly.app.core.data.GuestBookmarkDraft
+import com.hadithly.app.core.data.GuestDataStore
+import com.hadithly.app.core.data.UserLibraryModel
+import com.hadithly.app.core.preferences.ArabicFont
+import com.hadithly.app.core.preferences.ReaderPreferences
+import com.hadithly.app.core.preferences.ReaderTheme
+import com.hadithly.app.core.theme.ArabicTypefaces
+import com.hadithly.app.core.theme.LocalHadithlyColors
+import com.hadithly.app.core.theme.ReaderPalettes
+import java.io.File
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -44,6 +83,67 @@ class SavedItemRowTest {
         compose.onNodeWithText("Loaded English").assertDoesNotExist()
         compose.onNodeWithTag("saved.preview.guest").performClick()
         assertEquals(1, loads)
+    }
+
+    @Test fun existingSavedPreviewUsesReaderPreferencesOnPaper() {
+        val app = ApplicationProvider.getApplicationContext<HadithlyApplication>()
+        val directory = File(app.cacheDir, "saved-preview-${System.nanoTime()}").apply { mkdirs() }
+        val context = object : ContextWrapper(app) { override fun getFilesDir() = directory }
+        val scope = CoroutineScope(Dispatchers.Main)
+        val id = "sunnah_now:bukhari:7"
+        try {
+            runBlocking {
+                GuestDataStore(context).addBookmark(GuestBookmarkDraft(id, 1.0, "Sahih al-Bukhari",
+                    "Sahih al-Bukhari 7", "1", "7", "bukhari"))
+            }
+            val library = UserLibraryModel(GuestDataStore(context), scope)
+            compose.runOnUiThread { library.refresh() }
+            compose.waitUntil(5_000) { library.savedItems.value.any { it.hadithId == id } }
+            val item = library.savedItems.value.single()
+            var preferences by mutableStateOf(ReaderPreferences(
+                appTheme = ReaderTheme.PAPER, readerTheme = ReaderTheme.DARK, usesSeparateReaderTheme = true,
+                translationLocale = "ru", arabicFont = ArabicFont.AMIRI, arabicFontSize = 34f,
+                translationFontSize = 22f, arabicVisible = false,
+            ))
+            val stored = runBlocking { withTimeout(15_000) { app.repository.savedPreviewTranslation(requireNotNull(item.hadith), "ru") } }
+            val russian = requireNotNull(stored).translation
+            val paper = ReaderPalettes.resolved(ReaderTheme.PAPER, false)
+            compose.setContent {
+                HadithlyTheme(preferences.appTheme) {
+                    Column(Modifier.fillMaxSize().background(LocalHadithlyColors.current.background)
+                        .statusBarsPadding().verticalScroll(rememberScrollState()).testTag("saved.fixture")) {
+                        SharedSavedItemRow(item, emptyList(), false, {}, { _, _, _ -> }, {}, {}, {}, {},
+                            app.repository::loadSavedPreview, preferences, app.repository::savedPreviewTranslation)
+                    }
+                }
+            }
+            val arabic = compose.onNodeWithTag("reader.arabic")
+            val translation = compose.onNodeWithText(russian)
+            compose.onNodeWithTag("saved.preview.$id").performClick()
+            compose.waitUntil(15_000) { compose.onAllNodes(hasText(russian)).fetchSemanticsNodes().isNotEmpty() }
+            arabic.assertDoesNotExist()
+            val translationStyle = translation.textLayout().layoutInput.style
+            assertEquals(22.sp, translationStyle.fontSize)
+            assertEquals(paper.textPrimary.copy(alpha = 0.92f), translationStyle.color)
+            val image = compose.onNodeWithTag("saved.fixture").captureToImage().asAndroidBitmap()
+            assertEquals(paper.background.toArgb(), image.getPixel(1, 1))
+
+            compose.runOnIdle { preferences = preferences.copy(arabicVisible = true, translationVisible = false) }
+            translation.assertDoesNotExist()
+            compose.waitUntil(15_000) { compose.onAllNodes(hasTestTag("reader.arabic")).fetchSemanticsNodes().isNotEmpty() }
+            val arabicStyle = arabic.textLayout().layoutInput.style
+            assertEquals(34.sp, arabicStyle.fontSize)
+            assertEquals(ArabicTypefaces.amiri, arabicStyle.fontFamily)
+            assertEquals(paper.textPrimary, arabicStyle.color)
+        } finally {
+            scope.cancel()
+        }
+    }
+
+    private fun SemanticsNodeInteraction.textLayout(): TextLayoutResult {
+        val results = mutableListOf<TextLayoutResult>()
+        performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(results) }
+        return results.single()
     }
 
     @Test fun moveRemainsAvailableOnlyThroughContextMenu() {

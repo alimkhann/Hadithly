@@ -79,6 +79,7 @@ fun SavedScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
     val actionScope = app.library.actionScope
     val context = LocalContext.current
     val colors = LocalHadithlyColors.current
+    val preferences by app.preferences.preferences.collectAsStateWithLifecycle()
     val saved by app.library.savedItems.collectAsStateWithLifecycle()
     val loadState by app.library.loadState.collectAsStateWithLifecycle()
     val folders by app.library.folders.collectAsStateWithLifecycle()
@@ -154,7 +155,35 @@ fun SavedScreen(onOpenTarget: (ReaderOpenTarget) -> Unit) {
             SavedEmptyState(filter.ordinal, folderId != null, Icons.Filled.Bookmark, Modifier.fillMaxSize())
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxSize().testTag("saved.list")) {
-                items(visible, key = { it.hadithId }) { item -> androidx.compose.foundation.layout.Box(Modifier.animateItem()) { SharedSavedItemRow(item, folders, folderId == null, { ref -> onOpenTarget(ReaderOpenTarget(ref.collectionSlug, ref.collectionName, ref.volumeId, ref.hadithNumber, ReaderTargetSource.SAVED)) }, ::requestRemoval, { app.library.assignFolder(item.hadithId, it, actionScope) }, { ref -> (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText(ref.referenceDisplay, listOfNotNull(ref.arabicText, ref.englishText, ref.referenceDisplay).joinToString("\n\n"))) }, { ref -> context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "https://hadithly.app/hadith/${ref.collectionSlug}/${ref.hadithNumber}"), null)) }, { ref -> onOpenTarget(ReaderOpenTarget(ref.collectionSlug, ref.collectionName, ref.volumeId, ref.hadithNumber, ReaderTargetSource.SAVED)) }, { ref -> withContext(Dispatchers.IO) { app.repository.loadSavedPreview(ref) } }) } }
+                items(visible, key = { it.hadithId }) { item ->
+                    Box(Modifier.animateItem()) {
+                        val open: (HadithRef) -> Unit = { ref ->
+                            onOpenTarget(ReaderOpenTarget(ref.collectionSlug, ref.collectionName, ref.volumeId, ref.hadithNumber, ReaderTargetSource.SAVED))
+                        }
+                        SharedSavedItemRow(
+                            item = item,
+                            folders = folders,
+                            showFolder = folderId == null,
+                            onOpen = open,
+                            onRemove = ::requestRemoval,
+                            onMove = { app.library.assignFolder(item.hadithId, it, actionScope) },
+                            onCopy = { ref ->
+                                val text = listOfNotNull(ref.arabicText, ref.englishText, ref.referenceDisplay).joinToString("\n\n")
+                                (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
+                                    .setPrimaryClip(ClipData.newPlainText(ref.referenceDisplay, text))
+                            },
+                            onShare = { ref ->
+                                val intent = Intent(Intent.ACTION_SEND).setType("text/plain")
+                                    .putExtra(Intent.EXTRA_TEXT, "https://hadithly.app/hadith/${ref.collectionSlug}/${ref.hadithNumber}")
+                                context.startActivity(Intent.createChooser(intent, null))
+                            },
+                            onSuggestTranslation = open,
+                            loadPreview = app.repository::loadSavedPreview,
+                            preferences = preferences,
+                            loadTranslation = app.repository::savedPreviewTranslation,
+                        )
+                    }
+                }
             }
         }
         }

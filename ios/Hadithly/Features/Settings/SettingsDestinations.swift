@@ -35,6 +35,7 @@ struct SettingsList<Content: View>: View {
                 .listRowBackground(palette.surface)
         }
         .listStyle(.insetGrouped)
+        .toggleStyle(SettingsToggleStyle())
         .scrollContentBackground(.hidden)
         .background(palette.background)
         .appNavigationTitle(title)
@@ -44,50 +45,15 @@ struct SettingsList<Content: View>: View {
     }
 }
 
-private struct SettingsToggleRow: View {
-    let title: String
-    let footnote: String?
-    @Binding var isOn: Bool
-    var accessibilityID: String
-
-    var body: some View {
-        Toggle(isOn: $isOn) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(LocalizedStringKey(title))
-                    .foregroundStyle(Theme.textPrimary)
-                if let footnote {
-                    Text(LocalizedStringKey(footnote))
-                        .font(.caption)
-                        .foregroundStyle(Theme.textSecondary)
-                }
-            }
-        }
-        .toggleStyle(SettingsToggleStyle())
-        .accessibilityIdentifier(accessibilityID)
-    }
-}
-
-/// Neutral, palette-aware switch that never turns its full track white.
 private struct SettingsToggleStyle: ToggleStyle {
+    @Environment(\.readerPalette) private var palette
+
     func makeBody(configuration: Configuration) -> some View {
-        HStack {
+        Toggle(isOn: configuration.$isOn) {
             configuration.label
-            Spacer(minLength: 12)
-            Button { configuration.isOn.toggle() } label: {
-                Capsule()
-                    .fill(configuration.isOn ? Theme.surfaceElevated : Theme.surface)
-                    .overlay(Capsule().stroke(Theme.textSecondary.opacity(0.35), lineWidth: 1))
-                    .frame(width: 50, height: 30)
-                    .overlay(alignment: configuration.isOn ? .trailing : .leading) {
-                        Circle()
-                            .fill(configuration.isOn ? Theme.textPrimary : Theme.textSecondary)
-                            .frame(width: 24, height: 24)
-                            .padding(3)
-                    }
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text(LocalizedStringKey(configuration.isOn ? "On" : "Off")))
         }
+        .toggleStyle(.switch)
+        .tint(palette.textSecondary)
     }
 }
 
@@ -444,7 +410,6 @@ struct ReadingTypeView: View {
                             .foregroundStyle(palette.textSecondary)
                     }
                 }
-                .tint(palette.textSecondary)
                 .accessibilityIdentifier("settings.confirmSavedRemoval")
             }
         }
@@ -772,7 +737,6 @@ struct NotificationsView: View {
                             }
                         }
                     }
-                    .tint(settingsTint)
                     .disabled(isRegistering)
                     .accessibilityIdentifier("settings.notificationsToggle")
 

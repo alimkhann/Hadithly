@@ -2,6 +2,8 @@ package com.hadithly.app.core.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwitchColors
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -70,6 +72,18 @@ data class HadithlyColors(
 )
 
 val LocalHadithlyColors = staticCompositionLocalOf { HadithlyColors() }
+
+@Composable
+internal fun paletteSwitchColors(): SwitchColors {
+    val colors = LocalHadithlyColors.current
+    return SwitchDefaults.colors(
+        checkedTrackColor = colors.textSecondary,
+        checkedThumbColor = colors.background,
+        uncheckedTrackColor = colors.surfaceElevated,
+        uncheckedThumbColor = colors.textSecondary,
+        uncheckedBorderColor = colors.textSecondary,
+    )
+}
 
 /**
  * Reader-scoped palettes (R4). The reader honors the F2 `ReaderTheme`

@@ -26,6 +26,7 @@ import com.hadithly.app.core.data.SupportedLanguages
 import com.hadithly.app.core.preferences.*
 import com.hadithly.app.core.theme.ArabicTypefaces
 import com.hadithly.app.core.theme.LocalHadithlyColors
+import com.hadithly.app.core.theme.paletteSwitchColors
 
 @Composable
 internal fun ReaderPreferenceContent(
@@ -122,7 +123,7 @@ internal fun PreferenceSwitch(title: String, checked: Boolean, tag: String, onCh
     val colors = LocalHadithlyColors.current
     ListItem(
         headlineContent = { Text(nativeText(title), color = colors.textPrimary) },
-        trailingContent = { Switch(checked = checked, onCheckedChange = null, colors = SwitchDefaults.colors(checkedTrackColor = colors.interactive, checkedThumbColor = colors.onInteractive)) },
+        trailingContent = { Switch(checked = checked, onCheckedChange = null, colors = paletteSwitchColors()) },
         colors = ListItemDefaults.colors(containerColor = colors.surface),
         modifier = Modifier.toggleable(checked, role = Role.Switch, onValueChange = onChange).testTag(tag),
     )

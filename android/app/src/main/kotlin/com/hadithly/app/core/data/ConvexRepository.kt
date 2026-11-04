@@ -151,10 +151,16 @@ class ConvexRepository(context: Context) : LibraryReadTransport, LibrarySyncTran
         convex.mutation<EvidenceSubmitResult>("evidenceCases:requestAppeal", mapOf("submissionId" to submissionId, "reason" to reason))
     }
 
-    suspend fun storedReaderTranslations(hadiths: List<ReaderHadith>, language: String): List<ReaderDefaultTranslation> =
+    suspend fun savedPreviewTranslation(ref: HadithRef, language: String): ReaderTranslation? {
+        val number = ref.hadithNumber ?: return null
+        val id = "sunnah_now:${ref.collectionSlug}:$number"
+        return storedReaderTranslations(listOf(id), language).firstOrNull()?.translation?.readerTranslation()
+    }
+
+    suspend fun storedReaderTranslations(hadithInternalIds: List<String>, language: String): List<ReaderDefaultTranslation> =
         withContext(Dispatchers.IO) {
             subscribe<List<ReaderDefaultTranslation>>("translations:getReaderDefaults", mapOf(
-                "hadithInternalIds" to hadiths.map { it.internalId }, "language" to language,
+                "hadithInternalIds" to hadithInternalIds, "language" to language,
             )).firstOrNull() ?: emptyList()
         }
 

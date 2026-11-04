@@ -9,8 +9,25 @@ before any Hadithly session. Then open the matching standalone prompt in
 The owner requested Saved reading preferences, dark switch contrast, and
 changes to reader controls, navigation, translation feedback, and collection
 opening. [Reader polish sessions](SESSION_PROMPTS.md#reader-polish-sessions)
-records five bounded native goals. Next is Saved and dark switches only.
+records five bounded native goals. Session 1 covers Saved and dark switches.
 The translation feedback session includes native recordings for review.
+
+Expanded Saved previews now share the reader’s text rendering and exact-locale
+default translation lookup. The Saved tab uses the app palette. The reader's
+Bookmarks & Notes sheet uses the palette of its parent reader. Native switches
+use their local palette with Reading & Type as the reference.
+
+The native regression reopened a guest store containing a reference-only
+Bukhari 7 bookmark and read the existing Russian translation from development.
+Both platforms covered Russian-only and Arabic-only with a Paper app, Dark
+reader, English UI, Amiri 34 and translation size 22. The iPhone 18 Pro
+simulator on iOS 27 exercised the Saved tab content, including both languages
+together. The Android 16 emulator exercised the production Saved row and
+asserted the rendered text styles and Paper canvas. Dark switch coverage
+includes on, off, disabled, and the native switch role. The pre-fix iOS test
+failed with “Saved should show the stored Russian translation.” The native
+checks use Debug builds and isolated guest data. Four iOS UI tests and seven
+Android instrumented tests passed.
 
 [POST_GOAL_BACKLOG.md](POST_GOAL_BACKLOG.md#offline-reading-regression) records
 the owner's report that offline reading is broken. Reproduce cold airplane-mode

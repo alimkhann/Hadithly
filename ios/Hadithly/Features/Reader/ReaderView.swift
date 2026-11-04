@@ -2021,6 +2021,25 @@ struct ReaderVolumePills: View {
 
 // MARK: - One hadith
 
+struct ReaderArabicText: View {
+    let text: String
+    let size: Double
+    let font: ArabicFont
+    let color: Color
+
+    var body: some View {
+        Text(text)
+            .font(Theme.arabic(size, font))
+            .lineSpacing(size * 0.75)
+            .multilineTextAlignment(.leading)
+            .foregroundStyle(color)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .environment(\.layoutDirection, .rightToLeft)
+            .accessibilityIdentifier("reader.arabic")
+    }
+}
+
 private struct HadithBlock: View {
     let model: ReaderModel
     let hadith: ReaderHadith
@@ -2099,15 +2118,7 @@ private struct HadithBlock: View {
             }
 
             if preferences.arabicVisible {
-                Text(hadith.arabicText)
-                    .font(Theme.arabic(arabicFontSize, preferences.arabicFont))
-                    .lineSpacing(arabicFontSize * 0.75)
-                    .multilineTextAlignment(.leading)
-                    .foregroundStyle(palette.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .environment(\.layoutDirection, .rightToLeft)
-                    .accessibilityIdentifier("reader.arabic")
+                ReaderArabicText(text: hadith.arabicText, size: arabicFontSize, font: preferences.arabicFont, color: palette.textPrimary)
             }
 
             if narratorPlacement == .belowArabic {

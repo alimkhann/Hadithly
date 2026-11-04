@@ -13,11 +13,15 @@ final class ReaderSettingsUITests: XCTestCase {
             }
             let arabic = app.switches["\(prefix).visibility.arabic"]
             XCTAssertTrue(arabic.waitForExistence(timeout: 10))
-            arabic.tap()
+            XCTAssertEqual(arabic.value as? String, "1")
+            arabic.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+            XCTAssertEqual(arabic.value as? String, "0")
             let translation = app.switches["\(prefix).visibility.translation"]
-            translation.tap()
+            translation.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
             XCTAssertEqual(translation.value as? String, "1", "The last layer must stay visible")
-            arabic.tap()
+            screenshot("\(context)-switches")
+            arabic.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+            XCTAssertEqual(arabic.value as? String, "1")
             screenshot("\(context)-root")
 
             let typeRow = app.buttons["\(prefix).settings.arabic"]
@@ -52,6 +56,15 @@ final class ReaderSettingsUITests: XCTestCase {
             }
             app.terminate()
         }
+    }
+
+    func testDisabledDarkSwitchKeepsItsRoleAndValue() {
+        let app = launch(context: "disabled")
+        let arabic = app.switches["settings.visibility.arabic"]
+        XCTAssertTrue(arabic.waitForExistence(timeout: 5))
+        XCTAssertFalse(arabic.isEnabled)
+        XCTAssertEqual(arabic.value as? String, "1")
+        screenshot("reading-type-disabled-switches")
     }
 
     func testMainAppearanceKeepsAppToggleAndReaderInSeparateGroups() {
@@ -153,7 +166,9 @@ final class ReaderSettingsUITests: XCTestCase {
         if context == "global" {
             for _ in 0..<5 where !app.buttons[probe].exists { app.swipeUp() }
         }
-        XCTAssertTrue(app.buttons[probe].waitForExistence(timeout: 10))
+        if context != "disabled" {
+            XCTAssertTrue(app.buttons[probe].waitForExistence(timeout: 10))
+        }
         return app
     }
 
