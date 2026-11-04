@@ -279,6 +279,34 @@ final class NativeFinishingUITests: XCTestCase {
         }
     }
 
+    func testExistingSavedPreviewUsesReaderPreferencesOnPaper() {
+        for mode in ["translation", "arabic", "both"] {
+            let app = XCUIApplication()
+            app.launchArguments = ["-NativeFinishingFixture"]
+            app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "FINISH_SCREEN": "saved-preview",
+                "FINISH_THEME": "paper", "FINISH_LOCALE": "en", "FINISH_TRANSLATION_LOCALE": "ru",
+                "FINISH_SAVED_MODE": mode]
+            app.launch()
+            let preview = app.buttons["saved.preview.sunnah_now:bukhari:7"]
+            XCTAssertTrue(preview.waitForExistence(timeout: 10))
+            preview.tap()
+            let arabic = app.staticTexts["reader.arabic"]
+            let translation = app.staticTexts.matching(NSPredicate(format: "label MATCHES %@", "(?s).*[А-Яа-яЁё].*")).firstMatch
+            if mode == "arabic" {
+                XCTAssertTrue(arabic.waitForExistence(timeout: 20), "A reference-only bookmark should load Arabic")
+                XCTAssertFalse(translation.exists)
+            } else {
+                XCTAssertTrue(translation.waitForExistence(timeout: 20), "Saved should show the stored Russian translation")
+                if mode == "both" { XCTAssertTrue(arabic.waitForExistence(timeout: 20)) }
+                else { XCTAssertFalse(arabic.exists) }
+            }
+            let canvas = pixel(app, at: CGPoint(x: 4, y: app.frame.midY))
+            XCTAssertGreaterThan(Int(canvas[0]) - Int(canvas[2]), 10)
+            capture("saved-preview-\(mode)", app)
+            app.terminate()
+        }
+    }
+
     func testSavedFiltersAdaptToLargeText() {
         let app = launch("saved", theme: "light", large: true, locale: "ar")
         let filter = app.buttons["reader.savedShortcut.filter"]

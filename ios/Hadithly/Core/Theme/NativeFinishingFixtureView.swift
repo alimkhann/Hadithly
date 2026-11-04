@@ -32,6 +32,7 @@ struct NativeFinishingFixtureView: View {
                     case "search", "saved":
                         FinishingSheet { ReaderR6Round3FixtureView(screen: screen) }
                     case "saved-main": FinishingSavedTabs()
+                    case "saved-preview": FinishingSavedPreview()
                     case "bookmark": ReaderR6Round3FixtureView(screen: "placement")
                     default: ReaderR6ATestFixtureView()
                     }
@@ -135,6 +136,33 @@ private struct FinishingSheet<Content: View>: View {
 #endif
 
 #if DEBUG
+private struct FinishingSavedPreview: View {
+    @Environment(AppEnvironment.self) private var environment
+    @State private var library: UserLibraryModel?
+
+    var body: some View {
+        Group {
+            if let library { NavigationStack { SavedView() }.environment(library) }
+            else { Color.clear }
+        }
+        .task {
+            let url = FileManager.default.temporaryDirectory.appending(path: "saved-preview-\(UUID()).store")
+            let seed = GuestDataStore(storeURL: url)
+            seed.addBookmark(draft: .init(hadithId: "sunnah_now:bukhari:7", createdAt: .now,
+                collectionName: "Sahih al-Bukhari", referenceDisplay: "Sahih al-Bukhari 7", volumeId: "1", hadithNumber: "7"))
+            let preferences = environment.preferences
+            preferences.setSeparateReaderTheme(true)
+            preferences.setReaderTheme(.dark)
+            preferences.setArabicFont(.amiri)
+            preferences.setArabicFontSize(34)
+            preferences.setTranslationFontSize(22)
+            let mode = ProcessInfo.processInfo.environment["FINISH_SAVED_MODE"]
+            _ = preferences.setVisibility(arabic: mode != "translation", translation: mode != "arabic")
+            library = UserLibraryModel(guestData: GuestDataStore(storeURL: url))
+        }
+    }
+}
+
 private struct FinishingSavedTabs: View {
     @Environment(\.readerPalette) private var palette
     var body: some View {
