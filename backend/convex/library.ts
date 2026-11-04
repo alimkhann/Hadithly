@@ -14,6 +14,7 @@ import type { Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { requireIdentity } from "./lib/identity";
+import { requireLibraryBinding } from "./lib/librarySyncIdentity";
 import { DEFAULT_COLLECTION_ORDER } from "./lib/sunnahNow";
 import {
   DAILY_TIME_PATTERN,
@@ -348,6 +349,7 @@ export const savePushToken = mutation({
 /** Updates the daily hadith notification preferences on all of the user's devices. */
 export const setDailyNotification = mutation({
   args: {
+    capability: v.optional(v.string()),
     enabled: v.boolean(),
     dailyTime: v.string(),
     timezone: v.optional(v.string()),
@@ -356,6 +358,7 @@ export const setDailyNotification = mutation({
     tzOffsetMinutes: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    if (args.capability !== undefined) await requireLibraryBinding(ctx, args.capability);
     const identity = await requireIdentity(ctx);
     const user = await userByClerkId(ctx, identity.clerkId);
     if (!user) throw new Error("User not found. Call users:ensureCurrentUser first.");

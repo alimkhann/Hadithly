@@ -31,6 +31,27 @@ async function fixture() {
   return { t, a, b, hadithId, send };
 }
 
+test("notification preference capability fences stale and wrong owners before any writes", async () => {
+  vi.useFakeTimers();
+  const f = await fixture();
+  const binding = await f.a.mutation(open, {});
+  const notify = makeFunctionReference<"mutation", { enabled: boolean; dailyTime: string; capability?: string }, number>("library:setDailyNotification");
+  const tokenId = await f.b.mutation(api.library.savePushToken, { token: "binding-test", platform: "ios" });
+  const before = await f.t.run(ctx => ctx.db.get(tokenId));
+  await expect(f.b.mutation(notify, { enabled: true, dailyTime: "07:00", capability: binding.capability })).rejects.toThrow("SYNC_OWNER_MISMATCH");
+  expect(await f.t.run(ctx => ctx.db.get(tokenId))).toEqual(before);
+  expect((await f.b.query(api.users.getCurrentUser, {}))?.dailyNotificationEnabled).toBeUndefined();
+  await expect(f.t.mutation(notify, { enabled: true, dailyTime: "07:00", capability: binding.capability })).rejects.toThrow("Unauthenticated");
+  await expect(f.t.withIdentity({ subject: "no_account", tokenIdentifier: "https://clerk.example|no_account" }).mutation(notify,
+    { enabled: true, dailyTime: "07:00", capability: binding.capability })).rejects.toThrow("SYNC_ACCOUNT_MISSING");
+  expect(await f.a.mutation(notify, { enabled: true, dailyTime: "07:00", capability: binding.capability })).toBe(0);
+  vi.setSystemTime(binding.validUntil + 1);
+  await expect(f.a.mutation(notify, { enabled: false, dailyTime: "08:00", capability: binding.capability })).rejects.toThrow("SYNC_BINDING_EXPIRED");
+  expect((await f.a.query(api.users.getCurrentUser, {}))?.dailyNotificationEnabled).toBe(true);
+  await f.a.mutation(notify, { enabled: false, dailyTime: "09:00" });
+  expect((await f.a.query(api.users.getCurrentUser, {}))?.dailyNotificationEnabled).toBe(false);
+});
+
 test("a binding is server-owned and a queued frame under another JWT writes nothing", async () => {
   const f = await fixture(), binding = await f.a.mutation(open, {});
   const batch: SyncBatch = { id: "owner-batch", operations: [{ id: "owner-add", revision: "r1", at: 1_000, command: { kind: "bookmark_add", hadithId: f.hadithId, createdAt: 1_000 } }] };
