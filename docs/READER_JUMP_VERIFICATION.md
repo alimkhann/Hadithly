@@ -1,41 +1,59 @@
 # Reader volume/page jump sheet verification
 
-Session of November 4, 2026. Feature request: the revealed progress pills
-become buttons; either pill opens one sheet with alarm-style Volume and Page
-wheels, a cross-updating preview, and a Liquid Glass Go button that lands at
-the top of the chosen page. Owner decisions recorded in
-[POST_GOAL_BACKLOG.md](POST_GOAL_BACKLOG.md); Sajda evidence in
+Session of November 4, 2026. Either revealed progress pill opens a sheet with
+alarm-style Volume and Page
+wheels and a Liquid Glass Go button that lands at the top of the chosen page.
+The Page wheel repeats within the selected volume in both directions. Changing
+the Volume wheel selects Page 1. Owner decisions are recorded in
+[POST_GOAL_BACKLOG.md](POST_GOAL_BACKLOG.md). Sajda evidence is in
 [PAGE_TRANSITION_BASELINE.md](PAGE_TRANSITION_BASELINE.md).
 
 ## Committed behavior
 
 - iOS `ReaderJumpSheet` (ReaderSheets.swift), Android `ReaderJumpSheet` and
-  `ReaderJumpWheel` (ReaderJumpSheet.kt). Both localize every string
-  ("Close", "Retry", "Go", the wheel headers use the existing keys; no new
-  untranslated copy enters either catalog).
-- Reader model, both platforms: `knownPageCountForJump` (cache-only counts),
+  `ReaderJumpWheel` (ReaderJumpSheet.kt). Both use existing localized keys for
+  Close, Retry, Go, and the wheel headers.
+- Both reader models use `knownPageCountForJump` (cache-only counts),
   `pageCountForJump` (on-demand resolution for one volume), `jumpToPage`
-  routing through the existing `TurnTarget` pending machinery. Same-page
-  destinations are ignored; volume-relative page numbering means pill labels
-  and wheel rows agree without renumbering books.
+  routing through the existing `TurnTarget` pending machinery. Go on the open
+  page keeps the current position. The pill and wheel use the same page number.
 - Jump commits remove the landing page from recent positions and land at the
   top of the page (Android commits an explicit `ReaderVerticalLanding.Header`
   request; iOS uses its header landing path).
-- Windows swipe is disabled while the sheet is open (iOS);
+- The reader's window swipe is disabled while the iOS sheet is open.
   Android system Back closes the sheet before the reader.
 
 ## Verification run
 
-Follow-up polish round (same session, owner screenshots): loader and retry
-got a reserved fixed slot so the Go button never shifts; Go text uses the
-paired `onInteractive` token (fixes white-on-white in the dark palette); the
-close control shrank with tighter top spacing; a single unified grey
-selection pill now sits behind both wheels (Sajda style); a grey drag handle
-was added and the sheet is one fixed-height detent so it no longer expands
-upward; and the Page wheel became a true looping wheel — an edge step past
-the volume's last page advances the Volume wheel to that volume's first page
-(and back on the way up), implemented as a virtual infinite row space on
-Android and a `UIPickerView`-backed loop on iOS with the marker rows removed.
+The first polish round reserved space for loading and retry, and switched the
+Go label to the palette's `onInteractive` color. It also added a compact close
+button, a shared selection band, and a drag handle at a single sheet height.
+The owner then chose to keep Page wrapping inside the selected volume.
+The final layout uses one native two-component iOS picker, a 400-point detent,
+and a compact close control with a 44-point hit area. Android uses a single
+selection band with position-based scaling as rows approach its center.
+The iOS rows use one font size throughout. The native wheel's perspective
+changes continuously during scrolling. Selecting a row does not reload its
+column or change its font size.
+
+### Volume-local wheel checks
+
+- Android `ReaderJumpTest` on `emulator-5554`: six passed. They cover opening and
+  closing from the real progress pill, starting at the current page, wrapping
+  Page in both directions, resetting Page on a Volume change, landing on the
+  exact destination, and keeping position on same-page Go.
+- Android `:app:testDebugUnitTest` passed after the wheel update.
+- On the retained iPhone 18 Pro simulator, `Phase4Live` ran
+  `ReaderR5UITests.testJumpPageWheelWrapsWithinSelectedVolume`. It opened the
+  production sheet from the Page pill, dragged the Page wheel slowly with a
+  1.5-second hold, then selected Volume 3 and verified Go landed on Page 1.
+  The final run passed. The recorded drag frames show rows moving through
+  the native center band without a release-time font change.
+
+Captures and the final iOS result bundle are stored locally at
+`/Users/alim/Developer/Artifacts/Hadithly/reader-jump-20261104`.
+
+### Initial navigation and localization checks
 
 - Android `:app:compileDebugKotlin`, `:app:testDebugUnitTest`: clean.
 - Android `ReaderJumpTest` on emulator-5554 (instrumented, 3 cases):
@@ -57,28 +75,23 @@ Android and a `UIPickerView`-backed loop on iOS with the marker rows removed.
   0 failures (includes the corner-title tests added with this session's
   localization commit).
 
-## Wait: recorded open gates
+## Open gates
 
-- The on-screen wheel interaction (flick, cross-volume snap, Liquid Glass Go,
-  VoiceOver/TalkBack labels) is not yet machine-asserted. iOS simulator and
-  Android emulator manual passes with the recorded script below; then a
-  physical-device check per the existing reader motion gates.
-- UI test additions for the sheet are tracked in backlog if the manual passes
-  surface states worth pinning.
+- Physical-device review and the full VoiceOver and TalkBack reading journeys
+  remain open.
 - `ios/Hadithly/Localizable.xcstrings` in the working tree carries a large
   mixed diff (Xcode key respace plus older unrelated additions) that predates
   this session; it was excluded from every commit and needs an owner decision
   before it is committed or reverted.
 
-## Manual script for the pending device/simulator passes
+## Device review script
 
-1. Open any collection, scroll to reveal the pills.
-2. Tap the Page pill or the Volume pill — the same sheet opens at the current
+1. Open any collection and tap the page to reveal the pills.
+2. Tap either pill. The same sheet opens at the current
    location.
-3. Flick the Page wheel past the volume's last page: the Volume wheel advances
-   and Page shows 1; flick back from Page 1: previous volume's last page. The
-   wheel keeps cycling — it never stops at an edge.
-4. Spin the Volume wheel to a heavy volume: counts auto-advance to its first
-   page.
-5. Tap Go: reader lands at the top of the chosen page; Go on the currently
-   open page just dismisses.
+3. Flick the Page wheel past the last page, then backward past Page 1. Both
+   wraps stay in the same volume.
+4. Spin the Volume wheel to an uncached volume. Page returns to 1 and the Go
+   button stays in place while the count resolves.
+5. Tap Go. The reader lands at the top of the chosen page. Go on the open page
+   dismisses the sheet and keeps the current position.

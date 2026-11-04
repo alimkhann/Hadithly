@@ -1,3 +1,23 @@
+# Reader jump sheet closeout
+
+The November 4 reader picker uses volume-relative page numbers. Page loops
+within the selected volume. Choosing Volume resets Page to 1. Both progress
+pills open the same sheet. Go lands at the top of a different page and keeps
+the current position for the open page.
+
+Read READER_JUMP_VERIFICATION.md for the simulator/emulator checks, screenshots
+and remaining device/accessibility gates. The compact shared selection band
+and monochrome Go follow the owner's Sajda references. iOS uses native wheel
+perspective with one font size, eliminating the font change on release.
+
+Chapter-title and narrator-line translations are still a separate backlog
+request. The generic corner Volume label is localized into the selected
+reading language. Preserve the incoming localization catalog and Python cache.
+
+The prior Sentry handoff is retained below.
+
+---
+
 # Sentry translations and notifications closeout
 
 Read PLAN.md's November 4 checkpoint and SENTRY_REPAIR_VERIFICATION.md.

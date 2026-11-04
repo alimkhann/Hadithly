@@ -16,10 +16,7 @@ struct ReaderJumpSheet: View {
     @State private var pending = false
     @State private var failed = false
     @State private var retryVolume: String?
-    @State private var retryLast = false
-    /// Last page wheel position in virtual row space; nil after a programmatic
-    /// recenter until the first user scroll.
-    @State private var previousRaw: Int?
+    @State private var retryInitial = false
     /// Bumped on every programmatic recenter so the page wheel knows when to
     /// jump without treating its own callbacks as outside moves.
     @State private var wheelGeneration = 0
@@ -29,26 +26,12 @@ struct ReaderJumpSheet: View {
         _selection = State(initialValue: ReaderJumpPosition(volumeId: volumeId, pageIndex: pageIndex))
     }
 
-    private var volumeIndex: Int? {
-        model.volumes.firstIndex { $0.volumeId == selection.volumeId }
-    }
-
     private var pageCount: Int {
         counts[selection.volumeId]?.count ?? 0
     }
 
-    private var nextVolumeId: String? {
-        guard let volumeIndex, volumeIndex + 1 < model.volumes.count else { return nil }
-        return model.volumes[volumeIndex + 1].volumeId
-    }
-
-    private var previousVolumeId: String? {
-        guard let volumeIndex, volumeIndex > 0 else { return nil }
-        return model.volumes[volumeIndex - 1].volumeId
-    }
-
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 6) {
             Capsule()
                 .fill(palette.textSecondary.opacity(0.4))
                 .frame(width: 36, height: 5)
@@ -77,62 +60,39 @@ struct ReaderJumpSheet: View {
             .foregroundStyle(palette.textSecondary)
             .textCase(.uppercase)
             .frame(maxWidth: .infinity)
-            ZStack {
-                Capsule()
-                    .fill(palette.surface)
-                    .overlay(Capsule().strokeBorder(palette.divider.opacity(0.62), lineWidth: 0.5))
-                    .frame(height: 36)
-                    .padding(.horizontal, 8)
-                GeometryReader { geometry in
-                    HStack(spacing: 0) {
-                        Picker(AppLocalization.string("volume", locale: locale), selection: Binding(
-                            get: { selection.volumeId },
-                            set: { chooseVolume($0, last: false) }
-                        )) {
-                            ForEach(Array(model.volumes.enumerated()), id: \.element.volumeId) { index, volume in
-                                Text((index + 1).formatted(.number.locale(locale))).tag(volume.volumeId)
-                            }
-                        }
-                        .pickerStyle(.wheel)
-                        .frame(width: geometry.size.width / 2)
-                        .clipped()
-                        .accessibilityIdentifier("reader.jump.volume")
-                        if pageCount > 0 {
-                            ReaderLoopWheel(
-                                pageCount: pageCount,
-                                page: selection.pageIndex,
-                                generation: wheelGeneration,
-                                locale: locale,
-                                rowColor: palette.textSecondary,
-                                onSelectRaw: pageWheelChanged,
-                            )
-                            .frame(width: geometry.size.width / 2)
-                            .accessibilityIdentifier("reader.jump.page")
-                        }
-                    }
-                }
-            }
-            .frame(height: 216)
-            .disabled(pending || failed)
+            ReaderJumpWheels(
+                volumes: model.volumes.map(\.volumeId),
+                volumeId: selection.volumeId,
+                pageCount: pageCount,
+                page: selection.pageIndex,
+                generation: wheelGeneration,
+                locale: locale,
+                rowColor: palette.textPrimary,
+                pageEnabled: !pending && !failed,
+                onVolume: { chooseVolume($0) },
+                onPage: pageWheelChanged
+            )
+            .frame(height: 180)
             ZStack {
                 if pending {
                     ProgressView().accessibilityIdentifier("reader.jump.loading")
                 } else if failed {
                     Button(AppLocalization.string("Retry", locale: locale)) {
-                        if let retryVolume { chooseVolume(retryVolume, last: retryLast) }
+                        if let retryVolume { chooseVolume(retryVolume, initial: retryInitial) }
                     }
                     .accessibilityIdentifier("reader.jump.retry")
                 }
             }
-            .frame(height: 36)
+            .frame(height: 22)
+            Spacer(minLength: 0)
             goButton
                 .disabled(pending || failed || counts[selection.volumeId] == nil)
                 .accessibilityIdentifier("reader.jump.go")
         }
         .padding(.horizontal, 20)
         .padding(.top, 0)
-        .padding(.bottom, 28)
-        .frame(maxWidth: .infinity)
+        .padding(.bottom, 12)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(palette.background)
         .task { loadInitialCount() }
         .onDisappear { loadTask?.cancel() }
@@ -157,46 +117,25 @@ struct ReaderJumpSheet: View {
     }
 
     private func loadInitialCount() {
-        for volume in model.volumes {
-            if let count = model.knownPageCountForJump(volumeId: volume.volumeId) { counts[volume.volumeId] = count }
-        }
-        if counts[selection.volumeId] == nil { chooseVolume(selection.volumeId, last: false, initial: true) }
+        chooseVolume(selection.volumeId, initial: true)
         wheelGeneration += 1
     }
 
-    /// Alarm-wheel crossing: one step past the volume's last page rolls into
-    /// the next volume's first page (and back the same way), so the wheel
-    /// never dead-ends while the Volume wheel still owns direct selects.
     private func pageWheelChanged(_ raw: Int) {
         guard !pending, !failed, pageCount > 0 else { return }
         let page = ((raw % pageCount) + pageCount) % pageCount
-        if let previous = previousRaw, pageCount > 1 {
-            let previousPage = ((previous % pageCount) + pageCount) % pageCount
-            if page == 0 && previousPage == pageCount - 1 && raw > previous, let next = nextVolumeId {
-                previousRaw = nil
-                chooseVolume(next, last: false)
-                return
-            }
-            if page == pageCount - 1 && previousPage == 0 && raw < previous, let last = previousVolumeId {
-                previousRaw = nil
-                chooseVolume(last, last: true)
-                return
-            }
-        }
-        previousRaw = raw
         guard page != selection.pageIndex else { return }
         selection = .init(volumeId: selection.volumeId, pageIndex: page)
     }
 
-    private func chooseVolume(_ volumeId: String, last: Bool, initial: Bool = false) {
+    private func chooseVolume(_ volumeId: String, initial: Bool = false) {
         loadTask?.cancel()
         failed = false
         retryVolume = volumeId
-        retryLast = last
+        retryInitial = initial
         if let count = counts[volumeId] ?? model.knownPageCountForJump(volumeId: volumeId) {
             counts[volumeId] = count
-            selection = .init(volumeId: volumeId, pageIndex: initial ? min(selection.pageIndex, count.count - 1) : (last ? count.count - 1 : 0))
-            previousRaw = nil
+            selection = .init(volumeId: volumeId, pageIndex: initial ? min(selection.pageIndex, count.count - 1) : 0)
             wheelGeneration += 1
             pending = false
             return
@@ -207,8 +146,7 @@ struct ReaderJumpSheet: View {
                 let count = try await model.pageCountForJump(volumeId: volumeId)
                 try Task.checkCancellation()
                 counts[volumeId] = count
-                selection = .init(volumeId: volumeId, pageIndex: initial ? min(selection.pageIndex, count.count - 1) : (last ? count.count - 1 : 0))
-                previousRaw = nil
+                selection = .init(volumeId: volumeId, pageIndex: initial ? min(selection.pageIndex, count.count - 1) : 0)
                 wheelGeneration += 1
                 pending = false
             } catch is CancellationError {
@@ -221,17 +159,18 @@ struct ReaderJumpSheet: View {
     }
 }
 
-/// Looping alarm-style wheel for page numbers. UIPickerView with a large
-/// repeated row space scrolls forever in both directions; `generation`
-/// marks sheet-driven recenters (volume changes, retry) that must move the
-/// drum without counting as user scrolling.
-private struct ReaderLoopWheel: UIViewRepresentable {
+/// Both components share the system's single selection highlight.
+private struct ReaderJumpWheels: UIViewRepresentable {
+    let volumes: [String]
+    let volumeId: String
     let pageCount: Int
     let page: Int
     let generation: Int
     let locale: Locale
     let rowColor: Color
-    let onSelectRaw: (Int) -> Void
+    let pageEnabled: Bool
+    let onVolume: (String) -> Void
+    let onPage: (Int) -> Void
 
     static let blocks = 200
 
@@ -244,56 +183,69 @@ private struct ReaderLoopWheel: UIViewRepresentable {
         picker.dataSource = context.coordinator
         picker.delegate = context.coordinator
         picker.backgroundColor = .clear
-        picker.accessibilityIdentifier = "reader.jump.page"
-        let target = Self.rawIndex(page: page, pageCount: max(pageCount, 1))
-        context.coordinator.syncGeneration = generation
-        DispatchQueue.main.async {
-            if picker.selectedRow(inComponent: 0) != target, picker.numberOfRows(inComponent: 0) > 0 {
-                picker.selectRow(target, inComponent: 0, animated: false)
-            }
-        }
+        picker.accessibilityIdentifier = "reader.jump.wheels"
         return picker
     }
 
     func updateUIView(_ picker: UIPickerView, context: Context) {
         context.coordinator.parent = self
-        if picker.numberOfRows(inComponent: 0) != max(pageCount, 1) * Self.blocks {
+        let volumeIndex = volumes.firstIndex(of: volumeId) ?? 0
+        let pageRows = max(pageCount, 1) * Self.blocks
+        if picker.numberOfRows(inComponent: 0) != volumes.count ||
+            picker.numberOfRows(inComponent: 1) != pageRows {
             picker.reloadAllComponents()
-            picker.selectRow(Self.rawIndex(page: page, pageCount: max(pageCount, 1)), inComponent: 0, animated: false)
         }
         if context.coordinator.syncGeneration != generation {
             context.coordinator.syncGeneration = generation
-            let target = Self.rawIndex(page: page, pageCount: max(pageCount, 1))
-            picker.selectRow(target, inComponent: 0, animated: false)
+            if !volumes.isEmpty { picker.selectRow(volumeIndex, inComponent: 0, animated: false) }
+            picker.selectRow(Self.rawIndex(page: page, pageCount: max(pageCount, 1)), inComponent: 1, animated: false)
+            picker.reloadAllComponents()
         }
-        picker.subviews.forEach { $0.backgroundColor = .clear }
     }
 
-    final class Coordinator: NSObject, UIPickerViewDataSource, UIPickerViewDelegate {
-        var parent: ReaderLoopWheel
+    final class Coordinator: NSObject, UIPickerViewDataSource, UIPickerViewAccessibilityDelegate {
+        var parent: ReaderJumpWheels
         var syncGeneration = -1
 
-        init(_ parent: ReaderLoopWheel) { self.parent = parent }
+        init(_ parent: ReaderJumpWheels) { self.parent = parent }
 
-        func numberOfComponents(in pickerView: UIPickerView) -> Int { 1 }
+        func numberOfComponents(in pickerView: UIPickerView) -> Int { 2 }
 
         func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-            max(parent.pageCount, 1) * ReaderLoopWheel.blocks
+            component == 0 ? parent.volumes.count : max(parent.pageCount, 1) * ReaderJumpWheels.blocks
         }
 
         func pickerView(_ pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat { 40 }
 
+        func pickerView(_ pickerView: UIPickerView, accessibilityLabelForComponent component: Int) -> String? {
+            AppLocalization.string(component == 0 ? "volume" : "page", locale: parent.locale)
+        }
+
         func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView {
             let label = (view as? UILabel) ?? UILabel()
             label.textAlignment = .center
-            label.font = .preferredFont(forTextStyle: .body)
+            label.font = .preferredFont(forTextStyle: .title3)
+            label.adjustsFontForContentSizeCategory = true
             label.textColor = UIColor(parent.rowColor)
-            label.text = (((row % max(parent.pageCount, 1)) + 1)).formatted(.number.locale(parent.locale))
+            let value = component == 0 ? row + 1 : (row % max(parent.pageCount, 1)) + 1
+            label.text = component == 1 && parent.pageCount == 0 ? "–" : value.formatted(.number.locale(parent.locale))
             return label
         }
 
         func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-            parent.onSelectRaw(row)
+            if component == 0 {
+                guard parent.volumes.indices.contains(row) else { return }
+                let volume = parent.volumes[row]
+                if volume != parent.volumeId { parent.onVolume(volume) }
+            } else if parent.pageEnabled {
+                parent.onPage(row)
+            }
+            let count = max(parent.pageCount, 1)
+            let target = component == 1 && (!parent.pageEnabled || row < count * 2 || row >= count * (ReaderJumpWheels.blocks - 2))
+                ? ReaderJumpWheels.rawIndex(page: parent.pageEnabled ? row % count : parent.page, pageCount: count) : row
+            if target != row {
+                pickerView.selectRow(target, inComponent: component, animated: false)
+            }
         }
     }
 }

@@ -134,17 +134,16 @@ Verify the corresponding Android behavior when this feature is implemented.
 
 Implemented November 4, 2026 as the reader volume/page jump sheet.
 
-The owner chose volume-relative numbers for both the pill and the Page wheel.
-Either revealed pill opens the same sheet at the current location. Scrolling
-past the last page advances the Volume wheel and shows Page 1. Scrolling back
-from Page 1 selects the last page of the previous volume. Choosing a volume
-directly selects its first page. Go jumps to the top of a different page and
-keeps the current position when the selected page is already open.
+Either revealed pill opens the same sheet at the current location. The Page
+wheel uses volume-relative numbers and loops in both directions within the
+selected volume. The Volume wheel changes the volume and selects its first
+page. Go jumps to the top of a different page and keeps the current position
+when the selected page is already open.
 
 The sheet follows the owner's Sajda screenshot and the observation in
 [PAGE_TRANSITION_BASELINE.md](PAGE_TRANSITION_BASELINE.md). Exact page counts
-come from the current reader source and uncached volumes resolve on demand —
-never by fetching every volume in the collection. See
+come from the current reader source. An uncached volume resolves when selected.
+See
 [READER_JUMP_VERIFICATION.md](READER_JUMP_VERIFICATION.md) for the recorded
 gates. Wheel states, counts and Go reuse the reader's existing loading and
 retry machinery through `TurnTarget.Jump`.

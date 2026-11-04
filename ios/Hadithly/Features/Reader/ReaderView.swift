@@ -75,7 +75,10 @@ struct ReaderView: View {
     }
 
     private var readerTheme: ReaderTheme {
-        environment.preferences.preferences.theme
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["PAGING_JUMP_DARK"] == "1" { return .dark }
+        #endif
+        return environment.preferences.preferences.theme
     }
 
     private var palette: ReaderPalette {
@@ -208,7 +211,7 @@ struct ReaderView: View {
             readerSheet {
                 if let model, let volume = model.selectedVolumeId {
                     ReaderJumpSheet(model: model, volumeId: volume, pageIndex: model.pageIndex)
-                        .presentationDetents([.height(468)])
+                        .presentationDetents([.height(400)])
                         .presentationDragIndicator(.hidden)
                 }
             }
@@ -1168,6 +1171,7 @@ private struct ReaderUnfocusedProgressPills: View {
         }
         .padding(.horizontal, 20)
         .frame(maxWidth: .infinity, alignment: .center)
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("reader.unfocusedProgress")
     }
 
@@ -4039,6 +4043,7 @@ struct ContentsNavigationFixture: View {
                             _ = try? await edgeStore.load(.init(collection: "bukhari", volume: volume, index: index))
                         }
                     }
+                    if ProcessInfo.processInfo.environment["PAGING_JUMP"] == "1" { model.chromeVisible = true }
                     edgeReady = true
                     return
                 }

@@ -11,14 +11,16 @@ final class ReaderR5UITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    private func edgeFixture(rtl: Bool = false, large: Bool = false, reduceMotion: Bool = false, interrupt: Bool = false) -> XCUIApplication {
+    private func edgeFixture(rtl: Bool = false, large: Bool = false, reduceMotion: Bool = false, interrupt: Bool = false, jump: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["-A5ContentsNavigationFixture"]
         app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "PAGING_EDGES": "1",
                                  "PAGING_EDGES_RTL": rtl ? "1" : "0",
                                  "A5_LOCALE": rtl ? "ar" : "en", "A5_LARGE_TEXT": large ? "1" : "0",
                                  "PAGING_EDGES_REDUCE_MOTION": reduceMotion ? "1" : "0",
-                                 "PAGING_EDGES_INTERRUPT": interrupt ? "1" : "0"]
+                                 "PAGING_EDGES_INTERRUPT": interrupt ? "1" : "0",
+                                 "PAGING_JUMP": jump ? "1" : "0",
+                                 "PAGING_JUMP_DARK": jump ? "1" : "0"]
         app.launch()
         XCTAssertTrue(app.staticTexts["paging.location"].waitForExistence(timeout: 10))
         XCTAssertTrue(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "ready"), object: app.staticTexts["paging.ready"])], timeout: 10) == .completed)
@@ -37,6 +39,42 @@ final class ReaderR5UITests: XCTestCase {
         let end = app.coordinate(withNormalizedOffset: CGVector(dx: leftward ? 0.17 : 0.83, dy: 0.5))
         start.press(forDuration: 0.08, thenDragTo: end,
                     withVelocity: slow ? .slow : XCUIGestureVelocity(rawValue: 900), thenHoldForDuration: 0)
+    }
+
+    func testJumpPageWheelWrapsWithinSelectedVolume() {
+        let app = edgeFixture(jump: true)
+        defer { app.terminate() }
+        let open = app.buttons["reader.jump.openPage"]
+        XCTAssertTrue(open.waitForExistence(timeout: 5), app.debugDescription)
+        open.tap()
+        XCTAssertTrue(app.buttons["reader.jump.go"].waitForExistence(timeout: 5))
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "reader-jump-sheet"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+        let page = app.pickerWheels.element(boundBy: 1)
+        XCTAssertTrue(page.waitForExistence(timeout: 5))
+        let volume = app.pickerWheels.element(boundBy: 0)
+        XCTAssertTrue(volume.exists)
+        let originalVolume = volume.value as? String
+        XCTAssertEqual(originalVolume, "2")
+        XCTAssertEqual(page.value as? String, "2")
+        let center = page.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        let nextRow = page.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.27))
+        center.press(forDuration: 0.2, thenDragTo: nextRow,
+                     withVelocity: XCUIGestureVelocity(rawValue: 35), thenHoldForDuration: 1.5)
+        XCTAssertEqual(volume.value as? String, originalVolume)
+        page.adjust(toPickerWheelValue: "2")
+        page.adjust(toPickerWheelValue: "1")
+        XCTAssertEqual(page.value as? String, "1")
+        XCTAssertEqual(volume.value as? String, originalVolume)
+        page.adjust(toPickerWheelValue: "2")
+        XCTAssertEqual(page.value as? String, "2")
+        XCTAssertEqual(volume.value as? String, originalVolume)
+        volume.adjust(toPickerWheelValue: "3")
+        XCTAssertEqual(page.value as? String, "1")
+        app.buttons["reader.jump.go"].tap()
+        edgeLocation(app, "3:0")
     }
 
     func testPreparedEdgesBothDirectionsAndAbsoluteBoundaries() {
@@ -407,7 +445,9 @@ final class ReaderR5UITests: XCTestCase {
             app.launch()
             let progress = element("reader.unfocusedProgress", in: app)
             XCTAssertTrue(progress.waitForExistence(timeout: 10))
-            XCTAssertTrue(progress.label.contains(3.formatted(.number.locale(Locale(identifier: locale)))))
+            let page = app.buttons["reader.jump.openPage"]
+            XCTAssertTrue(page.waitForExistence(timeout: 5))
+            XCTAssertTrue(page.label.contains(3.formatted(.number.locale(Locale(identifier: locale)))))
             let viewport = element("reader.page", in: app)
             XCTAssertLessThan(viewport.frame.minY, progress.frame.minY)
             let source = element("reader.volumeCorner", in: app)
@@ -665,11 +705,12 @@ final class ReaderR5UITests: XCTestCase {
             showProgress()
             let progress = element("reader.unfocusedProgress", in: app)
             XCTAssertTrue(progress.waitForExistence(timeout: 10))
-            let previousLabel = progress.label
+            let page = app.buttons["reader.jump.openPage"]
+            let previousLabel = page.label
             app.swipeLeft()
             XCTAssertTrue(progress.waitForNonExistence(timeout: 10))
             showProgress()
-            let changed = NSPredicate { _, _ in progress.exists && progress.label != previousLabel }
+            let changed = NSPredicate { _, _ in page.exists && page.label != previousLabel }
             expectation(for: changed, evaluatedWith: nil)
             waitForExpectations(timeout: 30)
             print("COST_JOURNEY_STEP \(step)")
