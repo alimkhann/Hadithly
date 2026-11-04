@@ -31,6 +31,7 @@ import com.hadithly.app.features.reader.volumeHeaderTitle
 import com.hadithly.app.features.reader.volumePillFillFraction
 import com.hadithly.app.features.reader.volumeProgressFraction
 import com.hadithly.app.features.reader.volumeTitleForDisplay
+import com.hadithly.app.features.reader.volumeCornerTitle
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
@@ -125,6 +126,13 @@ class ReaderR6Round3Test {
     }
 
     // Volume + chapter display titles
+
+    @Test
+    fun `corner localizes generic volume names while keeping named volumes`() {
+        val russian: (Int) -> String = { n -> "Том $n" }
+        assertEquals("Том 2", volumeCornerTitle("Volume 2", russian))
+        assertEquals("The Book of Faith", volumeCornerTitle("The Book of Faith", russian))
+    }
 
     @Test
     fun `arabic-only volumes use the localized name`() {

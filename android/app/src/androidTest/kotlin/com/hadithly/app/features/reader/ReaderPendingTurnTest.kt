@@ -32,6 +32,57 @@ class ReaderPendingTurnTest {
         publications = { kotlinx.coroutines.flow.flow { kotlinx.coroutines.awaitCancellation() } },
     )
 
+    @Test fun cornerUsesTranslationLanguageWithEnglishAppLanguage() {
+        val app = ApplicationProvider.getApplicationContext<HadithlyApplication>()
+        val original = app.preferences.preferences.value
+        val directory = File(app.cacheDir, "corner-locale-${System.nanoTime()}").apply { mkdirs() }
+        val context = object : android.content.ContextWrapper(app) { override fun getFilesDir() = directory }
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+        val owner = object : ViewModelStoreOwner { override val viewModelStore = ViewModelStore() }
+        lateinit var model: ReaderViewModel
+        try {
+            compose.runOnUiThread {
+                app.preferences.adoptServer(original.copy(uiLocale = "en", translationLocale = "ru",
+                    arabicVisible = true, translationVisible = true, updatedAt = original.updatedAt + 1))
+                model = ReaderViewModel(app, "bukhari", null, null, null, ReaderTargetSource.COLLECTION,
+                    translationReads = noTranslationReads, library = UserLibraryModel(GuestDataStore(context), scope),
+                    outlineLoader = { CollectionOutlineResult(listOf(OutlineVolume("1", "Volume 1", hadithCount = 2.0))) },
+                    pageLoader = { _, index, _ ->
+                        val hadith = ReaderHadith("fixture-$index", "sunnah_now", "sunnah_now:bukhari:${index + 1}",
+                            "${index + 1}", "bukhari", "1", arabicText = "نص تجريبي", englishText = "Fixture text",
+                            referenceDisplay = "Bukhari ${index + 1}", collectionName = "Bukhari",
+                            authenticity = AuthenticityClaim("unknown", claimScope = "hadith", sourceLabel = "Fixture",
+                                sourceName = "Fixture", sourceUrl = "", verificationMethod = "fixture"))
+                        ReaderPageResult(items = listOf(hadith), page = (index + 1).toDouble(), pageSize = 1.0,
+                            totalPages = 2.0, hasMore = index == 0, pageKey = "pg1:page${index + 1}", contentVersion = "cv1:fixture")
+                    })
+                owner.viewModelStore.put("reader-782", model)
+            }
+            compose.setContent {
+                CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
+                    com.hadithly.app.core.theme.LocalizedPreview(com.hadithly.app.core.preferences.ReaderTheme.DARK, "en") {
+                        ReaderScreen("bukhari", "Fixture", null, null, null, ReaderTargetSource.COLLECTION, 782L, {})
+                    }
+                }
+            }
+            compose.waitUntil(10_000) { model.state.value.pages.firstOrNull()?.isPlaceholder == false }
+            compose.runOnIdle { model.requestTurn(ReaderViewModel.TurnTarget.Page("1", 1)) }
+            compose.waitUntil(10_000) { model.state.value.pageIndex == 1 }
+            compose.onNodeWithTag("reader.volumeCorner").assertTextContains("Том 1", substring = true)
+            compose.runOnUiThread {
+                app.preferences.adoptServer(app.preferences.preferences.value.copy(translationLocale = "en", updatedAt = original.updatedAt + 2))
+            }
+            compose.onNodeWithTag("reader.volumeCorner").assertTextContains("Volume 1", substring = true)
+        } finally {
+            compose.runOnUiThread {
+                owner.viewModelStore.clear()
+                app.preferences.adoptServer(original.copy(updatedAt = app.preferences.preferences.value.updatedAt + 1))
+            }
+            scope.cancel()
+            directory.deleteRecursively()
+        }
+    }
+
     @Test fun delayedTurnKeepsCommittedPageAndCancellationFencesCompletion() {
         val app = ApplicationProvider.getApplicationContext<HadithlyApplication>()
         val directory = java.io.File(app.cacheDir, "pending-${System.nanoTime()}").apply { mkdirs() }

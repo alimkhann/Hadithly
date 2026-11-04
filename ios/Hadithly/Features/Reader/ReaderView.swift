@@ -1384,7 +1384,7 @@ struct ReaderPageView: View {
     private var selectedVolume: OutlineVolume? { context.volume }
 
     private var volumeCornerText: String? {
-        let title = localizedVolumeTitle(context.volume.title, preferences: preferences, locale: locale)
+        let title = localizedVolumeCornerTitle(context.volume.title, preferences: preferences, locale: locale)
         if let range = context.range {
             return range.first == range.last ? "\(title): \(range.first)" : "\(title): \(range.first)–\(range.last)"
         }
@@ -1843,6 +1843,13 @@ func localizedVolumeTitle(_ title: String, preferences: ReaderPreferences, local
         translationVisible: preferences.translationVisible
     ) { number in
         AppLocalization.format("Volume %lld", locale: locale, number)
+    }
+}
+
+func localizedVolumeCornerTitle(_ title: String, preferences: ReaderPreferences, locale: Locale) -> String {
+    let cornerLocale = preferences.translationVisible ? Locale(identifier: preferences.translationLocale) : locale
+    return ReaderVolumeTitle.cornerTitle(title) { number in
+        AppLocalization.format("Volume %lld", locale: cornerLocale, number)
     }
 }
 

@@ -194,6 +194,11 @@ extension ReaderNarratorLine {
 enum ReaderVolumeTitle {
     static let formatKey = "Volume %lld"
 
+    static func cornerTitle(_ title: String, localizedFormat: (Int) -> String) -> String {
+        guard let number = volumeNumber(in: title) else { return title }
+        return localizedFormat(number)
+    }
+
     /// The trailing volume number in backend titles like `Volume 2`.
     static func volumeNumber(in title: String) -> Int? {
         let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)

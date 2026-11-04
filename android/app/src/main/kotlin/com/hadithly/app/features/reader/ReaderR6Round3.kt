@@ -37,6 +37,11 @@ fun volumeTitleForDisplay(
     return localizedVolume(number)
 }
 
+fun volumeCornerTitle(title: String, localizedVolume: (Int) -> String): String {
+    val number = ReaderViewModel.volumeTitleNumber(title) ?: return title
+    return localizedVolume(number)
+}
+
 /**
  * Chapter title for the visible layers. Arabic-only reading uses the
  * provider's `arabicTitle` when present, else the title. Mixed and

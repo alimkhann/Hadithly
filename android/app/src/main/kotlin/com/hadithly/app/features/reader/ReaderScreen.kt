@@ -1342,14 +1342,22 @@ private fun ReaderPage(
     // range is computable from the outline counts; title-only otherwise.
     // The pure rule lives in volumeCornerText (unit-pinned); the localized
     // title is resolved here at the composition boundary.
-    // Volume names are source-provided. Do not translate `Volume 2` into a
-    // synthetic localized label when the provider supplied only that value.
     val arabicOnly = preferences.arabicVisible && !preferences.translationVisible
     val localizedVolumeName: (Int) -> String = { number ->
         resContext.getString(R.string.reader_volume_title, number)
     }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val translationResources = remember(context, preferences.translationLocale) {
+        val configuration = android.content.res.Configuration(context.resources.configuration).apply {
+            setLocale(java.util.Locale.forLanguageTag(preferences.translationLocale.replace('_', '-')))
+        }
+        context.createConfigurationContext(configuration).resources
+    }
     val cornerTitle: String? = selectedVolume?.title?.let { title ->
-        volumeTitleForDisplay(title, arabicOnly, localizedVolumeName)
+        volumeCornerTitle(title) { number ->
+            val resources = if (preferences.translationVisible) translationResources else resContext
+            resources.getString(R.string.reader_volume_title, number)
+        }
     }
     // Round 8: the range resolves from already-cached synchronous sources
     // (the outline counts plus the loaded pages list) and latches per

@@ -270,6 +270,22 @@ final class ReaderR6Round3Tests: XCTestCase {
 
     // MARK: - 2b. Volume/chapter display titles
 
+    func testCornerLocalizesGenericVolumeNamesAndPreservesNamedVolumes() {
+        let russian: (Int) -> String = { "Том \($0)" }
+        XCTAssertEqual(ReaderVolumeTitle.cornerTitle("Volume 2", localizedFormat: russian), "Том 2")
+        XCTAssertEqual(ReaderVolumeTitle.cornerTitle("The Book of Faith", localizedFormat: russian), "The Book of Faith")
+    }
+
+    func testCornerUsesTranslationLanguageWithEnglishAppLanguage() {
+        var preferences = ReaderPreferences()
+        preferences.translationLocale = "ru"
+        let english = Locale(identifier: "en")
+        XCTAssertEqual(localizedVolumeCornerTitle("Volume 2", preferences: preferences, locale: english), "Том 2")
+        preferences.translationLocale = "en"
+        XCTAssertEqual(localizedVolumeCornerTitle("Volume 2", preferences: preferences, locale: english), "Volume 2")
+        XCTAssertEqual(localizedVolumeCornerTitle("The Book of Faith", preferences: preferences, locale: english), "The Book of Faith")
+    }
+
     func testVolumeNumberParsesOnlyVolumeN() {
         XCTAssertEqual(ReaderVolumeTitle.volumeNumber(in: "Volume 2"), 2)
         XCTAssertEqual(ReaderVolumeTitle.volumeNumber(in: "volume 97"), 97)
