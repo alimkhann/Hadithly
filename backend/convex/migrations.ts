@@ -3,7 +3,8 @@ import { advanceLibraryVersion } from "./lib/librarySyncVersions";
 import type { Id } from "./_generated/dataModel";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
-import { internalMutation, internalQuery } from "./_generated/server";
+import { internalAction, internalMutation, internalQuery } from "./_generated/server";
+import { internal } from "./_generated/api";
 import type { QueryCtx } from "./_generated/server";
 import {
   SUNNAH_NOW_LICENSE_RECORD,
@@ -14,6 +15,23 @@ import {
 import { legacyReadingPosition } from "./lib/readingPositions";
 import { normalizeDeliveryBucket } from "./lib/notifyContent";
 import { isNamedDevelopmentDeployment } from "./generationIntegrity";
+
+export const runSunnahNowLinkRepair = internalAction({
+  args: { cursor: v.union(v.string(), v.null()), maxPages: v.optional(v.number()) },
+  handler: async (ctx, args): Promise<{ scanned: number; repaired: number; conflicts: number; pages: number; continueCursor: string | null; isDone: boolean }> => {
+    if (!isNamedDevelopmentDeployment()) throw new Error("DEVELOPMENT_ONLY");
+    const maxPages = args.maxPages ?? 20;
+    if (!Number.isInteger(maxPages) || maxPages < 1 || maxPages > 100) throw new Error("INVALID_PAGE_COUNT");
+    let cursor = args.cursor, scanned = 0, repaired = 0, conflicts = 0, pages = 0, isDone = false;
+    while (pages < maxPages && !isDone) {
+      const page = await ctx.runMutation(internal.migrations.repairSunnahNowLinks, { paginationOpts: { cursor, numItems: 100 } });
+      scanned += page.scanned; repaired += page.repaired; conflicts += page.conflicts; pages++;
+      isDone = page.isDone;
+      cursor = isDone ? null : page.continueCursor;
+    }
+    return { scanned, repaired, conflicts, pages, continueCursor: cursor, isDone };
+  },
+});
 
 export const repairSunnahNowLinks = internalMutation({
   args: { paginationOpts: paginationOptsValidator },

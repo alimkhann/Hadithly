@@ -6,6 +6,28 @@ import schema from "./schema";
 import { normalizeHadith } from "./lib/sunnahNow";
 
 afterEach(() => vi.unstubAllEnvs());
+test("runner aggregates bounded pages and resumes from its returned cursor", async () => {
+  vi.stubEnv("CONVEX_CLOUD_URL", "https://festive-cobra-664.eu-west-1.convex.cloud");
+  const t = convexTest(schema, import.meta.glob("./**/*.ts"));
+  const ids = await t.mutation(internal.hadiths.upsertPage, { items: Array.from({ length: 201 }, (_, i) => normalizeHadith("bukhari", { id: String(i + 1) })) });
+  await t.mutation(internal.migrations.confirmSunnahNowDevelopmentLicense, {});
+  await t.run(async ctx => { for (const id of ids) await ctx.db.patch(id, { licenseRecordId: undefined }); });
+  const first = await t.action(internal.migrations.runSunnahNowLinkRepair, { cursor: null, maxPages: 1 });
+  expect(first).toMatchObject({ scanned: 100, repaired: 100, conflicts: 0, isDone: false, pages: 1 });
+  const rest = await t.action(internal.migrations.runSunnahNowLinkRepair, { cursor: first.continueCursor, maxPages: 5 });
+  expect(rest).toMatchObject({ scanned: 101, repaired: 101, conflicts: 0, isDone: true, pages: 2 });
+  const repeat = await t.action(internal.migrations.runSunnahNowLinkRepair, { cursor: null, maxPages: 5 });
+  expect(repeat).toMatchObject({ scanned: 201, repaired: 0, isDone: true, pages: 3 });
+});
+
+test("runner rejects out-of-bounds page counts and non-development deployment", async () => {
+  const t = convexTest(schema, import.meta.glob("./**/*.ts"));
+  vi.stubEnv("CONVEX_CLOUD_URL", "https://festive-cobra-664.eu-west-1.convex.cloud");
+  for (const maxPages of [0, 101, 1.5]) await expect(t.action(internal.migrations.runSunnahNowLinkRepair, { cursor: null, maxPages })).rejects.toThrow("INVALID_PAGE_COUNT");
+  vi.stubEnv("CONVEX_CLOUD_URL", "https://unknown.convex.cloud");
+  await expect(t.action(internal.migrations.runSunnahNowLinkRepair, { cursor: null, maxPages: 1 })).rejects.toThrow("DEVELOPMENT_ONLY");
+});
+
 test("bounded pages repair only missing Sunnah.now links and preserve every other field", async () => {
   vi.stubEnv("CONVEX_CLOUD_URL", "https://festive-cobra-664.eu-west-1.convex.cloud");
   const t = convexTest(schema, import.meta.glob("./**/*.ts"));
