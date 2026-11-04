@@ -74,7 +74,7 @@ actionable reason. They now pass with an optional validator-enforced reason:
 `service_unavailable`, `provider_error`, `invalid_response`,
 `completion_rejected` or `completion_error`. Successful and stale outcomes omit
 the reason. Raw provider exceptions are excluded. Costs remain recorded once.
-Sentry's privacy policy, grouping, caps and payload remain unchanged. Translation
+At this initial stage, Sentry grouping, caps and payload remained unchanged. Translation
 acceptance, source permissions, comparison provenance and allowances are unchanged.
 This is a diagnostic repair, not proof that the historical AI failures are fixed.
 
@@ -95,9 +95,10 @@ Production and credentials were unchanged.
 After the phone reconnected, the approved Retry tap showed preparation, then the
 same failed state and 5/5 allowance. Its new backend request failed with
 `AI_SOURCE_UNAVAILABLE` before provider generation. Read-only canonical resolution
-for Bukhari 7 reports `license.kind: unverified`. Its source block is 22,307 bytes,
-below the 64,000-byte bound, with nonempty Arabic. The source permission gate,
-not a missing comparison, blocks this demonstrated journey. No license was
+for Bukhari 7 initially reported `license.kind: unverified`. This was the effective
+result of a missing cache link, not the terms of the existing source license. Its source block is 22,307 bytes,
+below the 64,000-byte bound, with nonempty Arabic. The missing source-license binding,
+not a missing comparison, blocked this demonstrated journey. No license was
 fabricated or permission check bypassed.
 
 The reader chat completed `3807fe9` before integration. Its paging checkpoint
@@ -108,9 +109,9 @@ build, installation, credential change, migration, publication, push or Sentry
 issue resolution occurred for this repair. The approved retry produced no model
 generation, so it does not prove provider success.
 
-Next: resolve the source permission blocker, then verify an actual translation
-and delivery. Android delivery additionally requires FCM provisioning approval
-and actual physical delivery evidence.
+The later source-link repair and successful physical translation are recorded
+below. Actual physical notification delivery remains open; FCM provisioning was
+subsequently approved and completed.
 The iOS crash needs matching symbols or a reproducing native trace. All original
 release, language, accessibility, A7 deferral and reader gates remain open.
 The owner's proposed grounding tiers remain research only in
@@ -160,10 +161,10 @@ and reported functions ready. No model request or test notification was initiate
 A fresh HTTPS readback returned `status: ready`, `environment: development`, and
 `component: notifications`. That heartbeat health result does not prove delivery.
 
-The owner confirmed source reuse/translation permission exists. Its location or
-reference is pending; no verified license URL or broader redistribution/offline
-grant has been invented. The physical failure remains reproducible until the
-existing permission is represented in the backend source record.
+The owner confirmed source reuse/translation permission exists. That confirmation
+is sufficient; no email or additional proof is required. Subsequent inspection
+found an already verified source license and a missing link on the cached hadith,
+as detailed below.
 
 For the separate native crash, Sentry identifies a missing image debug ID
 `e5302d6a-f709-3751-a77c-e85454b0f3c3`, loaded at `0x00010a590000`.
@@ -171,3 +172,91 @@ No matching retained app binary or dSYM was found in the Hadithly artifacts,
 temporary builds or Xcode DerivedData checked. No Hadithly crash report was found
 in the local diagnostic report paths checked. No approximate binary was used for
 symbolication. The crash remains undiagnosed, not resolved.
+
+
+## November 4 successful translation and complete cache repair
+
+The source record `sunnah_now` already held the verified Sunnah.now early-access
+license. `confirmSunnahNowDevelopmentLicense` returned it unchanged. Its existing
+display, redistribution and offline terms were preserved; the investigation did
+not create or broaden a grant. The exact cache inspection instead returned
+`pointer: missing` for Bukhari 7. `63e0797` restored only that reference. Readback
+then returned `pointer: linked`, `linkedTermsKind: verified`, and a matching
+canonical source license. Canonical resolution returned visible authorized text.
+
+After the repair, a single computer-use Retry on the explicitly selected physical
+iPhone 16 Pro displayed the Russian Bukhari 7 translation, replacing the failure
+screen. The backend cost event recorded `outcome: published`, known token usage
+and 7,341 ms duration. No Search grounding was enabled. This proves this live
+translation journey; it is not a native-speaker quality approval. The allowance
+was visible as 5/5 before generation; a post-success allowance value was not
+captured, so no device quota decrement claim is made.
+
+`aa6f5cf` adds an internal mutation repairing only missing or dangling Sunnah.now
+license links in pages of at most 100 rows. `18fbfef` adds an internal action
+running at most 100 such pages per invocation and returning a resume cursor and
+aggregate counts. Both require the named development deployment and an existing
+verified display license. Existing valid different bindings count as conflicts
+and remain untouched. Other providers, all license terms and hadith content are
+preserved. Mutation pagination, reruns, interrupted/resumed action batches,
+rights/content preservation and development/page bounds have executable tests.
+
+The integrated checkout also includes merged PR `e31d377`: unknown model-emitted
+comparison IDs are ignored without creating citations or a grounding claim;
+duplicate offered IDs still fail, and revoked/mismatched references remain
+invalid. Sentry receives only an enumerated failure-stage tag and keeps its
+existing grouping and report caps. No prompt, response, exception or account is
+added to the payload. The integrated backend passed 583 tests across 48 files and
+`npm run typecheck`, then deployed to `festive-cobra-664` at 06:35 local time.
+
+The complete live repair scanned 11,998 Sunnah.now rows over 120 bounded pages,
+repairing six additional links with zero conflicts. A second complete pass
+scanned the same 11,998 rows and found zero repairs and zero conflicts. Bukhari 7
+had already been repaired separately. The summary is retained locally at
+`/tmp/hadithly-source-license-repair-20261104.json`; raw content, tokens and keys
+are absent. Latest bounded cost-event readback showed three published results;
+a 100-line recent backend log snapshot contained no `AI_*` error codes. This
+short snapshot is not a guarantee of future reliability.
+
+The Mac was locked when further computer use was attempted during continuation.
+No automatic unlock succeeded. Physical notification delivery and fresh Sentry
+browser readback therefore remain unverified. No device setting, native source,
+production configuration, model, Search tool, subscription tier or billing setting
+was changed. The original native crash still needs its exact matching symbols or
+a reproduction; historical Sentry issues remain open until supported by evidence.
+
+
+A fresh TLS-verified HTTPS readback at the regional development site returned
+`component: notifications`, `environment: development`, `status: ready` after
+the final deployment. Five development registrations remain Android, with no
+recorded `lastSentDate` or consecutive failure count; no iOS registration exists.
+These metadata checks do not prove provider acceptance or physical delivery.
+The six incoming regular-file SHA-256 hashes still match the preservation record.
+
+
+## Native registration-path review
+
+Terra traced both native opt-in paths without changing native code. On iOS,
+`SettingsDestinations.swift:816` calls `requestAuthorizationAndRegister` when the
+signed-in user enables Daily hadith. `PushNotificationManager.swift:44` requests
+OS authorization and registers with APNs; the app-delegate callback saves and
+uploads the token. `AppEnvironment.completeSignIn` replays an existing token after
+account setup. A new install does not request authorization merely at sign-in.
+The absent OS Notifications entry and zero iOS tokens therefore do not by
+themselves prove a registration defect. The actual OS prompt and callback still
+need a device check.
+
+On Android, `SettingsScreen.kt:856` requests/saves the FCM token when enabling;
+API 33+ first uses the notification-permission launcher. Startup registration and
+auth replay also exist. The backend preference repair covers asynchronous token
+arrival relative to preference saving on both platforms. Source review found no
+additional proven defect requiring a speculative native change. It does not
+replace physical foreground/background/terminated delivery checks.
+
+
+Independent GPT-6.1 Terra review checked the retained scan summary and commit
+pointers, with no contradictory counts. The reviewer did not independently view
+the earlier physical translation or deployment output; those claims rely on this
+chat's contemporaneous device screenshot and CLI readback. The review also noted
+that iOS currently ignores token-upload errors with `try?`; no evidence connects
+that limitation to this device, so it was not changed speculatively.

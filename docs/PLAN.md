@@ -4,39 +4,40 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
-## Sentry repair checkpoint, November 3
+## Sentry repair checkpoint, November 4
 
-November 4 follow-up: the owner approved copying the existing `hadithlyapp` FCM
-sender settings into development. All three values match their approved source;
-production readback is unchanged. No new key was created. Terra reproduced and
-repaired a registration race that lost a choice saved before the token arrived,
-and account transfer inheriting the previous owner's notification settings.
-`327ba4d`, `f791606` and `c6c0c33` persist optional account-level enabled/time
-choices, preserve same-account refreshes, default new accounts to disabled,
-and export only the caller's portable choices. The full backend suite passes
-570 cases; final notification/export checks pass 28 cases. These follow-up code
-changes were approved and deployed to `festive-cobra-664` on November 4 through
-`94b0933`, including the added index. Repository typecheck passed before the push.
-No model request or test notification was initiated. The source permission
-exists according to the owner; its reference is pending so the database record
-can be corrected accurately. No further model request or test push occurred.
+The physical iPhone's Bukhari 7 Russian translation now succeeds. Its source
+license was already verified; the cached hadith lacked `licenseRecordId`.
+The owner's permission confirmation is accepted. No email or further proof is
+required. `63e0797` restored that link, and computer-use Retry displayed the
+Russian text. The matching generation published in 7,341 ms. The earlier 5/5
+allowance reflected failure before generation, not a grounding or quota defect.
+Existing license terms were preserved.
 
-Notification retries now reset by local date, and unavailable providers are
-checked before content or AI generation. AI cost records retain only a fixed
-failure stage. Three notification regressions failed before and pass after;
-the complete backend suite passes 564 tests. See
-[SENTRY_REPAIR_VERIFICATION.md](SENTRY_REPAIR_VERIFICATION.md).
-Implementation was isolated on `fix/sentry-notifications-translations-20261103`
-while the reader chat completed `3807fe9`. The owner approved development deploy
-`90edb59` and one physical-device retry. Deployment to `festive-cobra-664` passed.
-The phone's Bukhari 7 retry again failed with `AI_SOURCE_UNAVAILABLE` before
-provider generation. Its cached source license remains unverified; its 22,307-byte
-source is within the generation bound. The displayed 5/5 allowance is consistent
-with not charging a failed request. No native file changed for this repair.
-FCM credentials were absent at the initial readback; physical delivery, actual translation success and
-the unsymbolicated iOS crash remain open. No historical Sentry issue is claimed
-resolved. Grounding pricing and the owner's proposed Free/Pro cache split are
-research only. Preserve every reader and original-program gate below.
+`aa6f5cf` and `18fbfef` add a bounded, resumable development repair for the same
+legacy cache defect. On November 4 it scanned all 11,998 Sunnah.now rows and
+repaired six further missing links, with zero conflicting bindings. A full second
+pass found zero repairs and zero conflicts. Only missing/dangling links change;
+source text, license terms and existing valid bindings are preserved.
+
+Notification retry dates, provider checks, preference registration races and
+account transfer are repaired in `c56e86b`, `327ba4d` and `f791606`; portable
+preference export is `c6c0c33`. The owner approved copying the existing
+`hadithlyapp` FCM settings into development; all three matched, production
+readback was unchanged, and no key was created. The merged PR `e31d377` additionally
+ignores invented comparison IDs without adding citations, retains duplicate-ID
+validation, and reports fixed failure stages to Sentry. The integrated backend
+passes 583 tests across 48 files plus repository typecheck. Deployment through
+`18fbfef` completed against `festive-cobra-664` on November 4. Production is unchanged.
+
+Physical notification delivery and the unsymbolicated iOS crash remain open.
+The Mac was locked during the continuation, preventing another computer-use
+check. No native file, device permission or notification preference changed.
+The reader chat's completed `3807fe9` and incoming files remain preserved.
+Historical Sentry issues have not been dismissed as resolved. See
+[SENTRY_REPAIR_VERIFICATION.md](SENTRY_REPAIR_VERIFICATION.md) for evidence and
+limits. Grounding pricing and Free/Pro cache tiers remain research only;
+no Search tool, model or billing change was made. Preserve all original gates below.
 
 ## Paging completion checkpoint, November 3
 

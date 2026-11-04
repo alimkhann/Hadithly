@@ -1,3 +1,31 @@
+# Active owner task: Sentry translations and notifications
+
+The owner's latest request continues the Sentry repair while they are unavailable.
+Read PLAN.md's November 4 Sentry checkpoint and SENTRY_REPAIR_VERIFICATION.md first.
+Terra implementation is committed; the integrated backend through `18fbfef` is
+validated (583 tests plus typecheck) and deployed only to development
+`festive-cobra-664`. Do not redeploy or repeat a model request merely to resume.
+
+The Russian Bukhari 7 translation succeeded on the physical iPhone after restoring
+its missing source-license link. The existing Sunnah.now source license was already
+verified, and the owner's permission confirmation is accepted without another
+proof request. All 11,998 retained Sunnah.now rows were scanned: six additional
+links repaired, zero conflicts; a full repeat found zero repairs. Preserve existing
+license terms and the newer merged AI changes in `e31d377`.
+
+Remaining work: verify physical notification delivery and investigate the older
+unsymbolicated iOS crash with its exact matching symbols or a reproduction.
+The Mac was locked during continuation, so further computer-use checks could not
+run. No iOS token was registered; the five development tokens were Android.
+Do not change device permissions or claim delivery from the backend heartbeat.
+Read the native registration-path follow-up in the verification record before
+changing code. Preserve the incoming project/schemes/catalog/transcript files;
+the six-file hash check passed again. No push or production deployment.
+
+The prior paging handoff is retained below as historical context; paging is complete.
+
+---
+
 # Paging complete: stop after Unit 4
 
 Read PLAN.md's current checkpoint and mistakes first. The owner asked to wrap
