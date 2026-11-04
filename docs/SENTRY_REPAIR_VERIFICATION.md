@@ -339,3 +339,14 @@ Device Hub's current Crashes filter returned no Hadithly result. An updated scan
 of retained artifacts and DerivedData included DWARF files, app executables and
 `Hadithly.debug.dylib`: 78 candidates, none with the missing debug UUID. The older
 native crash remains unresolved; no approximate symbol file was substituted.
+
+The three newer local Hadithly crash reports came from simulator test startup
+and terminate in Clerk configuration. Their UUIDs differ from the older Sentry
+event. The signed development Settings build on the physical iPhone now has a
+locally retained dSYM at
+`/Users/alim/Developer/Artifacts/Hadithly/sentry-notifications-20261104/Hadithly-settings-93b4009.app.dSYM`.
+Its arm64 UUID matches the installed binary
+(`14ab6ca7-d4a1-39f6-a186-a677c12167e4`) and DWARF verification passed.
+Use it if this build produces another crash. The old event needs its own
+matching symbols or a new reproduction. Device inventory still shows only an
+Android emulator.
