@@ -3,6 +3,7 @@ import Foundation
 import ConvexMobile
 import ClerkConvex
 import ClerkKit
+import UserNotifications
 
 /// Reads deployment configuration from Info.plist (populated via Secrets.xcconfig).
 struct AppConfig {
@@ -37,6 +38,26 @@ struct CurrentPreferencesRow: Decodable {
     let readerPreferences: ReaderPreferences?
 }
 
+private struct InitialNotificationPreferences: Decodable {
+    let enabled: Bool
+    let dailyTime: String
+    let initialized: Bool
+}
+
+enum OnboardingNotificationGrant {
+    static let key = "notifications.onboardingGrantOwner"
+
+    static func record(subject: String?, defaults: UserDefaults = .standard) {
+        defaults.set(subject ?? "guest", forKey: key)
+    }
+
+    static func claim(subject: String, defaults: UserDefaults = .standard) -> Bool {
+        guard let owner = defaults.string(forKey: key), owner == "guest" || owner == subject else { return false }
+        if owner == "guest" { defaults.set(subject, forKey: key) }
+        return true
+    }
+}
+
 /// Process-wide dependency container.
 /// Owns the Clerk-configured Convex client; views observe auth through `Clerk.shared`.
 @MainActor
@@ -63,6 +84,7 @@ final class AppEnvironment {
 
     /// Summary of the last completed sign-in sync, surfaced in Settings.
     private(set) var lastSyncSummary: String?
+    private(set) var notificationSyncFailed = false
 
     private let authProvider: ClerkConvexAuthProvider
     private var authStateCancellable: AnyCancellable?
@@ -229,9 +251,16 @@ final class AppEnvironment {
     /// Completion never clears the guest store.
     func completeSignIn() async {
         guard let session = currentLibrarySession() else { return }
-        guard await waitForConvexAuthentication(), currentLibrarySession() == session else { return }
+        let pendingNotification = OnboardingNotificationGrant.claim(subject: session.subject)
+        guard await waitForConvexAuthentication(), currentLibrarySession() == session else {
+            if pendingNotification && currentLibrarySession() == session { notificationSyncFailed = true }
+            return
+        }
         await librarySync.activate(session)
-        guard currentLibrarySession() == session, librarySync.owner?.subject == session.subject else { return }
+        guard currentLibrarySession() == session, librarySync.owner?.subject == session.subject else {
+            if pendingNotification && currentLibrarySession() == session { notificationSyncFailed = true }
+            return
+        }
         do {
             let context = try librarySync.captureWriteContext()
             let capability = try librarySync.capability(for: context)
@@ -246,10 +275,51 @@ final class AppEnvironment {
             lastSyncSummary = nil
             library.refresh()
             await push.uploadTokenIfNeeded()
-        } catch { if currentLibrarySession() == session { lastSyncSummary = String(localized: "Saved items could not load") } }
+            await syncOnboardingNotification(session: session)
+        } catch {
+            if currentLibrarySession() == session {
+                lastSyncSummary = String(localized: "Saved items could not load")
+                if pendingNotification { notificationSyncFailed = true }
+            }
+        }
+    }
+
+    func acceptOnboardingNotificationGrant(subject: String?) async {
+        OnboardingNotificationGrant.record(subject: subject)
+        await completeSignIn()
+    }
+
+    func clearOnboardingNotificationGrant() {
+        UserDefaults.standard.removeObject(forKey: OnboardingNotificationGrant.key)
+        notificationSyncFailed = false
+    }
+
+    private func syncOnboardingNotification(session: LibrarySyncSession) async {
+        let defaults = UserDefaults.standard
+        guard OnboardingNotificationGrant.claim(subject: session.subject, defaults: defaults) else { return }
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional || settings.authorizationStatus == .ephemeral else {
+            clearOnboardingNotificationGrant()
+            return
+        }
+        do {
+            let context = try librarySync.captureWriteContext()
+            let capability = try librarySync.capability(for: context)
+            let prefs = preferences.preferences
+            let result: InitialNotificationPreferences = try await convex.mutation("library:initializeDailyNotification", with: [
+                "capability": capability as ConvexEncodable?, "timezone": TimeZone.current.identifier as ConvexEncodable?,
+                "uiLocale": prefs.uiLocale as ConvexEncodable?, "translationLocale": prefs.translationLocale as ConvexEncodable?,
+                "tzOffsetMinutes": Double(-TimeZone.current.secondsFromGMT() / 60) as ConvexEncodable?,
+            ])
+            guard currentLibrarySession() == session, defaults.string(forKey: OnboardingNotificationGrant.key) == session.subject else { return }
+            defaults.set(result.enabled, forKey: "notifications.dailyEnabled")
+            defaults.set(result.dailyTime, forKey: "notifications.dailyTime")
+            clearOnboardingNotificationGrant()
+        } catch { if currentLibrarySession() == session { notificationSyncFailed = true } }
     }
 
     func accountSessionChanged() {
+        notificationSyncFailed = false
         SettingsExport.clearTemporaryFiles()
         librarySync.deactivate()
         library.refresh()
@@ -257,6 +327,7 @@ final class AppEnvironment {
 
     /// Rendering is invalidated before account-specific background work stops.
     func handleSignOut() {
+        notificationSyncFailed = false
         SettingsExport.clearTemporaryFiles()
         librarySync.deactivate()
         analytics.clearPending()

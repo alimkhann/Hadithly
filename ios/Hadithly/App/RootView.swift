@@ -9,6 +9,7 @@ struct RootView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(Clerk.self) private var clerk
     @AppStorage("onboarding.completed") private var onboardingCompleted = false
+    @AppStorage("notifications.onboardingPromptPending") private var notificationPromptPending = false
 
     @State private var showSignIn = false
     @State private var hasSyncedLaunchSession = false
@@ -82,6 +83,8 @@ struct RootView: View {
                 MainTabsView(showSignIn: $showSignIn)
             } else {
                 OnboardingFlowView {
+                    guard !onboardingCompleted else { return }
+                    notificationPromptPending = true
                     onboardingCompleted = true
                 }
             }

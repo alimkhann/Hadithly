@@ -167,6 +167,7 @@ fun RootApp(
         Box(Modifier.fillMaxSize().then(if (showSignIn) Modifier.clearAndSetSemantics {} else Modifier)) {
         MainTabs(
             onShowSignIn = { showSignIn = true },
+            signInVisible = showSignIn,
             pendingLink = pendingLink,
             notificationTarget = notificationTarget,
             continueWidgetRequest = continueWidgetRequest,
@@ -176,7 +177,7 @@ fun RootApp(
         OnboardingFlow(
             selectedLanguage = preferences.uiLocale,
             onSelectLanguage = { app.preferences.applyOnboardingLanguage(it) },
-            onComplete = { app.settings.setOnboardingCompleted(true) },
+            onComplete = { app.settings.finishOnboarding() },
         )
     }
 

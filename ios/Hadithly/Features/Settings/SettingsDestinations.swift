@@ -752,6 +752,10 @@ struct NotificationsView: View {
         SettingsList("Notifications") {
             if clerk.session != nil {
                 Section {
+                    if environment.notificationSyncFailed {
+                        RuntimeStatusNotice(source: "Could not save notification settings. Please try again.", fallback: "Could not save notification settings. Please try again.")
+                        Button("Retry") { Task { await environment.completeSignIn() } }
+                    }
                     Toggle(isOn: Binding(
                         get: { enabled },
                         set: { newValue in
@@ -814,6 +818,7 @@ struct NotificationsView: View {
     }
 
     private func setEnabled(_ newValue: Bool) async {
+        environment.clearOnboardingNotificationGrant()
         let previous = enabled
         isRegistering = true
         defer { isRegistering = false }
@@ -836,6 +841,7 @@ struct NotificationsView: View {
     }
 
     private func setDailyTime(_ date: Date) {
+        environment.clearOnboardingNotificationGrant()
         let previous = dailyTime
         dailyTime = Self.string(from: date)
         Task {

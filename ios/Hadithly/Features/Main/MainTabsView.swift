@@ -1,6 +1,12 @@
 import SwiftUI
 import ClerkKit
 
+enum OnboardingNotificationPrompt {
+    static func shouldRequest(pending: Bool, todayVisible: Bool, routePending: Bool) -> Bool {
+        pending && todayVisible && !routePending
+    }
+}
+
 enum ContinueWidgetRoute {
     static func target(from entries: [ProgressEntry]) -> ReaderOpenTarget? {
         guard let entry = entries
@@ -25,15 +31,28 @@ struct MainTabsView: View {
 
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.readerPalette) private var palette
+    @Environment(\.scenePhase) private var scenePhase
+    @AppStorage("notifications.onboardingPromptPending") private var notificationPromptPending = false
 
     @State private var linkTarget: ReaderOpenTarget?
     @State private var selection = 0
     @State private var continueRequestPending = false
+    @State private var todayAppeared = false
+
+    private var notificationPromptReady: Bool {
+        OnboardingNotificationPrompt.shouldRequest(
+            pending: notificationPromptPending,
+            todayVisible: scenePhase == .active && todayAppeared && selection == 0 && !showSignIn && linkTarget == nil,
+            routePending: environment.links.pendingLink != nil || environment.links.pendingContinueRequest != nil || continueRequestPending
+        )
+    }
 
     var body: some View {
         TabView(selection: $selection) {
             NavigationStack {
                 TodayView()
+                    .onAppear { todayAppeared = true }
+                    .onDisappear { todayAppeared = false }
             }
             .tabItem { Label("Today", systemImage: "sun.max") }
             .tag(0)
@@ -79,6 +98,19 @@ struct MainTabsView: View {
             environment.library.refresh()
             writeContinueWidget()
             consumePendingLink()
+            consumeContinueWidget()
+        }
+        .task(id: notificationPromptReady) {
+            guard notificationPromptReady else { return }
+            await Task.yield()
+            guard notificationPromptReady else { return }
+            notificationPromptPending = false
+            let subject = currentLibrarySession()?.subject
+            Task {
+                if await environment.push.requestAuthorizationAndRegister() {
+                    await environment.acceptOnboardingNotificationGrant(subject: subject)
+                }
+            }
         }
         .onChange(of: environment.links.pendingLink) { _, newValue in
             // consumePending clears the queue, so the nil transition must

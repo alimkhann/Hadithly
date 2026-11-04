@@ -27,6 +27,9 @@ import java.time.ZoneId
 @kotlinx.serialization.Serializable
 data class FolderDeletionResult(val name: String, val hadithIds: List<String>, val deletedAt: Double)
 
+@kotlinx.serialization.Serializable
+data class InitialNotificationPreferences(val enabled: Boolean, val dailyTime: String, val initialized: Boolean)
+
 /**
  * Single gateway to Convex. The app talks only to Convex; Sunnah.now and
  * Gemini live behind Convex actions with server-side keys.
@@ -510,5 +513,14 @@ class ConvexRepository(context: Context) : LibraryReadTransport, LibrarySyncTran
                     "tzOffsetMinutes" to PushNotificationManager.timezoneOffsetMinutes(),
                 ),
             )
+        }
+
+    suspend fun initializeDailyNotification(capability: String, profile: DevicePushProfile): InitialNotificationPreferences =
+        withContext(Dispatchers.IO) {
+            convex.mutation<InitialNotificationPreferences>("library:initializeDailyNotification", mapOf(
+                "capability" to capability, "timezone" to profile.timezoneId,
+                "uiLocale" to profile.uiLocale, "translationLocale" to profile.translationLocale,
+                "tzOffsetMinutes" to PushNotificationManager.timezoneOffsetMinutes(),
+            ))
         }
 }

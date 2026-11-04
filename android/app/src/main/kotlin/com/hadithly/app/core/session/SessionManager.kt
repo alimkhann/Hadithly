@@ -1,6 +1,11 @@
 package com.hadithly.app.core.session
 
 import android.content.Context
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.content.ContextCompat
+import androidx.core.app.NotificationManagerCompat
 import com.clerk.api.Clerk
 import com.clerk.api.network.serialization.ClerkResult
 import com.clerk.api.network.serialization.errorMessage
@@ -11,6 +16,7 @@ import com.hadithly.app.core.preferences.PreferencesStore
 import com.hadithly.app.core.preferences.nativeText
 import com.hadithly.app.core.preferences.toWireMap
 import com.hadithly.app.core.push.PushNotificationManager
+import com.hadithly.app.core.push.DevicePushProfile
 import com.hadithly.app.core.purchases.PurchaseManager
 import dev.convex.android.AuthState
 import kotlinx.coroutines.*
@@ -41,6 +47,9 @@ class SessionManager(
     private val scope = CoroutineScope(scope.coroutineContext + Dispatchers.Main.immediate)
     private val _syncSummary = MutableStateFlow<String?>(null)
     val syncSummary: StateFlow<String?> = _syncSummary
+    private val _notificationSyncFailed = MutableStateFlow(false)
+    val notificationSyncFailed: StateFlow<Boolean> = _notificationSyncFailed
+    private val settings get() = (context.applicationContext as com.hadithly.app.HadithlyApplication).settings
     private var observedSession: LibrarySyncSession? = null
     private var initializedSession: LibrarySyncSession? = null
     private var completingSession: LibrarySyncSession? = null
@@ -52,6 +61,7 @@ class SessionManager(
             combine(Clerk.sessionFlow, Clerk.isInitialized) { _, _ -> currentLibrarySession() }.collect { current ->
                 if (current == observedSession) return@collect
                 completing?.cancel(); completing = null
+                _notificationSyncFailed.value = false
                 sync.deactivate(); initializedSession = null; observedSession = current
                 library.refresh()
                 if (current != null) scope.launch { completeSignIn() } else handleSignOut()
@@ -76,10 +86,17 @@ class SessionManager(
     }
 
     private suspend fun complete(session: LibrarySyncSession) {
-        if (!waitForConvexAuthentication(session) || currentLibrarySession() != session) return
+        val pendingNotification = settings.claimOnboardingNotificationGrant(session.subject)
+        if (!waitForConvexAuthentication(session) || currentLibrarySession() != session) {
+            if (pendingNotification && currentLibrarySession() == session) _notificationSyncFailed.value = true
+            return
+        }
         sync.activate(session)
-        if (currentLibrarySession() != session || sync.owner.value?.subject != session.subject) return
-        if (initializedSession == session) { library.refresh(); return }
+        if (currentLibrarySession() != session || sync.owner.value?.subject != session.subject) {
+            if (pendingNotification && currentLibrarySession() == session) _notificationSyncFailed.value = true
+            return
+        }
+        if (initializedSession == session) { library.refresh(); syncOnboardingNotification(session); return }
         try {
             val captured = sync.captureWriteContext()
             val capability = sync.capability(captured)
@@ -94,8 +111,47 @@ class SessionManager(
             _syncSummary.value = null
             library.refresh()
             push.syncToken()
+            syncOnboardingNotification(session)
         } catch (cancelled: CancellationException) { throw cancelled }
-        catch (_: Exception) { if (currentLibrarySession() == session) _syncSummary.value = context.nativeText("Saved items could not load") }
+        catch (_: Exception) {
+            if (currentLibrarySession() == session) {
+                _syncSummary.value = context.nativeText("Saved items could not load")
+                if (pendingNotification) _notificationSyncFailed.value = true
+            }
+        }
+    }
+
+    fun acceptOnboardingNotificationGrant() {
+        settings.recordOnboardingNotificationGrant()
+        push.requestAndSaveToken()
+        scope.launch { completeSignIn() }
+    }
+
+    fun retryOnboardingNotificationGrant() { scope.launch { completeSignIn() } }
+    fun cancelOnboardingNotificationGrant() {
+        settings.clearOnboardingNotificationGrant()
+        _notificationSyncFailed.value = false
+    }
+
+    private suspend fun syncOnboardingNotification(session: LibrarySyncSession) {
+        if (!settings.claimOnboardingNotificationGrant(session.subject)) return
+        if (!NotificationManagerCompat.from(context).areNotificationsEnabled() ||
+            (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)) {
+            settings.clearOnboardingNotificationGrant()
+            return
+        }
+        try {
+            val write = sync.captureWriteContext()
+            val capability = sync.capability(write)
+            val current = preferences.preferences.value
+            val result = repository.initializeDailyNotification(capability, DevicePushProfile(PushNotificationManager.timezoneId(), current.uiLocale, current.translationLocale))
+            if (currentLibrarySession() != session || !settings.claimOnboardingNotificationGrant(session.subject)) return
+            settings.setDailyNotificationEnabled(result.enabled)
+            settings.setDailyNotificationTime(result.dailyTime)
+            settings.clearOnboardingNotificationGrant()
+            _notificationSyncFailed.value = false
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (_: Exception) { if (currentLibrarySession() == session) _notificationSyncFailed.value = true }
     }
 
     fun handleSignOut() {

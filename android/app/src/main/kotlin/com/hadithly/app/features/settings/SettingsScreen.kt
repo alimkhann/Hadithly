@@ -828,10 +828,12 @@ private fun NotificationDestination() {
     val enabled by app.settings.dailyNotificationEnabled.collectAsStateWithLifecycle()
     val time by app.settings.dailyNotificationTime.collectAsStateWithLifecycle()
     val pushState by app.push.state.collectAsStateWithLifecycle()
+    val notificationSyncFailed by app.session.notificationSyncFailed.collectAsStateWithLifecycle()
     var showTimePicker by remember { mutableStateOf(false) }
     var status by remember { mutableStateOf<String?>(null) }
 
     fun persist(nextEnabled: Boolean, nextTime: String = time) {
+        app.session.cancelOnboardingNotificationGrant()
         scope.launch {
             runCatching {
                 val current = app.preferences.preferences.value
@@ -873,6 +875,10 @@ private fun NotificationDestination() {
             if (!signedIn) {
                 Text(nativeText("Sign in to receive the daily hadith on this device."), fontSize = 14.sp, color = colors.textSecondary)
             } else {
+                if (notificationSyncFailed) {
+                    Text(nativeText("Could not save notification settings. Please try again."), color = colors.textSecondary)
+                    TextButton(onClick = { app.session.retryOnboardingNotificationGrant() }) { Text(nativeText("Retry")) }
+                }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(nativeText("Send me a hadith every day"), fontSize = 14.sp, color = colors.textPrimary)

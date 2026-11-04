@@ -2,6 +2,24 @@ import XCTest
 @testable import Hadithly
 
 final class TodayTests: XCTestCase {
+    func testOnboardingNotificationPromptOnlyOnUncoveredToday() {
+        XCTAssertTrue(OnboardingNotificationPrompt.shouldRequest(pending: true, todayVisible: true, routePending: false))
+        XCTAssertFalse(OnboardingNotificationPrompt.shouldRequest(pending: false, todayVisible: true, routePending: false))
+        XCTAssertFalse(OnboardingNotificationPrompt.shouldRequest(pending: true, todayVisible: false, routePending: false))
+        XCTAssertFalse(OnboardingNotificationPrompt.shouldRequest(pending: true, todayVisible: true, routePending: true))
+    }
+
+    func testGuestNotificationGrantIsDurablyBoundToFirstAccount() {
+        let suite = "notification-grant-\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        XCTAssertFalse(OnboardingNotificationGrant.claim(subject: "user-a", defaults: defaults))
+        OnboardingNotificationGrant.record(subject: nil, defaults: defaults)
+        XCTAssertTrue(OnboardingNotificationGrant.claim(subject: "user-a", defaults: defaults))
+        let reopened = UserDefaults(suiteName: suite)!
+        XCTAssertFalse(OnboardingNotificationGrant.claim(subject: "user-b", defaults: reopened))
+        XCTAssertTrue(OnboardingNotificationGrant.claim(subject: "user-a", defaults: reopened))
+    }
     func testShortDailyReadingDoesNotCollapse() {
         XCTAssertFalse(TodayContentPolicy.needsCollapsedPreview(
             arabic: "نص قصير",

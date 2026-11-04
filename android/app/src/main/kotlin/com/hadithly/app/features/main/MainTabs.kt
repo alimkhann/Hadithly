@@ -1,5 +1,17 @@
 package com.hadithly.app.features.main
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.withFrameNanos
+import com.hadithly.app.core.session.currentLibrarySession
 import com.hadithly.app.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -40,6 +52,9 @@ import com.hadithly.app.features.saved.SavedScreen
 import com.hadithly.app.features.today.TodayScreen
 import com.hadithly.app.features.widgets.continueWidgetTarget
 
+internal fun shouldRequestOnboardingNotifications(pending: Boolean, todayVisible: Boolean, routePending: Boolean): Boolean =
+    pending && todayVisible && !routePending
+
 /** Reach the dependency graph without a DI framework. */
 @Composable
 fun rememberApp(): HadithlyApplication =
@@ -67,17 +82,30 @@ data class ReaderOpenTarget(
 @Composable
 fun MainTabs(
     onShowSignIn: () -> Unit,
+    signInVisible: Boolean = false,
     pendingLink: CanonicalHadithLink? = null,
     notificationTarget: ReaderOpenTarget? = null,
     continueWidgetRequest: Long? = null,
 ) {
     val app = rememberApp()
     val progress by app.library.progress.collectAsState()
+    val promptPending by app.settings.onboardingNotificationPromptPending.collectAsState()
     val colors = LocalHadithlyColors.current
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var readerTarget by remember { mutableStateOf<ReaderOpenTarget?>(null) }
     var consumedLink by remember { mutableStateOf<CanonicalHadithLink?>(null) }
     var consumedContinueRequest by remember { mutableStateOf<Long?>(null) }
+    var consumedNotificationTarget by remember { mutableStateOf<Long?>(null) }
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    var resumed by remember(lifecycle) { mutableStateOf(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) }
+    DisposableEffect(lifecycle) {
+        val observer = LifecycleEventObserver { _, _ -> resumed = lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
+    }
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) app.session.acceptOnboardingNotificationGrant() else app.settings.clearOnboardingPromptOwner()
+    }
 
     LaunchedEffect(pendingLink) {
         if (pendingLink != null && pendingLink != consumedLink) {
@@ -92,7 +120,10 @@ fun MainTabs(
     }
 
     LaunchedEffect(notificationTarget?.instanceKey) {
-        if (notificationTarget != null) readerTarget = notificationTarget
+        if (notificationTarget != null) {
+            consumedNotificationTarget = notificationTarget.instanceKey
+            readerTarget = notificationTarget
+        }
     }
 
     LaunchedEffect(continueWidgetRequest) {
@@ -108,6 +139,22 @@ fun MainTabs(
                 consumedContinueRequest = continueWidgetRequest
             }
         }
+    }
+
+    val routePending = (pendingLink != null && pendingLink != consumedLink) ||
+        (notificationTarget != null && notificationTarget.instanceKey != consumedNotificationTarget) ||
+        (continueWidgetRequest != null && continueWidgetRequest != consumedContinueRequest)
+    val promptReady = shouldRequestOnboardingNotifications(promptPending, resumed && tab == 0 && readerTarget == null && !signInVisible, routePending)
+    LaunchedEffect(promptReady) {
+        if (!promptReady) return@LaunchedEffect
+        withFrameNanos { }
+        if (!shouldRequestOnboardingNotifications(app.settings.onboardingNotificationPromptPending.value, resumed && tab == 0 && readerTarget == null && !signInVisible,
+                (pendingLink != null && pendingLink != consumedLink) || (notificationTarget != null && notificationTarget.instanceKey != consumedNotificationTarget) ||
+                    (continueWidgetRequest != null && continueWidgetRequest != consumedContinueRequest))) return@LaunchedEffect
+        app.settings.consumeOnboardingNotificationPrompt(currentLibrarySession()?.subject)
+        if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(app, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else app.session.acceptOnboardingNotificationGrant()
     }
 
     Scaffold(
