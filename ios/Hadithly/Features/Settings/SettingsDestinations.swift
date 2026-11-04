@@ -850,7 +850,7 @@ struct NotificationsView: View {
         let tzOffsetMinutes = Double(-TimeZone.current.secondsFromGMT() / 60)
         let prefs = environment.preferences.preferences
         do {
-            try await environment.convex.mutation(
+            let _: Double = try await environment.convex.mutation(
                 "library:setDailyNotification",
                 with: [
                 "enabled": enabled as ConvexEncodable?,
