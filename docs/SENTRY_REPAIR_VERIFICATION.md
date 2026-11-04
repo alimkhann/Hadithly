@@ -350,3 +350,21 @@ Its arm64 UUID matches the installed binary
 Use it if this build produces another crash. The old event needs its own
 matching symbols or a new reproduction. Device inventory still shows only an
 Android emulator.
+
+The owner supplied `crash.md` during closeout. Its incident matches the local
+12:44 simulator report for the temporary `com.hadithly.permissiondeny` bundle.
+The main-thread trap is in `Clerk.configure` during app startup, before Today
+renders. The fixture was rerun with simulator signing and its keychain
+entitlement. The signed iOS Deny run passed, as did the separate Allow run.
+The report's crashing dylib UUID is `4eaa4d37-4d60-3753-a219-2179ccf3a4e1`,
+which differs from the older Sentry event. The supplied report remains in the
+workspace outside git.
+
+The owner accepted Android emulator coverage for this session. The guarded
+`SyntheticNotificationTest` passed on `emulator-5554` with an isolated fixture
+configuration. A synthetic Firebase message exercised the app's shared posting
+handler. Android recorded the expected title and body, and the notification's
+PendingIntent launched MainActivity with Bukhari 7, volume 1, Russian and the
+AI label. The parser recognized that target from the actual intent. This
+exercises device-side posting and tap routing. Live FCM delivery to the emulator
+and rendered reader content were outside this test.

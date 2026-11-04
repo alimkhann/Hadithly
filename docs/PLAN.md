@@ -48,6 +48,12 @@ were verified over Today with isolated app identities, with no repeat after
 activity recreation. The iOS Today tests and both isolated simulator choices
 passed. The iOS prompt appeared over Today, and did not repeat on relaunch.
 
+For this repair the owner accepted emulator verification for Android push. An
+injected Firebase message posted a real Android notification and its PendingIntent
+opened MainActivity with the Bukhari 7 target. This covers app handling and
+routing from the emulator notification. The earlier development FCM send record
+and this local test are separate evidence.
+
 The older iOS crash still lacks its matching symbols or a reproducing trace.
 Fresh Device Hub search has no Hadithly crash report; 78 retained symbol/binary
 candidates, including debug dylibs, have no matching UUID. Historical Sentry

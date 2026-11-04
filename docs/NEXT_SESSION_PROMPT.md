@@ -1,4 +1,4 @@
-# Active owner task: Sentry translations and notifications
+# Sentry translations and notifications closeout
 
 Read PLAN.md's November 4 checkpoint and SENTRY_REPAIR_VERIFICATION.md.
 Development through `1c98fd1` passed 590 backend tests plus typecheck and is
@@ -10,9 +10,13 @@ The corrected iOS Settings build saved the reminder, then restored it to off.
 Both the device and account values were verified off at 08:00. The native
 onboarding change is `6694486`. iOS and Android Allow and Deny passed with
 isolated app identities and did not repeat after relaunch or activity recreation.
+The owner accepted the Android emulator for this session. Local synthetic
+notification posting and PendingIntent routing passed on emulator-5554.
 
 Remaining Sentry crash investigation requires the exact matching binary or dSYM
 for debug UUID `e5302d6a-f709-3751-a77c-e85454b0f3c3`, or a fresh reproduction.
+The supplied crash.md is the distinct iOS simulator fixture startup crash.
+Its signed rerun passed. Resume crash work when new evidence is available.
 Preserve the reader work and incoming files. The full N1 device matrix and
 production deployment retain their separate gates.
 
