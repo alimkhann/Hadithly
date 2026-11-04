@@ -1,26 +1,20 @@
 # Active owner task: Sentry translations and notifications
 
-The owner's latest request continues the Sentry repair while they are unavailable.
-Read PLAN.md's November 4 Sentry checkpoint and SENTRY_REPAIR_VERIFICATION.md first.
-Terra implementation is committed; the integrated backend through `18fbfef` is
-validated (583 tests plus typecheck) and deployed only to development
-`festive-cobra-664`. Do not redeploy or repeat a model request merely to resume.
+Read PLAN.md's November 4 checkpoint and SENTRY_REPAIR_VERIFICATION.md.
+Development through `1c98fd1` passed 590 backend tests plus typecheck and is
+deployed to `festive-cobra-664`. The Bukhari 7 Russian translation succeeded on
+the iPhone and the cache audit found zero remaining missing links.
 
-The Russian Bukhari 7 translation succeeded on the physical iPhone after restoring
-its missing source-license link. The existing Sunnah.now source license was already
-verified, and the owner's permission confirmation is accepted without another
-proof request. All 11,998 retained Sunnah.now rows were scanned: six additional
-links repaired, zero conflicts; a full repeat found zero repairs. Preserve existing
-license terms and the newer merged AI changes in `e31d377`.
+The one approved APNs test arrived and opened the exact Bukhari 7 translation.
+The corrected iOS Settings build saved the reminder, then restored it to off.
+Both the device and account values were verified off at 08:00. The native
+onboarding change is `6694486`. iOS and Android Allow and Deny passed with
+isolated app identities and did not repeat after relaunch or activity recreation.
 
-Remaining work: verify physical notification delivery and investigate the older
-unsymbolicated iOS crash with its exact matching symbols or a reproduction.
-The Mac was locked during continuation, so further computer-use checks could not
-run. No iOS token was registered; the five development tokens were Android.
-Do not change device permissions or claim delivery from the backend heartbeat.
-Read the native registration-path follow-up in the verification record before
-changing code. Preserve the incoming project/schemes/catalog/transcript files;
-the six-file hash check passed again. No push or production deployment.
+Remaining Sentry crash investigation requires the exact matching binary or dSYM
+for debug UUID `e5302d6a-f709-3751-a77c-e85454b0f3c3`, or a fresh reproduction.
+Preserve the reader work and incoming files. The full N1 device matrix and
+production deployment retain their separate gates.
 
 The prior paging handoff is retained below as historical context; paging is complete.
 

@@ -260,3 +260,82 @@ the earlier physical translation or deployment output; those claims rely on this
 chat's contemporaneous device screenshot and CLI readback. The review also noted
 that iOS currently ignores token-upload errors with `try?`; no evidence connects
 that limitation to this device, so it was not changed speculatively.
+
+
+## November 4 physical notification and onboarding continuation
+
+After device access returned, computer use showed the existing Daily Hadith switch
+off. Fresh authenticated Sentry readback showed 13 generation events, two total
+daily-push events (latest `d221bb6e2ad54934a12ee6463b3a734c`, November 4 at
+03:12:30 UTC), and the same single older iOS crash. No provider cause was retained
+in that push event. The development registrations had fallen from five Android
+rows to one, with `lastSentDate: 2026-11-04`, no consecutive failures and no retained
+error. This proves a recorded provider send, not Android physical receipt, and
+does not establish why the four former rows disappeared.
+
+`f1f0cab` distinguishes known dead-token responses from malformed requests.
+Confirmed FCM `UNREGISTERED` and APNs bad/unregistered-token responses are removed
+without an error report. Ambiguous `INVALID_ARGUMENT`, topic mismatch, auth and
+backpressure remain observable. Google documents that INVALID_ARGUMENT can also
+mean an invalid payload, so treating every such response as a dead token could
+delete a usable registration ([FCM error codes](https://firebase.google.com/docs/cloud-messaging/error-codes),
+[token management](https://firebase.blog/posts/2023/04/managing-cloud-messaging-tokens)).
+A failing-before real cron regression distinguished these paths. The integrated
+backend then passed 587 tests and deployed to development through `f1f0cab`.
+
+The owner approved temporary iPhone opt-in and exactly one cached APNs test,
+restoring the app reminder off afterward while leaving OS authorization allowed.
+`e92513f` provides the internal development-only test action: one enabled iOS token,
+existing permitted Russian Bukhari 7 translation, normal payload builder, fixed
+status only, no AI generation or preference writes. The selected iPhone registered
+successfully. The one test returned `accepted`; Device Hub showed the Russian
+Bukhari 7 notification in Notification Center under Do Not Disturb at about 12:28.
+Tapping it opened Bukhari 7, Volume 1, with the Russian text. Focus was not changed.
+This is physical background delivery and exact-target open evidence, not the full
+N1 foreground/terminated/DST/accessibility matrix. No second test push was sent.
+
+The physical preference attempt exposed a separate iOS response bug: the backend
+stored enabled=true, but the UI showed off and “Could not save notification
+settings.” Convex Swift's no-result mutation overload decodes `String?`; this
+mutation returns a numeric row count. `93b4009` changes the call to decode Double,
+as Android already does. The server write and retained iOS token were read back
+without exposing the token. The corrected signed development build was installed in place. On the physical
+iPhone the switch saved, showed Device registered and 08:00, then saved off
+without the error. Readback confirmed both the account and iOS registration
+were disabled at 08:00. OS authorization was left allowed as agreed.
+
+The owner additionally requested notification permission on first Today landing
+after onboarding, and explicitly confirmed that Allow should enable Daily Hadith
+at the saved/default 08:00 time. Native work is isolated in
+`Hadithly-notification-onboarding`; no Reader source is changed. The backend
+`1f86b5c` fences optional notification writes with the existing account capability.
+`1c98fd1` adds an atomic initializer: first-time accounts enable, existing explicit
+or legacy choices are preserved, and a repeated onboarding retry cannot overwrite
+a later Settings change. Optional token origin distinguishes new default-off
+registration from an explicit choice, including Android token-first registration.
+Old unmarked rows conservatively retain their legacy choice; no data backfill or
+new grant is inferred.
+
+The integrated backend passed 590 tests across 49 files plus repository typecheck.
+The owner approved this schema deployment; `convex dev --once` completed against
+`festive-cobra-664` at 12:35, adding the bounded origin index. A fresh TLS-verified
+regional notification health read returned ready/development. Production stays
+unchanged. Native onboarding is committed as `6694486`. Five iOS Today tests
+passed on iPhone 18 Pro simulator. The Android Today JVM test and guarded
+SharedPreferences fixture passed on emulator-5554. Two isolated Android app
+identities then showed the actual system prompt over Today after guest onboarding.
+Both Allow and Deny returned to Today without a repeat after activity recreation.
+Separate ad-hoc signed iPhone 18 Pro simulator app identities also showed the
+system prompt over Today after guest onboarding. Allow and Deny both returned
+to Today and did not repeat after termination and relaunch. The simulator and
+emulator runs used dummy configuration and preserved the retained app identity.
+The iOS Allow run retained the guest intent after relaunch. Signed-in
+initialization is covered by the backend tests. Captures and logs are
+in `/Users/alim/Developer/Artifacts/Hadithly/onboarding-notifications-20261104`.
+The physical iPhone build used for the Settings recheck precedes the onboarding
+commit. Physical Android delivery remains unverified.
+
+Device Hub's current Crashes filter returned no Hadithly result. An updated scan
+of retained artifacts and DerivedData included DWARF files, app executables and
+`Hadithly.debug.dylib`: 78 candidates, none with the missing debug UUID. The older
+native crash remains unresolved; no approximate symbol file was substituted.

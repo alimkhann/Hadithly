@@ -30,14 +30,32 @@ validation, and reports fixed failure stages to Sentry. The integrated backend
 passes 583 tests across 48 files plus repository typecheck. Deployment through
 `18fbfef` completed against `festive-cobra-664` on November 4. Production is unchanged.
 
-Physical notification delivery and the unsymbolicated iOS crash remain open.
-The Mac was locked during the continuation, preventing another computer-use
-check. No native file, device permission or notification preference changed.
-The reader chat's completed `3807fe9` and incoming files remain preserved.
-Historical Sentry issues have not been dismissed as resolved. See
-[SENTRY_REPAIR_VERIFICATION.md](SENTRY_REPAIR_VERIFICATION.md) for evidence and
-limits. Grounding pricing and Free/Pro cache tiers remain research only;
-no Search tool, model or billing change was made. Preserve all original gates below.
+November 4 physical follow-up: the owner-approved single cached APNs test arrived
+on the iPhone in Russian, and tapping it opened Bukhari 7 with the translated text.
+`93b4009` fixes a separately reproduced iOS Settings error: the server returns a
+numeric update count, while the call selected the SDK's String-decoding overload.
+The signed build saved successfully and showed 08:00. The app switch and the
+development account and device settings were verified off after the test.
+
+The owner now requests the permission prompt on first Today landing after
+onboarding, with Allow enabling a new user's reminder at saved/default 08:00.
+Native work is isolated from Reader files. Backend `1f86b5c` and `1c98fd1` add
+account fencing and atomic initialization that preserves explicit prior/later
+choices, including token-first Android registration. All 590 backend tests and
+typecheck pass; the owner approved the optional token-origin/index schema and it
+is deployed to development. Native implementation is committed as `6694486`. Android Allow and Deny
+were verified over Today with isolated app identities, with no repeat after
+activity recreation. The iOS Today tests and both isolated simulator choices
+passed. The iOS prompt appeared over Today, and did not repeat on relaunch.
+
+The older iOS crash still lacks its matching symbols or a reproducing trace.
+Fresh Device Hub search has no Hadithly crash report; 78 retained symbol/binary
+candidates, including debug dylibs, have no matching UUID. Historical Sentry
+issues have not been dismissed as resolved. The reader chat's completed
+`3807fe9` and incoming files remain preserved. See
+[SENTRY_REPAIR_VERIFICATION.md](SENTRY_REPAIR_VERIFICATION.md). Grounding pricing
+and Free/Pro cache tiers remain research only; no Search tool, model or billing
+change was made. Preserve all original gates below.
 
 ## Paging completion checkpoint, November 3
 
