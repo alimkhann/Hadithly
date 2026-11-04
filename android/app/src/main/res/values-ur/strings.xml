@@ -115,4 +115,6 @@
     <string name="q2_more">مزید</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
     <string name="saved_remove_message" formatted="false">آپ نیچے موجود پیغام سے یہ عمل واپس لے سکتے ہیں۔</string>
+    <string name="reader_orientation_lock">اسکرین کی سمت لاک کریں</string>
+    <string name="reader_orientation_unlock">اسکرین کی سمت کا لاک کھولیں</string>
 </resources>

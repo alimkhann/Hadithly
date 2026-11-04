@@ -45,6 +45,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -84,6 +87,8 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.Note
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.ScreenLockRotation
+import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
@@ -283,6 +288,7 @@ fun ReaderScreen(
                     state = state,
                     arabicFontSize = preferences.arabicFontSize,
                     preferences = preferences,
+                    instanceKey = instanceKey,
                     modalVisible = showContents || showSettings || showPageJump || showQuotaPaywall,
                     onOpenContents = { showContents = true },
                     onOpenSettings = { showSettings = true },
@@ -424,6 +430,7 @@ private fun ReadingView(
     state: ReaderViewModel.ReaderState,
     arabicFontSize: Float,
     preferences: ReaderPreferences,
+    instanceKey: Long,
     modalVisible: Boolean,
     onOpenContents: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -497,7 +504,7 @@ private fun ReadingView(
     // A layout-affecting preference change (font, size, visibility, transla-
     // tion locale) invalidates the raw offset; the semantic anchor restores
     // the exact position against the new layout signature.
-    LaunchedEffect(preferences.layoutProjection) {
+    LaunchedEffect(preferences.layoutProjection, headerConfiguration.orientation) {
         viewModel.reanchorAfterLayoutChange()
     }
 
@@ -545,6 +552,7 @@ private fun ReadingView(
             (context as? android.content.ContextWrapper)?.baseContext
         }.filterIsInstance<ComponentActivity>().firstOrNull()
     }
+    val orientation = activity?.let { rememberReaderOrientation(it, androidView, instanceKey) }
     DisposableEffect(activity) {
         onDispose {
             activity?.window?.let { window ->
@@ -641,6 +649,7 @@ private fun ReadingView(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
             .onPreviewKeyEvent { lastInteraction++; false }
             .pointerInput(Unit) {
                 awaitEachGesture {
@@ -764,6 +773,18 @@ private fun ReadingView(
             onOpenJump = if (currentPage != null) onOpenPageJump else null)
 
         AnimatedVisibility(
+            visible = orientation?.showCorner == true && windowFocused,
+            enter = fadeIn(chromeAnim),
+            exit = fadeOut(chromeAnim),
+            modifier = Modifier.align(Alignment.TopEnd)
+                .padding(top = progressHeaderHeight, end = 16.dp),
+        ) {
+            orientation?.let {
+                ReaderOrientationButton(it, Modifier.size(52.dp), "reader.orientation.corner")
+            }
+        }
+
+        AnimatedVisibility(
             visible = state.chromeVisible,
             enter = fadeIn(chromeAnim) + scaleIn(chromeAnim, initialScale = 0.96f),
             exit = fadeOut(chromeAnim) + scaleOut(chromeAnim, targetScale = 0.96f),
@@ -776,6 +797,8 @@ private fun ReadingView(
                 if (readerMenuExpanded) {
                     val positioned = viewModel.positionedHadith()
                     ReaderMenuStack(
+                        modifier = Modifier.weight(1f, fill = false),
+                        orientation = orientation,
                         positionedReference = positioned?.referenceDisplay,
                         isPositionedBookmarked = positioned?.let(viewModel::isBookmarked) == true,
                         onContents = {
@@ -1052,6 +1075,8 @@ internal fun ReaderMenuStack(
     onSettings: () -> Unit,
     onBookmark: () -> Unit,
     onSearch: () -> Unit,
+    modifier: Modifier = Modifier,
+    orientation: ReaderOrientation? = null,
 ) {
     // Sajda `menu open` anchoring: inset from the leading edge, roughly the
     // trailing two-thirds, tighter rhythm than the old full-width cards.
@@ -1061,7 +1086,7 @@ internal fun ReaderMenuStack(
         ReaderHaptics.perform(view, ReaderHapticKind.MENU_ITEM)
         item()
     }
-    BoxWithConstraints {
+    BoxWithConstraints(modifier) {
     Surface(
         shape = RoundedCornerShape(24.dp),
         color = colors.surface.copy(alpha = 0.36f),
@@ -1104,6 +1129,9 @@ internal fun ReaderMenuStack(
                     modifier = Modifier.weight(1f).height(56.dp),
                     testTag = "reader.menu.bookmark",
                 )
+                orientation?.let {
+                    ReaderOrientationButton(it, Modifier.weight(1f).height(56.dp), "reader.menu.orientation")
+                }
                 ReaderMenuIconButton(
                     icon = Icons.Filled.Search,
                     contentDescription = nativeText("Search"),
@@ -1115,6 +1143,18 @@ internal fun ReaderMenuStack(
         }
     }
 }
+}
+
+@Composable
+private fun ReaderOrientationButton(orientation: ReaderOrientation, modifier: Modifier, testTag: String) {
+    val locked = orientation.isLocked
+    ReaderMenuIconButton(
+        icon = if (locked) Icons.Filled.ScreenLockRotation else Icons.Filled.ScreenRotation,
+        contentDescription = stringResource(if (locked) R.string.reader_orientation_unlock else R.string.reader_orientation_lock),
+        onClick = orientation::toggle,
+        modifier = modifier,
+        testTag = testTag,
+    )
 }
 
 @Composable

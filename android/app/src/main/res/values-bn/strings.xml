@@ -115,4 +115,6 @@
     <string name="q2_more">আরও</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
     <string name="saved_remove_message" formatted="false">নিচের বার্তা থেকে আপনি এই কাজটি পূর্বাবস্থায় ফিরিয়ে নিতে পারেন।</string>
+    <string name="reader_orientation_lock">স্ক্রিনের দিক লক করুন</string>
+    <string name="reader_orientation_unlock">স্ক্রিনের দিক আনলক করুন</string>
 </resources>

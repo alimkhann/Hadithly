@@ -115,4 +115,6 @@
     <string name="q2_more">Más</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
     <string name="saved_remove_message" formatted="false">Puedes deshacer esta acción desde el mensaje de abajo.</string>
+    <string name="reader_orientation_lock">Bloquear orientación</string>
+    <string name="reader_orientation_unlock">Desbloquear orientación</string>
 </resources>

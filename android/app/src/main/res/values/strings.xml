@@ -114,4 +114,6 @@
     <string name="q2_per_month">per month</string>
     <string name="q2_more">More</string>
     <string name="saved_remove_message" formatted="false">You can undo this action from the message below.</string>
+    <string name="reader_orientation_lock">Lock orientation</string>
+    <string name="reader_orientation_unlock">Unlock orientation</string>
 </resources>

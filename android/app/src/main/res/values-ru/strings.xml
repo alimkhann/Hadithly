@@ -119,4 +119,6 @@
     <string name="q2_more">Ещё</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
     <string name="saved_remove_message" formatted="false">Вы можете отменить это действие в сообщении ниже.</string>
+    <string name="reader_orientation_lock">Заблокировать ориентацию экрана</string>
+    <string name="reader_orientation_unlock">Разблокировать ориентацию экрана</string>
 </resources>

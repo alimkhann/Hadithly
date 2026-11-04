@@ -115,4 +115,6 @@
     <string name="q2_more">और</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
     <string name="saved_remove_message" formatted="false">आप नीचे दिए गए संदेश से यह कार्रवाई पूर्ववत कर सकते हैं।</string>
+    <string name="reader_orientation_lock">स्क्रीन की दिशा लॉक करें</string>
+    <string name="reader_orientation_unlock">स्क्रीन की दिशा अनलॉक करें</string>
 </resources>

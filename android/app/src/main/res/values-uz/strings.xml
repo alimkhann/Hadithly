@@ -115,4 +115,6 @@
     <string name="q2_more">Yana</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
     <string name="saved_remove_message" formatted="false">Bu amalni quyidagi xabardan bekor qilishingiz mumkin.</string>
+    <string name="reader_orientation_lock">Ekran yo‘nalishini qulflash</string>
+    <string name="reader_orientation_unlock">Ekran yo‘nalishi qulfini ochish</string>
 </resources>

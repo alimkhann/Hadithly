@@ -115,4 +115,6 @@
     <string name="q2_more">Тағы</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
     <string name="saved_remove_message" formatted="false">Бұл әрекетті төмендегі хабарламадан кері қайтара аласыз.</string>
+    <string name="reader_orientation_lock">Экран бағытын құлыптау</string>
+    <string name="reader_orientation_unlock">Экран бағытының құлпын ашу</string>
 </resources>

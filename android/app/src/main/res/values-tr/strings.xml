@@ -115,4 +115,6 @@
     <string name="q2_more">Diğer</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
     <string name="saved_remove_message" formatted="false">Bu işlemi aşağıdaki mesajdan geri alabilirsiniz.</string>
+    <string name="reader_orientation_lock">Ekran yönünü kilitle</string>
+    <string name="reader_orientation_unlock">Ekran yönü kilidini aç</string>
 </resources>

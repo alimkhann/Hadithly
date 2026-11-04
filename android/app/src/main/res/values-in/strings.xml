@@ -115,4 +115,6 @@
     <string name="q2_more">Lainnya</string>
     <!-- UI-polish locale entries are generated drafts; native review pending. -->
     <string name="saved_remove_message" formatted="false">Anda dapat membatalkan tindakan ini melalui pesan di bawah.</string>
+    <string name="reader_orientation_lock">Kunci orientasi layar</string>
+    <string name="reader_orientation_unlock">Buka kunci orientasi layar</string>
 </resources>
