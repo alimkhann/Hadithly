@@ -60,6 +60,7 @@ class ContentsNavigationTest {
         val requests = mutableListOf<String>()
         val owner = object : ViewModelStoreOwner { override val viewModelStore = ViewModelStore() }
         lateinit var model: ReaderViewModel
+        lateinit var readerView: android.view.View
         fun visibleArabic(): SemanticsNodeInteraction {
             val viewport = compose.onRoot().fetchSemanticsNode().boundsInRoot
             return compose.onAllNodesWithTag("reader.arabic", useUnmergedTree = true)
@@ -81,6 +82,7 @@ class ContentsNavigationTest {
             compose.setContent {
                 CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
                     com.hadithly.app.core.theme.LocalizedPreview(ReaderTheme.DARK, locale) {
+                        readerView = androidx.compose.ui.platform.LocalView.current
                         menuLabel = com.hadithly.app.core.preferences.nativeText("Open reader menu")
                         backLabel = com.hadithly.app.core.preferences.nativeText("Back")
                         val density = androidx.compose.ui.platform.LocalDensity.current
@@ -205,7 +207,7 @@ class ContentsNavigationTest {
                     assertTrue(settings.fetchSemanticsNode().boundsInRoot.top < partialTop)
                     checkSubpageHeight()
                     compose.onNodeWithTag("reader.settings.close").performClick()
-                    compose.waitUntil(3_000) { compose.onAllNodes(isRoot()).fetchSemanticsNodes().size == 1 }
+                    compose.waitUntil(3_000) { compose.runOnIdle { readerView.hasWindowFocus() } }
                     compose.mainClock.advanceTimeBy(8_500)
                     compose.waitUntil(2_000) { !model.state.value.chromeVisible }
                     compose.onNodeWithTag("reader.focusedPageBar").assertIsDisplayed()
