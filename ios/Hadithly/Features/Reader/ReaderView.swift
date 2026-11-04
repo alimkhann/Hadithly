@@ -208,7 +208,7 @@ struct ReaderView: View {
             readerSheet {
                 if let model, let volume = model.selectedVolumeId {
                     ReaderJumpSheet(model: model, volumeId: volume, pageIndex: model.pageIndex)
-                        .presentationDetents([.medium, .large])
+                        .presentationDetents([.height(468)])
                         .presentationDragIndicator(.hidden)
                 }
             }

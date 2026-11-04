@@ -26,6 +26,17 @@ the top of the chosen page. Owner decisions recorded in
 
 ## Verification run
 
+Follow-up polish round (same session, owner screenshots): loader and retry
+got a reserved fixed slot so the Go button never shifts; Go text uses the
+paired `onInteractive` token (fixes white-on-white in the dark palette); the
+close control shrank with tighter top spacing; a single unified grey
+selection pill now sits behind both wheels (Sajda style); a grey drag handle
+was added and the sheet is one fixed-height detent so it no longer expands
+upward; and the Page wheel became a true looping wheel — an edge step past
+the volume's last page advances the Volume wheel to that volume's first page
+(and back on the way up), implemented as a virtual infinite row space on
+Android and a `UIPickerView`-backed loop on iOS with the marker rows removed.
+
 - Android `:app:compileDebugKotlin`, `:app:testDebugUnitTest`: clean.
 - Android `ReaderJumpTest` on emulator-5554 (instrumented, 3 cases):
   1. `jumpToVolumePageLandsAndClearsPendingTurn` — Go inside the volume lands
@@ -35,7 +46,8 @@ the top of the chosen page. Owner decisions recorded in
      header landing.
   3. `jumpToCurrentPageKeepsPositionWithoutTurn` — Go on the open page keeps
      position with no turn at all.
-  Result: 3 passed, 0 failed. The first two runs surfaced a fixture bug in the
+  Result: 3 passed, 0 failed, re-run after the polish round. The first two
+  runs surfaced a fixture bug in the
   test itself (`cv:`-prefixed content versions and non-`pg1:` page keys are
   rejected by `ReadingPosition` schema validation, so the landed page could not record progress); the app model was
   unchanged by that fix.
@@ -64,7 +76,8 @@ the top of the chosen page. Owner decisions recorded in
 2. Tap the Page pill or the Volume pill — the same sheet opens at the current
    location.
 3. Flick the Page wheel past the volume's last page: the Volume wheel advances
-   and Page shows 1; flick back from Page 1: previous volume's last page.
+   and Page shows 1; flick back from Page 1: previous volume's last page. The
+   wheel keeps cycling — it never stops at an edge.
 4. Spin the Volume wheel to a heavy volume: counts auto-advance to its first
    page.
 5. Tap Go: reader lands at the top of the chosen page; Go on the currently

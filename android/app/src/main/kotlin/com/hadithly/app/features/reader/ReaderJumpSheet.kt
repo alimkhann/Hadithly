@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,13 +33,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hadithly.app.core.data.OutlineVolume
 import com.hadithly.app.core.preferences.nativeText
 import com.hadithly.app.core.theme.LocalHadithlyColors
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -55,20 +52,15 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
- * Reader volume + page jump sheet, mirroring iOS `ReaderJumpSheet`. The two
- * wheels use volume-relative page numbers: crossing a volume edge advances
- * the neighbor volume instead of showing a rewritten page range. Go hands
- * the exact destination to the reader's normal turn machinery, so loading,
- * pending surfaces and retry stay the existing behavior.
+ * Reader volume + page jump sheet, mirroring iOS `ReaderJumpSheet`. The Page
+ * wheel is a looping alarm wheel: one step past the volume's last page rolls
+ * into the next volume's first page (and back), so it never dead-ends while
+ * the Volume wheel owns direct selects. Go hands the exact destination to the
+ * reader's normal turn machinery, so loading, pending surfaces and retry stay
+ * the existing behavior.
  */
 
 private data class ReaderJumpPosition(val volumeId: String, val pageIndex: Int)
-
-private sealed interface ReaderJumpWheelRow {
-    data class Page(val position: ReaderJumpPosition) : ReaderJumpWheelRow
-    data class PreviousVolume(val volumeId: String) : ReaderJumpWheelRow
-    data class NextVolume(val volumeId: String) : ReaderJumpWheelRow
-}
 
 @Composable
 internal fun ReaderJumpSheet(
@@ -85,12 +77,15 @@ internal fun ReaderJumpSheet(
     var pending by remember { mutableStateOf(false) }
     var failed by remember { mutableStateOf(false) }
     var retryTarget by remember { mutableStateOf(initialVolumeId to false) }
+    var previousRaw by remember { mutableStateOf<Int?>(null) }
+    var wheelGeneration by remember { mutableStateOf(0) }
     val scope = rememberCoroutineScope()
     var loadJob by remember { mutableStateOf<Job?>(null) }
 
     val state by viewModel.state.collectAsStateWithLifecycle()
     val volumes = state.volumes
     val headIndex = volumes.indexOfFirst { it.volumeId == selection.volumeId }
+    val pageCount = counts[selection.volumeId]?.count ?: 0
 
     fun chooseVolume(volumeId: String, last: Boolean, initial: Boolean = false) {
         loadJob?.cancel()
@@ -104,6 +99,8 @@ internal fun ReaderJumpSheet(
                 if (initial) selection.pageIndex.coerceAtMost(known.count - 1)
                 else if (last) known.count - 1 else 0,
             )
+            previousRaw = null
+            wheelGeneration++
             pending = false
             return
         }
@@ -117,6 +114,8 @@ internal fun ReaderJumpSheet(
                     if (initial) selection.pageIndex.coerceAtMost(count.count - 1)
                     else if (last) count.count - 1 else 0,
                 )
+                previousRaw = null
+                wheelGeneration++
                 pending = false
             } catch (cancelled: CancellationException) {
                 throw cancelled
@@ -129,35 +128,55 @@ internal fun ReaderJumpSheet(
         }
     }
 
+    fun pageWheelChanged(raw: Int) {
+        if (pending || failed || pageCount <= 0) return
+        val page = ((raw % pageCount) + pageCount) % pageCount
+        val previous = previousRaw
+        if (previous != null && pageCount > 1) {
+            val previousPage = ((previous % pageCount) + pageCount) % pageCount
+            if (page == 0 && previousPage == pageCount - 1 && raw > previous && headIndex + 1 < volumes.size) {
+                previousRaw = null
+                chooseVolume(volumes[headIndex + 1].volumeId, last = false)
+                return
+            }
+            if (page == pageCount - 1 && previousPage == 0 && raw < previous && headIndex > 0) {
+                previousRaw = null
+                chooseVolume(volumes[headIndex - 1].volumeId, last = true)
+                return
+            }
+        }
+        previousRaw = raw
+        if (page != selection.pageIndex) selection = ReaderJumpPosition(selection.volumeId, page)
+    }
+
     LaunchedEffect(Unit) {
         for (volume in volumes) {
             viewModel.knownPageCountForJump(volume.volumeId)?.let { counts = counts + (volume.volumeId to it) }
         }
         if (counts[selection.volumeId] == null) chooseVolume(selection.volumeId, last = false, initial = true)
+        wheelGeneration++
     }
-
-    val pageWheelRows = jumpWheelRows(volumes, headIndex, counts[selection.volumeId]?.count ?: 0)
 
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp),
         modifier = Modifier
             .fillMaxWidth()
             .background(colors.background)
-            .padding(horizontal = 20.dp, vertical = 16.dp)
+            .padding(horizontal = 20.dp, vertical = 6.dp)
             .testTag("reader.jump.sheet"),
     ) {
-        Box(Modifier.fillMaxWidth()) {
+        Box(Modifier.fillMaxWidth().height(36.dp)) {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
-                    .size(44.dp)
+                    .size(28.dp)
                     .background(colors.surface.copy(alpha = 0.84f), CircleShape)
                     .border(0.5.dp, colors.divider.copy(alpha = 0.62f), CircleShape)
                     .clickable { onDismiss() }
                     .testTag("reader.jump.close"),
             ) {
-                Text(nativeText("Close"))
+                Text(nativeText("Close"), fontSize = 11.sp)
             }
         }
         Row(Modifier.fillMaxWidth()) {
@@ -176,57 +195,59 @@ internal fun ReaderJumpSheet(
                 modifier = Modifier.weight(1f),
             )
         }
-        Row(Modifier.fillMaxWidth().height(216.dp)) {
-            ReaderJumpWheel(
-                rowCount = volumes.size,
-                rowLabel = { index -> format.format(index + 1) },
-                selection = headIndex.coerceAtLeast(0),
-                onSelect = { index ->
-                    val volume = volumes.getOrNull(index) ?: return@ReaderJumpWheel
-                    if (volume.volumeId != selection.volumeId) chooseVolume(volume.volumeId, last = false)
-                },
-                modifier = Modifier.weight(1f),
-                enabled = true,
-                testTag = "reader.jump.volume",
-            )
-            ReaderJumpWheel(
-                rowCount = pageWheelRows.size,
-                rowLabel = { index ->
-                    when (val row = pageWheelRows.getOrNull(index)) {
-                        is ReaderJumpWheelRow.Page -> format.format(row.position.pageIndex + 1)
-                        is ReaderJumpWheelRow.PreviousVolume ->
-                            (counts[row.volumeId] ?: viewModel.knownPageCountForJump(row.volumeId))
-                                ?.let { format.format(it.count) } ?: "…"
-                        is ReaderJumpWheelRow.NextVolume -> "1"
-                        null -> ""
-                    }
-                },
-                selection = pageWheelRows.indexOfFirst { it is ReaderJumpWheelRow.Page && it.position == selection },
-                onSelect = { index ->
-                    when (val row = pageWheelRows.getOrNull(index)) {
-                        is ReaderJumpWheelRow.Page -> selection = row.position
-                        is ReaderJumpWheelRow.PreviousVolume -> chooseVolume(row.volumeId, last = true)
-                        is ReaderJumpWheelRow.NextVolume -> chooseVolume(row.volumeId, last = false)
-                        null -> Unit
-                    }
-                },
-                modifier = Modifier.weight(1f),
-                enabled = !pending && !failed && pageWheelRows.isNotEmpty(),
-                testTag = "reader.jump.page",
-            )
+        Box(Modifier.fillMaxWidth().height(216.dp)) {
+            Row(
+                Modifier
+                    .align(Alignment.Center)
+                    .padding(horizontal = 8.dp)
+                    .fillMaxWidth()
+                    .height(40.dp)
+                    .background(colors.surface, CircleShape)
+                    .border(0.5.dp, colors.divider.copy(alpha = 0.62f), CircleShape),
+            ) {}
+            Row(Modifier.fillMaxWidth().height(216.dp)) {
+                ReaderJumpWheel(
+                    rowCount = volumes.size,
+                    rowLabel = { index -> format.format(index + 1) },
+                    selection = headIndex.coerceAtLeast(0),
+                    onSelect = { index ->
+                        val volume = volumes.getOrNull(index) ?: return@ReaderJumpWheel
+                        if (volume.volumeId != selection.volumeId) chooseVolume(volume.volumeId, last = false)
+                    },
+                    modifier = Modifier.weight(1f),
+                    enabled = true,
+                    testTag = "reader.jump.volume",
+                )
+                if (pageCount > 0) {
+                    ReaderLoopPageWheel(
+                        pageCount = pageCount,
+                        page = selection.pageIndex,
+                        generation = wheelGeneration,
+                        onSelectRaw = ::pageWheelChanged,
+                        modifier = Modifier.weight(1f),
+                        label = { format.format(it) },
+                        textColor = colors.textPrimary,
+                        dimColor = colors.textSecondary,
+                        testTag = "reader.jump.page",
+                    )
+                }
+            }
         }
-        if (pending) {
-            CircularProgressIndicator(
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .testTag("reader.jump.loading"),
-            )
-        } else if (failed) {
-            TextButton(
-                onClick = { chooseVolume(retryTarget.first, retryTarget.second) },
-                modifier = Modifier.align(Alignment.CenterHorizontally).testTag("reader.jump.retry"),
-            ) {
-                Text(nativeText("Retry"))
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxWidth().height(36.dp).testTag("reader.jump.status"),
+        ) {
+            if (pending) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp).testTag("reader.jump.loading"),
+                )
+            } else if (failed) {
+                TextButton(
+                    onClick = { chooseVolume(retryTarget.first, retryTarget.second) },
+                    modifier = Modifier.testTag("reader.jump.retry"),
+                ) {
+                    Text(nativeText("Retry"))
+                }
             }
         }
         Button(
@@ -240,31 +261,11 @@ internal fun ReaderJumpSheet(
             },
             shape = CircleShape,
             colors = ButtonDefaults.buttonColors(containerColor = colors.interactive, contentColor = colors.onInteractive),
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).testTag("reader.jump.go"),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 22.dp).testTag("reader.jump.go"),
         ) {
-            Text(nativeText("Go"), fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(vertical = 6.dp))
+            Text(nativeText("Go"), fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(vertical = 8.dp))
         }
     }
-}
-
-/**
- * The Page wheel never renumbers: pages of the chosen volume sit between two
- * edge rows for the neighbor volumes, so a fast scroll through the wheel visits
- * the same pages as the alarm-wheel metaphor requires.
- */
-private fun jumpWheelRows(
-    volumes: List<OutlineVolume>,
-    headIndex: Int,
-    pageCount: Int,
-): List<ReaderJumpWheelRow> {
-    if (headIndex < 0 || pageCount <= 0) return emptyList()
-    val result = mutableListOf<ReaderJumpWheelRow>()
-    if (headIndex > 0) result.add(ReaderJumpWheelRow.PreviousVolume(volumes[headIndex - 1].volumeId))
-    for (index in 0 until pageCount) {
-        result.add(ReaderJumpWheelRow.Page(ReaderJumpPosition(volumes[headIndex].volumeId, index)))
-    }
-    if (headIndex + 1 < volumes.size) result.add(ReaderJumpWheelRow.NextVolume(volumes[headIndex + 1].volumeId))
-    return result
 }
 
 /** One alarm-clock-style snapping wheel column with a highlighted center row. */
@@ -298,8 +299,6 @@ private fun ReaderJumpWheel(
                 }
             }
     }
-    // The model selected a row from outside this wheel (for example the Page
-    // wheel crossed into another volume): center it without fighting scroll.
     LaunchedEffect(selection, rowCount) {
         if (selection in 0 until rowCount && selection != centered) {
             centered = selection
@@ -328,6 +327,79 @@ private fun ReaderJumpWheel(
                     fontSize = if (index == centered) 20.sp else 16.sp,
                     fontWeight = if (index == centered) FontWeight.SemiBold else FontWeight.Normal,
                     color = if (index == centered) colors.textPrimary else colors.textSecondary,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Infinite Page wheel. The LazyColumn holds a huge repeated row space indexed
+ * from the middle, so it never dead-ends; `generation` marks sheet-driven
+ * recenters (volume change, retry) that must move the drum without counting
+ * as user scrolling.
+ */
+@Composable
+private fun ReaderLoopPageWheel(
+    pageCount: Int,
+    page: Int,
+    generation: Int,
+    onSelectRaw: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    label: (Int) -> String,
+    textColor: androidx.compose.ui.graphics.Color,
+    dimColor: androidx.compose.ui.graphics.Color,
+    testTag: String,
+) {
+    val itemHeight = 40.dp
+    val listState = rememberLazyListState()
+    val virtualCount = Int.MAX_VALUE / 2
+    val base = remember(pageCount) { (virtualCount / pageCount) * pageCount }
+    val fling = rememberSnapFlingBehavior(listState)
+    var centeredRaw by remember { mutableStateOf(base + page) }
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.layoutInfo }
+            .mapNotNull { info ->
+                if (info.visibleItemsInfo.isEmpty()) return@mapNotNull null
+                val center = info.viewportStartOffset + info.viewportSize.height / 2
+                info.visibleItemsInfo.minByOrNull { abs(it.offset + it.size / 2 - center) }?.index
+            }
+            .collect { raw ->
+                if (raw != centeredRaw) {
+                    centeredRaw = raw
+                    onSelectRaw(raw)
+                }
+            }
+    }
+    LaunchedEffect(generation) {
+        val target = base + page
+        centeredRaw = target
+        listState.scrollToItem(target)
+    }
+
+    LazyColumn(
+        state = listState,
+        flingBehavior = fling,
+        contentPadding = PaddingValues(vertical = (216.dp - itemHeight) / 2),
+        modifier = modifier
+            .fillMaxHeight()
+            .testTag(testTag),
+    ) {
+        items(virtualCount, key = { it }) { raw ->
+            val index = raw % pageCount
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(itemHeight),
+            ) {
+                Text(
+                    label(index + 1),
+                    fontSize = if (raw == centeredRaw) 20.sp else 16.sp,
+                    fontWeight = if (raw == centeredRaw) FontWeight.SemiBold else FontWeight.Normal,
+                    color = if (raw == centeredRaw) textColor else dimColor,
                     textAlign = TextAlign.Center,
                 )
             }

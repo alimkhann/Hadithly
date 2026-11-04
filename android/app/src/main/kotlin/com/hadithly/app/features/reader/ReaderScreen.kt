@@ -343,8 +343,17 @@ fun ReaderScreen(
         ModalBottomSheet(
             onDismissRequest = { showPageJump = false },
             sheetState = androidx.compose.material3.rememberModalBottomSheetState(
-                skipPartiallyExpanded = false,
+                skipPartiallyExpanded = true,
             ),
+            dragHandle = {
+                Box(
+                    Modifier
+                        .padding(top = 8.dp, bottom = 6.dp)
+                        .width(36.dp)
+                        .height(4.dp)
+                        .background(colors.textSecondary.copy(alpha = 0.4f), CircleShape),
+                )
+            },
             containerColor = colors.background,
         ) {
             val volumeId = initialJump.first
