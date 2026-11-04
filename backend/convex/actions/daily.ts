@@ -547,7 +547,6 @@ export async function runDuePushes(
           result.sent += 1;
         } catch (error) {
           const kind = classifyPushError(error);
-          await reportFailure(io, "daily_push");
           if (kind === "permanent") {
             await io.runMutation(internal.library.removeStaleToken, {
               tokenId: token._id,
@@ -556,6 +555,7 @@ export async function runDuePushes(
             result.removedStale += 1;
             result.failed += 1;
           } else if (kind === "backpressure") {
+            await reportFailure(io, "daily_push");
             await io.runMutation(internal.library.recordPushFailure, {
               tokenId: token._id,
               error: "push_provider_failure",
@@ -569,6 +569,7 @@ export async function runDuePushes(
             stopped = true;
             break;
           } else {
+            await reportFailure(io, "daily_push");
             await io.runMutation(internal.library.recordPushFailure, {
               tokenId: token._id,
               error: "push_provider_failure",

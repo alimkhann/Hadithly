@@ -188,11 +188,10 @@ describe("classifyPushError", () => {
         new Error("FCM rejected push (404): UNREGISTERED"),
       ),
     ).toBe("permanent");
-    expect(
-      classifyPushError(
-        new Error("FCM rejected push (400): INVALID_ARGUMENT"),
-      ),
-    ).toBe("permanent");
+    expect(classifyPushError(new Error("FCM rejected push (400): INVALID_ARGUMENT"))).toBe("transient");
+    expect(classifyPushError(new Error('FCM rejected push (404): {"error":{"details":[{"errorCode":"UNREGISTERED"}]}}'))).toBe("permanent");
+    expect(classifyPushError(new Error('APNs rejected push (400): {"reason":"DeviceTokenNotForTopic"}'))).toBe("transient");
+    expect(classifyPushError(new Error("FCM authorization failed (401): unauthorized"))).toBe("transient");
   });
   test("treats rate limits as backpressure", () => {
     expect(classifyPushError(new Error("APNs rejected push (429): slow"))).toBe(

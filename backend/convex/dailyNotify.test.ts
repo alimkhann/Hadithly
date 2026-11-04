@@ -462,6 +462,34 @@ describe("N1 migration", () => {
 });
 
 describe("N1 cron loop", () => {
+  test("cleans an unregistered token without reporting it, while malformed requests remain observable", async () => {
+    vi.stubEnv("DIAGNOSTICS_ENABLED", "1");
+    try {
+      const t = convexTest(schema, modules);
+      const user = t.withIdentity(identity("notify_expected_cleanup"));
+      await user.mutation(api.users.ensureCurrentUser, { preferredLanguage: "en" });
+      await user.mutation(api.library.setDailyNotification, { enabled: true, dailyTime: "08:00" });
+      for (const token of ["unregistered", "bad-request"]) {
+        await user.mutation(api.library.savePushToken, { token, platform: "android", timezone: "Asia/Almaty" });
+      }
+      const hadithId = await seedHadith(t);
+      await persistToday(t, "Asia/Almaty", hadithId);
+      const senders = recordingSenders();
+      senders.sendFcm = async token => { throw new Error(token === "unregistered" ? "FCM rejected push (404): UNREGISTERED" : "FCM rejected push (400): INVALID_ARGUMENT"); };
+      const io = stubIo(t);
+      const mutation = io.runMutation;
+      let reports = 0;
+      io.runMutation = (fn, args) => {
+        if (args.operation === "daily_push") { reports++; return Promise.resolve(false); }
+        return mutation(fn, args);
+      };
+      const result = await runDuePushes(io, NOW, senders, { hasApns: true, hasFcm: true });
+      expect(result).toMatchObject({ failed: 2, removedStale: 1 });
+      expect(reports).toBe(1);
+      const rows = await t.run(ctx => ctx.db.query("pushTokens").collect());
+      expect(rows.map(row => row.token)).toEqual(["bad-request"]);
+    } finally { vi.unstubAllEnvs(); }
+  });
   test("exhausted failures rearm and use first-attempt backoff on each new local date", async () => {
     const t = convexTest(schema, modules);
     const asUser = t.withIdentity(identity("notify_date_rollover"));

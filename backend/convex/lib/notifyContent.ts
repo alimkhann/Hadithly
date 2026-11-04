@@ -226,15 +226,9 @@ export function classifyPushError(error: unknown): PushErrorClass {
   if (/\(429\)|too many requests|rate.?limit|retry.?after/i.test(message)) {
     return "backpressure";
   }
-  if (
-    /\b(410|400|404)\b/.test(message) &&
-    /bad ?device ?token|unregistered|invalid.?argument|invalid.?token|gone|not.?registered|no longer valid/i.test(
-      message,
-    )
-  ) {
-    return "permanent";
-  }
-  if (/unregistered|invalid.?argument/i.test(message)) {
+  if (/^FCM rejected push \(404\):[\s\S]*\bUNREGISTERED\b/i.test(message) ||
+    /^APNs rejected push \(410\):[\s\S]*\b(?:Unregistered|Gone)\b/i.test(message) ||
+    /^APNs rejected push \(400\):[\s\S]*\bBadDeviceToken\b/i.test(message)) {
     return "permanent";
   }
   return "transient";
