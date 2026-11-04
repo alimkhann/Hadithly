@@ -4,6 +4,34 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
+## Reader volume/page jump checkpoint, November 4
+
+The owner asked for interactive progress pills on the reader: either revealed
+pill opens one sheet with alarm-style Volume and Page wheels and a Liquid
+Glass Go button. Decisions recorded in
+[POST_GOAL_BACKLOG.md](POST_GOAL_BACKLOG.md): volume-relative page numbers on
+pill and wheel, Go lands at the top of the chosen page, Go on the open page
+dismisses without a turn, Sajda sheet references in
+[PAGE_TRANSITION_BASELINE.md](PAGE_TRANSITION_BASELINE.md).
+
+iOS and Android both ship the sheet, wheel coupling and a reader-model
+`TurnTarget.Jump` that reuses the existing pending/turn, loading and retry
+machinery; exact counts come from the reader's page store and uncached
+volumes resolve on demand. The same session also localized the reader's
+generic `Volume N` corner title into the chosen translation language
+(previously English-only), with pure rules pinned in unit tests on both
+platforms and an instrumented corner check `cornerUsesTranslationLanguageWithEnglishAppLanguage`.
+
+Verification: Android `compileDebugKotlin` and `testDebugUnitTest` clean;
+instrumented `ReaderJumpTest` 3/3 passed on emulator-5554 (in-volume Go,
+cross-volume Go with on-demand count, same-page Go no-op). iOS scheme build
+succeeded on the reused iPhone 18 Pro simulator. Remaining gates: on-screen
+wheel manual passes (script in
+[READER_JUMP_VERIFICATION.md](READER_JUMP_VERIFICATION.md)), the
+uncommitted-mixed-diff `Localizable.xcstrings` owner decision, and the
+chapter-title/narrator-line translation backlog row. Translation of source
+hadith text remains out of scope for the reader picker.
+
 ## Sentry repair checkpoint, November 4
 
 The physical iPhone's Bukhari 7 Russian translation now succeeds. Its source

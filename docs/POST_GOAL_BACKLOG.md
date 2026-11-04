@@ -130,13 +130,39 @@ or ship dead social links. Keep screenshot detection distinct from collecting
 or uploading screenshot contents; sharing remains an explicit user action.
 Verify the corresponding Android behavior when this feature is implemented.
 
-### Later feature: functional floating progress pills
+### Functional floating progress pills
 
-Inspect Sajda's actual page/juz pill interactions and adapt them to Hadithly's
-page/volume model. The current floating indicators were not made noninteractive
-by scrolling optimization; navigation through those indicators is new work.
-Keep existing bottom navigation pills, semantic targets, RTL and accessibility.
-Scope this separately from screenshot sharing.
+Implemented November 4, 2026 as the reader volume/page jump sheet.
+
+The owner chose volume-relative numbers for both the pill and the Page wheel.
+Either revealed pill opens the same sheet at the current location. Scrolling
+past the last page advances the Volume wheel and shows Page 1. Scrolling back
+from Page 1 selects the last page of the previous volume. Choosing a volume
+directly selects its first page. Go jumps to the top of a different page and
+keeps the current position when the selected page is already open.
+
+The sheet follows the owner's Sajda screenshot and the observation in
+[PAGE_TRANSITION_BASELINE.md](PAGE_TRANSITION_BASELINE.md). Exact page counts
+come from the current reader source and uncached volumes resolve on demand —
+never by fetching every volume in the collection. See
+[READER_JUMP_VERIFICATION.md](READER_JUMP_VERIFICATION.md) for the recorded
+gates. Wheel states, counts and Go reuse the reader's existing loading and
+retry machinery through `TurnTarget.Jump`.
+
+### Reader content in the selected translation language
+
+Chapter headings and the named volume header currently read the source outline.
+For Sunnah.now, the named volume header usually repeats the first chapter title.
+Use the source's title in the selected reading language when available. For
+other languages, resolve and cache a rights-checked translation by chapter and
+language. Reuse that title for the volume header when it names the first chapter.
+
+The grey narrator line uses the source English narrator in mixed and
+translation-only reading. The AI generation response carries the translated
+hadith body as one string. Give the narrator its own localized field and use
+the Arabic narrator source when available. Keep existing published bodies
+readable while narrator translations become available. Verify both native apps
+with the app interface and reading translation set to different languages.
 
 ### Separate maintenance: keep one simulator
 
