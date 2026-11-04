@@ -136,36 +136,37 @@ class HadithlyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
-        val notification = message.notification ?: return
-        val locale = HadithlyApplication.instance().preferences.preferences.value.uiLocale
-        ensureDailyNotificationChannel(this, locale)
-        val manager = getSystemService(NotificationManager::class.java)
-        val launchIntent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            message.data.forEach { (key, value) -> putExtra(key, value) }
-        }
-        val pendingIntent = PendingIntent.getActivity(
-            this,
-            0,
-            launchIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-        val built = NotificationCompat.Builder(this, DAILY_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle(notificationDisplayTitle(this, locale, notification.title))
-            .setContentText(notification.body)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(notification.body))
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-            .build()
-        manager.notify(DAILY_NOTIFICATION_ID, built)
-    }
-
-    private companion object {
-        const val DAILY_NOTIFICATION_ID = 1001
+        postDailyNotification(this, message)
     }
 }
 
+internal fun postDailyNotification(context: Context, message: RemoteMessage) {
+    val notification = message.notification ?: return
+    val locale = HadithlyApplication.instance().preferences.preferences.value.uiLocale
+    ensureDailyNotificationChannel(context, locale)
+    val manager = context.getSystemService(NotificationManager::class.java)
+    val launchIntent = Intent(context, MainActivity::class.java).apply {
+        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        message.data.forEach { (key, value) -> putExtra(key, value) }
+    }
+    val pendingIntent = PendingIntent.getActivity(
+        context,
+        0,
+        launchIntent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+    )
+    val built = NotificationCompat.Builder(context, DAILY_CHANNEL_ID)
+        .setSmallIcon(R.drawable.ic_launcher_foreground)
+        .setContentTitle(notificationDisplayTitle(context, locale, notification.title))
+        .setContentText(notification.body)
+        .setStyle(NotificationCompat.BigTextStyle().bigText(notification.body))
+        .setContentIntent(pendingIntent)
+        .setAutoCancel(true)
+        .build()
+    manager.notify(DAILY_NOTIFICATION_ID, built)
+}
+
+private const val DAILY_NOTIFICATION_ID = 1001
 private const val DAILY_CHANNEL_ID = "daily_hadith"
 
 internal fun ensureDailyNotificationChannel(context: Context, locale: String) {
