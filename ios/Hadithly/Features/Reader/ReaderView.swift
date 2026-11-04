@@ -17,6 +17,7 @@ struct ReaderView: View {
     @Environment(\.colorScheme) private var systemColorScheme
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     @Environment(\.locale) private var uiLocale
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -52,6 +53,13 @@ struct ReaderView: View {
     @State private var showSavedShortcut = false
     @State private var showBookmarkPlacement = false
     @State private var showQuotaPaywall = false
+    @State private var hadithModalPresented = false
+    @State private var touchActive = false
+    @State private var orientation = ReaderOrientation()
+    @State private var readerSafeInsets: UIEdgeInsets?
+    @State private var cornerOrientation: UIInterfaceOrientation?
+    @State private var chromeActivity = 0
+    @State private var switchControlEnabled = UIAccessibility.isSwitchControlRunning
     @State private var pageDragOffset: CGFloat = 0
     @State private var pageSettling = false
     @State private var horizontalDragging = false
@@ -85,17 +93,21 @@ struct ReaderView: View {
         ReaderPalette.resolved(readerTheme, systemDark: systemColorScheme == .dark)
     }
 
-    /// Once the reader root ignores safe areas, an inner GeometryReader sees
-    /// zero insets. Reader chrome still needs the window's real inset so it
-    /// clears the Dynamic Island and home indicator while page content stays
-    /// genuinely edge-to-edge.
-    private var windowSafeAreaInsets: UIEdgeInsets {
-        let activeScene = UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first { $0.activationState == .foregroundActive }
-        let window = activeScene?.windows.first(where: \.isKeyWindow)
-            ?? activeScene?.windows.first
-        return window?.safeAreaInsets ?? .zero
+    private var liveWindowSafeInsets: UIEdgeInsets? {
+        if let insets = orientation.windowSafeInsets { return insets }
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        let scene = scenes.first { $0.activationState == .foregroundActive }
+            ?? scenes.first { $0.activationState == .foregroundInactive }
+        return scene?.keyWindow?.safeAreaInsets
+    }
+
+    // Status-bar changes can alter the live window insets while the page
+    // is still in the same orientation. Reserve the same space in both modes.
+    private var windowSafeAreaInsets: UIEdgeInsets { readerSafeInsets ?? liveWindowSafeInsets ?? .zero }
+
+    private var horizontalSafeInset: CGFloat {
+        let insets = windowSafeAreaInsets
+        return max(insets.left, insets.right)
     }
 
     /// Chrome fade+scale (round 7, ~200ms ease-out): applied ONLY to the
@@ -103,6 +115,17 @@ struct ReaderView: View {
     /// under Reduce Motion so the chrome snaps.
     private var chromeAnimation: Animation? {
         reduceMotion ? nil : .easeOut(duration: 0.2)
+    }
+
+    private var readerModalPresented: Bool {
+        showIndex || showPageJump || showSettings || showSearch || showSavedShortcut
+            || showBookmarkPlacement || showQuotaPaywall || hadithModalPresented
+    }
+
+    private func chromeIdleID(_ model: ReaderModel) -> Int? {
+        guard model.chromeVisible, scenePhase == .active, !readerModalPresented,
+              !touchActive, !voiceOverEnabled, !switchControlEnabled else { return nil }
+        return chromeActivity
     }
 
     private var arabicFontSizeBinding: Binding<Double> {
@@ -124,6 +147,14 @@ struct ReaderView: View {
             }
         }
         .background(palette.background.ignoresSafeArea())
+        .background {
+            ReaderOrientationBoundary(orientation: orientation) {
+                readerSafeInsets = liveWindowSafeInsets
+                _ = model?.restorePositionAfterViewportResize()
+            }
+            .frame(width: 0, height: 0)
+            .accessibilityHidden(true)
+        }
 #if DEBUG
         .overlay(alignment: .topLeading) {
             if ProcessInfo.processInfo.environment["READER_PERFORMANCE_PROBE"] == "1" {
@@ -177,8 +208,10 @@ struct ReaderView: View {
             model?.resetTranslationRequestsForAccount()
             showQuotaPaywall = false
         }
-        .onChange(of: scenePhase) { _, phase in
-            if phase != .active {
+        .onChange(of: scenePhase, initial: true) { _, phase in
+            if phase == .active {
+                if readerSafeInsets == nil { readerSafeInsets = liveWindowSafeInsets }
+            } else {
                 model?.endViewportInteractions()
                 model?.saveCurrentProgress()
             }
@@ -313,22 +346,18 @@ struct ReaderView: View {
 
                 pageStrip(model, viewportWidth: viewport.size.width)
 
-                Group {
-                    if !model.chromeVisible {
-                        ReaderFocusedProgressObserver(progress: scrollProgress, palette: palette, topInset: windowSafeAreaInsets.top)
-                            .transition(.opacity.combined(with: .scale(scale: reduceMotion ? 1 : 0.92)))
-                    }
-                }
-                .animation(chromeAnimation, value: model.chromeVisible)
-                .allowsHitTesting(false)
-
-                Group {
+                ZStack {
                     if model.chromeVisible {
                         ReaderGlassGroup {
                             chromeOverlay(model, topInset: windowSafeAreaInsets.top, bottomInset: windowSafeAreaInsets.bottom)
                                 .frame(width: viewport.size.width)
                         }
                         .transition(.opacity.combined(with: .scale(scale: reduceMotion ? 1 : 0.98)))
+                        .zIndex(1)
+                    } else {
+                        ReaderFocusedProgressObserver(progress: scrollProgress, palette: palette, topInset: windowSafeAreaInsets.top)
+                            .transition(.opacity.combined(with: .scale(scale: reduceMotion ? 1 : 0.92)))
+                            .allowsHitTesting(false)
                     }
                 }
                 .animation(chromeAnimation, value: model.chromeVisible)
@@ -416,10 +445,36 @@ struct ReaderView: View {
                 .accessibilityIdentifier("reader.pendingTurn")
             }
         }
+        .overlay(alignment: .topTrailing) {
+            if cornerOrientation != nil && !readerModalPresented {
+                Button(action: orientation.toggleLock) {
+                    Image(systemName: orientation.controlImage)
+                        .font(.title3)
+                        .foregroundStyle(orientation.isLocked ? palette.interactive : palette.textSecondary)
+                        .frame(width: 48, height: 48)
+                        .readerControlSurface(in: Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text(LocalizedStringKey(orientation.controlLabel)))
+                .accessibilityIdentifier("reader.corner.orientation")
+                .padding(.top, windowSafeAreaInsets.top + progressPillsHeight + 16)
+                .padding(.trailing, horizontalSafeInset + 16)
+            }
+        }
+        .onChange(of: orientation.interfaceOrientation) { old, new in
+            guard new != .unknown else { return }
+            readerSafeInsets = liveWindowSafeInsets
+            if old != .unknown { cornerOrientation = new }
+        }
+        .task(id: cornerOrientation) {
+            guard let shown = cornerOrientation else { return }
+            do { try await Task.sleep(for: .seconds(3)) } catch { return }
+            if cornerOrientation == shown { cornerOrientation = nil }
+        }
         .overlay {
             WindowSwipeRecognizer(
                 pageDirection: pagingPolicy.pageDirection,
-                isEnabled: { !showIndex && !showPageJump && !showSettings && !showSearch && !showSavedShortcut && !showBookmarkPlacement },
+                isEnabled: { !readerModalPresented },
                 onTurn: { _ in },
                 onProgress: { dragProgress(model, offset: $0) },
                 onRelease: { turn in
@@ -427,6 +482,10 @@ struct ReaderView: View {
                     model.navigationTraceForUITest?(turn == nil ? "drag-cancel" : "drag-turn")
 #endif
                     dragReleased(model, turn: turn)
+                },
+                onTouchActivity: { active in
+                    touchActive = active
+                    if !active && model.chromeVisible { chromeActivity += 1 }
                 }
             )
             .frame(width: 0, height: 0)
@@ -445,12 +504,17 @@ struct ReaderView: View {
         ) {
             toggleChrome(model)
         }
-        // A menu never survives a focus change: any scroll or page turn
-        // collapses the chrome in the model, and the menu closes here.
-        .onChange(of: model.chromeVisible) { _, visible in
-            if !visible, showReaderMenu {
-                showReaderMenu = false
-            }
+        .onPreferenceChange(ReaderHadithModalKey.self) { hadithModalPresented = $0 }
+        .onReceive(NotificationCenter.default.publisher(for: UIAccessibility.switchControlStatusDidChangeNotification)) { _ in
+            switchControlEnabled = UIAccessibility.isSwitchControlRunning
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIAccessibility.elementFocusedNotification)) { _ in
+            chromeActivity += 1
+        }
+        .task(id: chromeIdleID(model)) {
+            guard let idleID = chromeIdleID(model) else { return }
+            do { try await Task.sleep(for: .seconds(8)) } catch { return }
+            if chromeIdleID(model) == idleID { model.collapseToFocused() }
         }
         // A layout-affecting preference change (font, size, visibility,
         // translation locale) invalidates the raw offset; the semantic
@@ -469,7 +533,6 @@ struct ReaderView: View {
         // full-bleed in both states, so this system-chrome change never
         // resizes or repositions reading content.
         .statusBarHidden(!model.chromeVisible)
-        .animation(chromeAnimation, value: model.chromeVisible)
     }
 
     /// A sheet is presented in a new hosting hierarchy, so it must receive
@@ -542,6 +605,8 @@ struct ReaderView: View {
                             arabicFontSize: arabicFontSizeBinding.wrappedValue,
                             preferences: environment.preferences.preferences,
                             topContentInset: windowSafeAreaInsets.top + 8 + progressPillsHeight + 24,
+                            horizontalSafeInset: horizontalSafeInset,
+                            viewportIsResizing: { orientation.isResizing },
                             palette: palette,
                             onTurn: { turnPage(model, turn: $0) },
                             onTap: { toggleChrome(model) },
@@ -708,6 +773,7 @@ struct ReaderView: View {
     /// moves, shifts, or re-lays-out. (VoiceOver uses the same path through
     /// the accessibility action, without the tap haptic.)
     private func toggleChrome(_ model: ReaderModel) {
+        if !model.chromeVisible { showReaderMenu = false }
         model.chromeVisible.toggle()
     }
 
@@ -760,6 +826,7 @@ struct ReaderView: View {
                     bookmarked: positionedHadith(model).map { model.isBookmarked($0) } ?? false,
                     positionedReference: positionedHadith(model)?.referenceDisplay ?? "",
                     palette: palette,
+                    orientation: orientation,
                     onContents: {
                         ReaderHapticDispatcher.trigger(.menuItemTap)
                         showReaderMenu = false
@@ -792,13 +859,14 @@ struct ReaderView: View {
                     onClose: { model.saveCurrentProgress(); model.clearRecentPositions(); dismiss() },
                     onMenu: {
                         ReaderHapticDispatcher.trigger(.menuToggle)
-                        withAnimation(.easeInOut(duration: 0.2)) { showReaderMenu.toggle() }
+                        withAnimation(chromeAnimation) { showReaderMenu.toggle() }
                     }
                 )
             }
             .padding(.horizontal, 24)
             .padding(.bottom, bottomInset + 16)
         }
+        .padding(.horizontal, horizontalSafeInset)
     }
 
     /// The menu bookmark acts on the positioned (R2 anchor) hadith: when it
@@ -822,6 +890,11 @@ struct ReaderView: View {
     private func positionedHadith(_ model: ReaderModel) -> ReaderHadith? {
         model.positionedHadith()
     }
+}
+
+private struct ReaderHadithModalKey: PreferenceKey {
+    static let defaultValue = false
+    static func reduce(value: inout Bool, nextValue: () -> Bool) { value = value || nextValue() }
 }
 
 @Observable
@@ -996,11 +1069,18 @@ struct ReaderBottomCircles: View {
 /// from the leading edge at roughly the trailing two-thirds width, tighter
 /// padding and heights. The bookmark button keeps default contrast when
 /// active: ONLY its icon turns amber, never the whole card.
+private extension ReaderOrientation {
+    var controlImage: String { isLocked ? "lock.rotation" : "rotate.right" }
+    var controlLabel: String { isLocked ? "Unlock orientation" : "Lock orientation" }
+}
+
 private struct ReaderMenuStack: View {
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
     @Environment(\.dynamicTypeSize) private var textSize
     let bookmarked: Bool
     let positionedReference: String
     let palette: ReaderPalette
+    var orientation: ReaderOrientation? = nil
     let onContents: () -> Void
     let onSaved: () -> Void
     let onSettings: () -> Void
@@ -1011,7 +1091,7 @@ private struct ReaderMenuStack: View {
         HStack(spacing: 0) {
             Spacer(minLength: 0)
             Group {
-                if textSize.isAccessibilitySize {
+                if textSize.isAccessibilitySize || verticalSizeClass == .compact {
                     ScrollView { menuContent }.scrollIndicators(.hidden)
                 } else {
                     menuContent
@@ -1035,8 +1115,6 @@ private struct ReaderMenuStack: View {
                 .accessibilityIdentifier("reader.menu.saved")
                 menuCard(title: "Settings", subtitle: "Type, appearance, and text", image: "textformat.size", action: onSettings)
                     .accessibilityIdentifier("reader.menu.settings")
-                // Round 5, fix 6: the bottom row is icon-only (no text
-                // labels), equal size — Bookmark plus functional Search.
                 HStack(spacing: 8) {
                     menuIconButton(
                         image: bookmarked ? "bookmark.fill" : "bookmark",
@@ -1045,6 +1123,15 @@ private struct ReaderMenuStack: View {
                         identifier: "reader.menu.bookmark",
                         action: onBookmark
                     )
+                    if let orientation {
+                        menuIconButton(
+                            image: orientation.controlImage,
+                            tint: orientation.isLocked ? palette.interactive : palette.textSecondary,
+                            label: orientation.controlLabel,
+                            identifier: "reader.menu.orientation",
+                            action: orientation.toggleLock
+                        )
+                    }
                     menuIconButton(
                         image: "magnifyingglass",
                         tint: palette.textSecondary,
@@ -1298,6 +1385,7 @@ private struct ReaderScrollActivityModifier: ViewModifier {
 private final class ReaderLiveAnchorFrames {
     var contentFrames: [String: ReaderAnchorFrame] = [:]
     var scrollState: ReaderScrollState?
+    var viewportSize: CGSize?
     weak var scrollView: UIScrollView?
 
     var value: [String: ReaderAnchorFrame] {
@@ -1368,6 +1456,8 @@ struct ReaderPageView: View {
     let arabicFontSize: Double
     let preferences: ReaderPreferences
     let topContentInset: CGFloat
+    var horizontalSafeInset: CGFloat = 0
+    var viewportIsResizing: () -> Bool = { false }
     let palette: ReaderPalette
     let onTurn: (ReaderPageTurn) -> Void
     /// Direct page tap only. Buttons and long-press context actions keep
@@ -1490,11 +1580,15 @@ struct ReaderPageView: View {
                         hadith.narrator ?? "", hadith.narratorAr ?? "", hadith.chapterName ?? "", hadith.referenceDisplay,
                         String(describing: model.translationAllowances[hadith.internalId])] + translation
                 }
-                let layout = ReaderViewportLayout(projection: preferences.layoutProjection + "|\(topContentInset)|\(dynamicTypeSize)|\(locale.identifier)|\(preferences.uiLocale)",
+                let layout = ReaderViewportLayout(projection: preferences.layoutProjection + "|\(topContentInset)|\(horizontalSafeInset)|\(dynamicTypeSize)|\(locale.identifier)|\(preferences.uiLocale)",
                     width: viewport.size.width, height: viewport.size.height,
                     texts: renderedTexts + [selectedVolume?.title ?? "", selectedVolume?.firstChapterTitle ?? ""])
                 let handleFrames: ([String: ReaderAnchorFrame]) -> Void = { frames in
-                    guard initializedLanding else { return }
+                    guard initializedLanding, !viewportIsResizing() else { return }
+                    let previousSize = liveAnchorFrames.viewportSize
+                    liveAnchorFrames.viewportSize = viewport.size
+                    if isActive, let previousSize, previousSize != viewport.size,
+                       model.restorePositionAfterViewportResize() { return }
                     let interval = ReaderScrollProfile.begin("ReaderAnchorGeometry")
                     defer { ReaderScrollProfile.end("ReaderAnchorGeometry", interval) }
                     let readingHeight = max(1, viewport.size.height - topContentInset)
@@ -1678,7 +1772,7 @@ struct ReaderPageView: View {
                             )
                             .padding(.top, 8)
                         }
-                        .padding(.horizontal, 22)
+                        .padding(.horizontal, 22 + horizontalSafeInset)
                         .padding(.top, 20)
                         .padding(.bottom, 80)
                         .coordinateSpace(name: "reader.content")
@@ -2052,6 +2146,7 @@ private struct HadithBlock: View {
     let onShowPaywall: () -> Void
 
     @State private var isEditingNote = false
+    @State private var isSharing = false
     @State private var isSubmittingTranslation = false
     @State private var reportedTranslation: ReaderTranslation?
     @State private var showingSource = false
@@ -2158,6 +2253,8 @@ private struct HadithBlock: View {
         } message: {
             Text("You can undo this action for five seconds from the message at the bottom.")
         }
+        .preference(key: ReaderHadithModalKey.self, value: showingSource || isEditingNote
+            || isSharing || pendingSavedRemoval != nil || isSubmittingTranslation || reportedTranslation != nil)
         .sheet(isPresented: $showingSource) {
             HadithSourceSheet(hadith: hadith, translation: activeTranslation)
                 .environment(\.readerPalette, palette)
@@ -2300,6 +2397,8 @@ private struct HadithBlock: View {
             )
             popover.permittedArrowDirections = []
         }
+        isSharing = true
+        activity.completionWithItemsHandler = { _, _, _, _ in isSharing = false }
         top.present(activity, animated: true)
     }
 
@@ -3683,6 +3782,7 @@ private struct WindowSwipeRecognizer: UIViewRepresentable {
     var onTurn: (ReaderPageTurn) -> Void
     var onProgress: (CGFloat) -> Void = { _ in }
     var onRelease: ((ReaderPageTurn?) -> Void)? = nil
+    var onTouchActivity: ((Bool) -> Void)? = nil
 
     func makeCoordinator() -> ReaderPagingPanHandler {
         ReaderPagingPanHandler(
@@ -3690,7 +3790,8 @@ private struct WindowSwipeRecognizer: UIViewRepresentable {
             isEnabled: isEnabled,
             onTurn: onTurn,
             onProgress: onProgress,
-            onRelease: onRelease
+            onRelease: onRelease,
+            onTouchActivity: onTouchActivity
         )
     }
 
@@ -3709,6 +3810,7 @@ private struct WindowSwipeRecognizer: UIViewRepresentable {
         context.coordinator.onTurn = onTurn
         context.coordinator.onProgress = onProgress
         context.coordinator.onRelease = onRelease
+        context.coordinator.onTouchActivity = onTouchActivity
         if let window = uiView.window { context.coordinator.installIfNeeded(on: window) }
     }
 

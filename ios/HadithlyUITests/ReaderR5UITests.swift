@@ -122,6 +122,104 @@ final class ReaderR5UITests: XCTestCase {
         }
     }
 
+    func testReaderChromeIdleAndSettingsDetent() {
+        let app = edgeFixture(reduceMotion: true)
+        defer { app.terminate() }
+        edgeLocation(app, "2:1")
+        let center = app.coordinate(withNormalizedOffset: CGVector(dx: 0.45, dy: 0.45))
+        let menu = app.buttons["reader.menu"]
+        if !menu.isHittable { center.tap() }
+        XCTAssertTrue(menu.waitForExistence(timeout: 3))
+        let text = app.staticTexts["reader.arabic"].firstMatch
+        let textFrame = text.frame
+        XCTAssertTrue(menu.waitForNonExistence(timeout: 10))
+        XCTAssertEqual(text.frame.minY, textFrame.minY, accuracy: 1)
+        center.tap()
+        XCTAssertTrue(menu.waitForExistence(timeout: 3))
+        menu.tap()
+        app.buttons["reader.menu.settings"].tap()
+        let done = app.buttons["reader.settings.close"]
+        XCTAssertTrue(done.waitForExistence(timeout: 3))
+        let compactY = done.frame.midY
+        app.buttons["reader.settings.appearance"].tap()
+        XCTAssertTrue(app.buttons["reader.theme.dark"].waitForExistence(timeout: 3))
+        XCTAssertEqual(done.frame.midY, compactY, accuracy: 2)
+        app.navigationBars.buttons.firstMatch.tap()
+        XCTAssertTrue(app.buttons["reader.settings.appearance"].waitForExistence(timeout: 3))
+        XCTAssertEqual(done.frame.midY, compactY, accuracy: 2)
+        let sheetTop = app.navigationBars.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0))
+        sheetTop.press(forDuration: 0.05, thenDragTo: sheetTop.withOffset(CGVector(dx: 0, dy: -240)))
+        XCTAssertLessThan(done.frame.midY, compactY - 100)
+        let expandedY = done.frame.midY
+        app.buttons["reader.settings.appearance"].tap()
+        XCTAssertTrue(app.buttons["reader.theme.dark"].waitForExistence(timeout: 3))
+        XCTAssertEqual(done.frame.midY, expandedY, accuracy: 2)
+        app.navigationBars.buttons.firstMatch.tap()
+        XCTAssertEqual(done.frame.midY, expandedY, accuracy: 2)
+        done.tap()
+        XCTAssertTrue(menu.waitForExistence(timeout: 3))
+    }
+
+    func testReaderOrientationLockPreservesHadithAndRestoresPortrait() throws {
+        let device = XCUIDevice.shared
+        device.orientation = .portrait
+        let app = XCUIApplication()
+        app.launchArguments = ["-A5ContentsNavigationFixture"]
+        app.launchEnvironment = ["HADITHLY_UI_TESTING": "1", "PAGING_CONTINUE": "1"]
+        app.launch()
+        defer { device.orientation = .portrait; app.terminate() }
+
+        func expectLandscape(_ landscape: Bool) {
+            let predicate = NSPredicate { _, _ in (app.frame.width > app.frame.height) == landscape }
+            XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: predicate, object: app)], timeout: 5), .completed)
+        }
+        func revealControls() {
+            if !app.buttons["reader.close"].isHittable {
+                element("reader.page", in: app).coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45)).tap()
+            }
+        }
+        let viewport = app.staticTexts["paging.continueViewport"]
+        XCTAssertTrue(viewport.waitForExistence(timeout: 10))
+        expectLandscape(false)
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.72))
+        let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.28))
+        start.press(forDuration: 0.1, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0)
+        let hadith = try XCTUnwrap(viewport.label.split(separator: "|").first.map(String.init))
+        XCTAssertNotEqual(hadith, "1", "The test must leave the first hadith")
+
+        device.orientation = .landscapeLeft
+        let corner = app.buttons["reader.corner.orientation"]
+        XCTAssertTrue(corner.waitForExistence(timeout: 4))
+        corner.tap()
+        XCTAssertEqual(corner.label, "Unlock orientation")
+        expectLandscape(true)
+        device.orientation = .portrait
+        expectLandscape(true)
+        XCTAssertEqual(viewport.label.split(separator: "|").first.map(String.init), hadith)
+        XCTAssertTrue(corner.waitForNonExistence(timeout: 5))
+
+        device.orientation = .landscapeLeft
+        revealControls()
+        app.buttons["reader.menu"].tap()
+        let menuLock = app.buttons["reader.menu.orientation"]
+        XCTAssertTrue(menuLock.waitForExistence(timeout: 3))
+        if !menuLock.isHittable { app.descendants(matching: .any)["reader.menuStack"].firstMatch.swipeUp() }
+        XCTAssertEqual(menuLock.label, "Unlock orientation")
+        menuLock.tap()
+        device.orientation = .landscapeRight
+        expectLandscape(true)
+        device.orientation = .portrait
+        expectLandscape(false)
+        XCTAssertEqual(viewport.label.split(separator: "|").first.map(String.init), hadith)
+
+        device.orientation = .landscapeLeft
+        expectLandscape(true)
+        revealControls()
+        app.buttons["reader.close"].tap()
+        XCTAssertTrue(app.buttons["paging.continue"].waitForExistence(timeout: 5))
+        expectLandscape(false)
+    }
+
     func testFooterControlsNavigateCachedEdgesAndChromeKeepsGeometry() {
         let app = edgeFixture()
         defer { app.terminate() }

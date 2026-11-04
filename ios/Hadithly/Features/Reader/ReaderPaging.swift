@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import UIKit.UIGestureRecognizerSubclass
 
 enum ReaderPageTurn: Equatable, Hashable {
     case previous
@@ -131,6 +132,8 @@ final class ReaderPagingPanHandler: NSObject, UIGestureRecognizerDelegate {
     /// or nil to cancel back to the current page. Defaults to driving
     /// `onTurn`, so discrete-swipe callers keep working unchanged.
     var onRelease: ((ReaderPageTurn?) -> Void)?
+    var onTouchActivity: ((Bool) -> Void)?
+    private weak var touchObserver: ReaderTouchObserver?
     private(set) var axisLock: ReaderAxisLock = .undecided
     private(set) weak var recognizer: UIPanGestureRecognizer?
 
@@ -139,13 +142,15 @@ final class ReaderPagingPanHandler: NSObject, UIGestureRecognizerDelegate {
         isEnabled: @escaping () -> Bool,
         onTurn: @escaping (ReaderPageTurn) -> Void,
         onProgress: @escaping (CGFloat) -> Void = { _ in },
-        onRelease: ((ReaderPageTurn?) -> Void)? = nil
+        onRelease: ((ReaderPageTurn?) -> Void)? = nil,
+        onTouchActivity: ((Bool) -> Void)? = nil
     ) {
         self.pageDirection = pageDirection
         self.isEnabled = isEnabled
         self.onTurn = onTurn
         self.onProgress = onProgress
         self.onRelease = onRelease
+        self.onTouchActivity = onTouchActivity
     }
 
     func installIfNeeded(on window: UIView) {
@@ -156,9 +161,16 @@ final class ReaderPagingPanHandler: NSObject, UIGestureRecognizerDelegate {
         recognizer.maximumNumberOfTouches = 1
         window.addGestureRecognizer(recognizer)
         self.recognizer = recognizer
+        if onTouchActivity != nil {
+            let observer = ReaderTouchObserver { [weak self] active in self?.onTouchActivity?(active) }
+            window.addGestureRecognizer(observer)
+            touchObserver = observer
+        }
     }
 
     func uninstall() {
+        if let touchObserver { touchObserver.view?.removeGestureRecognizer(touchObserver) }
+        touchObserver = nil
         guard let recognizer else { return }
         recognizer.view?.removeGestureRecognizer(recognizer)
         self.recognizer = nil
@@ -231,5 +243,44 @@ final class ReaderPagingPanHandler: NSObject, UIGestureRecognizerDelegate {
         shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
     ) -> Bool {
         true
+    }
+}
+
+private final class ReaderTouchObserver: UIGestureRecognizer {
+    private let onActivity: (Bool) -> Void
+    private var touches = Set<UITouch>()
+
+    init(onActivity: @escaping (Bool) -> Void) {
+        self.onActivity = onActivity
+        super.init(target: nil, action: nil)
+        cancelsTouchesInView = false
+        delaysTouchesEnded = false
+    }
+
+    override func canBePrevented(by preventingGestureRecognizer: UIGestureRecognizer) -> Bool { false }
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+        if self.touches.isEmpty { onActivity(true) }
+        self.touches.formUnion(touches)
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+        self.touches.subtract(touches)
+        if self.touches.isEmpty {
+            onActivity(false)
+            state = .failed
+        }
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
+        touchesEnded(touches, with: event)
+    }
+
+    override func reset() {
+        super.reset()
+        if !touches.isEmpty {
+            touches.removeAll()
+            onActivity(false)
+        }
     }
 }

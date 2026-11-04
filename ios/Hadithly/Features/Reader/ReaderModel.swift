@@ -667,6 +667,12 @@ final class ReaderModel {
         }
     }
 
+    func restorePositionAfterViewportResize() -> Bool {
+        guard verticalLanding == nil, let recent = recentPosition(for: pageIndex) else { return false }
+        verticalLanding = recent.request
+        return true
+    }
+
     private func rememberPosition(anchor: ReaderHadith, page: ReaderPageResult, normalizedOffset: Double, atHeader: Bool, viewport: ReaderViewportSnapshot?) {
         guard let volume = selectedVolumeId else { return }
         recentPositionToken -= 1

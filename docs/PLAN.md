@@ -4,6 +4,20 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
+## Reader focus, Settings, and orientation checkpoint, November 5
+
+Reader polish session 2 is implemented on both native apps. Manual and idle
+focus use the same fade, with an eight-second idle timer that pauses for
+reader sheets and accessibility. Reader Settings keeps its current detent
+through subpage navigation. Android starts at the partial detent. Orientation
+lock sits next to Bookmark and appears briefly in a corner after rotation.
+The reader restores the current hadith after reflow and releases the lock
+on exit.
+
+[Native verification](READER_FOCUS_VERIFICATION.md) records the iPhone 18 Pro
+simulator and Android 16 emulator checks. Physical devices, iPad windowing,
+assistive technology, and native-language review remain open.
+
 ## Reader polish planning checkpoint, November 4
 
 The owner requested Saved reading preferences, dark switch contrast, and

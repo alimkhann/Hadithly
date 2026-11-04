@@ -546,7 +546,7 @@ struct ReaderSettingsSheet: View {
             .toolbar { closeControl }
         }
         .tint(palette.interactive)
-        .presentationDetents(path.isEmpty && !dynamicTypeSize.isAccessibilitySize ? [.height(480), .large] : [.large])
+        .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : [.height(480), .large])
         .presentationDragIndicator(.visible)
         .preferredColorScheme(ReaderPalette.preferredColorScheme(for: readerTheme))
     }
