@@ -211,9 +211,23 @@ final class ReaderModel {
         case edge(String, VolumeEdge)
     }
     private var pageLoadOperation: PageLoadOperation?
+    enum JumpPageSource: Equatable {
+        case live(contentVersion: String?, paginationVersion: Double?)
+        case offline(contentVersion: String)
+    }
+    struct JumpPageCount: Equatable {
+        let count: Int
+        let source: JumpPageSource
+    }
+    struct JumpDestination: Equatable {
+        let volumeId: String
+        let pageIndex: Int
+        let pageCount: JumpPageCount
+    }
     enum TurnTarget {
         case page(String, Int)
         case volumeEdge(String, VolumeEdge)
+        case jump(JumpDestination)
     }
     struct PendingTurn {
         enum Status { case loading, failed }
@@ -224,6 +238,63 @@ final class ReaderModel {
     private(set) var pendingTurn: PendingTurn?
     private var pendingTurnTask: Task<Void, Never>?
 
+    func knownPageCountForJump(volumeId: String) -> JumpPageCount? {
+        guard volumes.contains(where: { $0.volumeId == volumeId }) else { return nil }
+        let current = pages.indices.contains(pageIndex) ? pages[pageIndex] : nil
+        if let current, !current.isPlaceholder, isLegacyPage(current) {
+            return nil
+        }
+        let page = selectedVolumeId == volumeId && current?.isPlaceholder == false
+            ? current
+            : pageStore.peek(collection: collectionSlug, volume: volumeId, index: 0)
+                ?? pageStore.peekLast(collection: collectionSlug, volume: volumeId)
+        guard let page, !isLegacyPage(page), pageStore.isCompatible(page, collection: collectionSlug) else { return nil }
+        return livePageCountForJump(page)
+    }
+
+    func pageCountForJump(volumeId: String) async throws -> JumpPageCount {
+        if let known = knownPageCountForJump(volumeId: volumeId) { return known }
+        guard volumes.contains(where: { $0.volumeId == volumeId }) else { throw OfflineFetchTimeout.timedOut }
+        let revision = navigationRevision
+        let current = pages.indices.contains(pageIndex) ? pages[pageIndex] : nil
+        if let current, !current.isPlaceholder, isLegacyPage(current) {
+            guard let count = offlinePageCountForJump(volumeId: volumeId) else { throw OfflineFetchTimeout.timedOut }
+            return count
+        }
+        do {
+            let page = try await fetchTurnPage(0, volumeId: volumeId)
+            try Task.checkCancellation()
+            guard revision == navigationRevision else { throw CancellationError() }
+            guard let count = livePageCountForJump(page) else { throw OfflineFetchTimeout.timedOut }
+            return count
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            try Task.checkCancellation()
+            guard revision == navigationRevision else { throw CancellationError() }
+            guard let count = offlinePageCountForJump(volumeId: volumeId) else { throw error }
+            return count
+        }
+    }
+
+    private func livePageCountForJump(_ page: ReaderPageResult) -> JumpPageCount? {
+        guard !page.items.isEmpty, page.page > 0, page.page <= page.totalPages, !isLegacyPage(page) else { return nil }
+        return JumpPageCount(count: page.totalPages,
+            source: .live(contentVersion: page.contentVersion, paginationVersion: page.paginationVersion))
+    }
+
+    private func offlinePageCountForJump(volumeId: String) -> JumpPageCount? {
+        guard let version = offlineStore?.registry.record(for: collectionSlug).activeBase,
+              let page = offlinePayload(0, volumeId: volumeId, jumpToHadithNumber: nil),
+              !page.items.isEmpty, page.totalPages > 0 else { return nil }
+        return JumpPageCount(count: page.totalPages, source: .offline(contentVersion: version))
+    }
+
+    func jumpToPage(_ destination: JumpDestination) {
+        if destination.volumeId == selectedVolumeId, destination.pageIndex == pageIndex { return }
+        requestTurn(.jump(destination))
+    }
+
     func cancelPendingTurn() {
         navigationRevision += 1
         pendingTurnTask?.cancel()
@@ -233,7 +304,41 @@ final class ReaderModel {
 
     func retryPendingTurn() {
         guard let pending = pendingTurn else { return }
+        if case let .jump(destination) = pending.target {
+            let id = pending.id
+            pendingTurn?.status = .loading
+            pendingTurnTask = Task { [weak self] in
+                guard let self else { return }
+                do {
+                    let refreshed = try await self.refreshedJumpDestination(destination)
+                    guard self.pendingTurn?.id == id, !Task.isCancelled else { return }
+                    self.requestTurn(.jump(refreshed))
+                } catch {
+                    guard self.pendingTurn?.id == id, !Task.isCancelled else { return }
+                    self.pendingTurn?.status = .failed
+                    self.pendingTurnTask = nil
+                }
+            }
+            return
+        }
         requestTurn(pending.target)
+    }
+
+    private func refreshedJumpDestination(_ destination: JumpDestination) async throws -> JumpDestination {
+        let count: JumpPageCount
+        switch destination.pageCount.source {
+        case .live:
+            let page = try await fetchTurnPage(destination.pageIndex, volumeId: destination.volumeId)
+            guard let refreshed = livePageCountForJump(page), page.page == destination.pageIndex + 1 else {
+                throw OfflineFetchTimeout.timedOut
+            }
+            count = refreshed
+        case .offline:
+            guard let refreshed = offlinePageCountForJump(volumeId: destination.volumeId),
+                  destination.pageIndex < refreshed.count else { throw OfflineFetchTimeout.timedOut }
+            count = refreshed
+        }
+        return JumpDestination(volumeId: destination.volumeId, pageIndex: destination.pageIndex, pageCount: count)
     }
 
     func requestTurn(_ target: TurnTarget) {
@@ -285,6 +390,22 @@ final class ReaderModel {
                     result = offline
                 }
                 index = max(0, result.page - 1)
+            case let .jump(destination):
+                volume = destination.volumeId
+                index = destination.pageIndex
+                guard volumes.contains(where: { $0.volumeId == volume }),
+                      index >= 0, index < destination.pageCount.count else { throw OfflineFetchTimeout.timedOut }
+                switch destination.pageCount.source {
+                case .live:
+                    result = try await fetchTurnPage(index, volumeId: volume)
+                    guard livePageCountForJump(result) == destination.pageCount else { throw OfflineFetchTimeout.timedOut }
+                case let .offline(version):
+                    guard offlineStore?.registry.record(for: collectionSlug).activeBase == version,
+                          let page = offlinePayload(index, volumeId: volume, jumpToHadithNumber: nil),
+                          page.totalPages == destination.pageCount.count else { throw OfflineFetchTimeout.timedOut }
+                    result = page
+                }
+                guard result.page == index + 1, !result.items.isEmpty else { throw OfflineFetchTimeout.timedOut }
             }
             guard pendingTurn?.id == id, !Task.isCancelled else { return }
             saveCurrentProgress()
@@ -309,7 +430,12 @@ final class ReaderModel {
             if pages.count > limit { pages.removeSubrange(limit...) }
             phase = .reading
             pageIndex = index
-            requestRecentLanding(for: index)
+            if case .jump = target {
+                recentPositions.removeAll { $0.volumeId == volume && $0.pageIndex == index }
+                requestHeaderLanding(for: index)
+            } else {
+                requestRecentLanding(for: index)
+            }
             scheduleTranslationsForCurrentPage()
             saveCurrentProgress()
             trimPageSlots()

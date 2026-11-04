@@ -249,12 +249,13 @@ fun ReaderScreen(
     var showContents by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var showQuotaPaywall by remember { mutableStateOf(false) }
+    var showPageJump by remember { mutableStateOf(false) }
 
     fun closeReader() {
         viewModel.closeReaderSession()
         onClose()
     }
-    BackHandler(enabled = !showContents && !showSettings, onBack = ::closeReader)
+    BackHandler(enabled = !showContents && !showSettings && !showPageJump, onBack = ::closeReader)
 
     // Round 7: the themed reader palette drives EVERY reader surface —
     // the page, the reader menu, and all sheets/dialogs presented from the
@@ -277,6 +278,7 @@ fun ReaderScreen(
                     preferences = preferences,
                     onOpenContents = { showContents = true },
                     onOpenSettings = { showSettings = true },
+                    onOpenPageJump = { showPageJump = true },
                     onShowPaywall = { showQuotaPaywall = true },
                     onClose = ::closeReader,
                     onOpenSaved = { viewModel.closeReaderSession(); onOpenSaved() },
@@ -336,6 +338,27 @@ fun ReaderScreen(
         }
     }
 
+    if (showPageJump) {
+        val initialJump = remember(showPageJump) { state.selectedVolumeId to state.pageIndex }
+        ModalBottomSheet(
+            onDismissRequest = { showPageJump = false },
+            sheetState = androidx.compose.material3.rememberModalBottomSheetState(
+                skipPartiallyExpanded = false,
+            ),
+            containerColor = colors.background,
+        ) {
+            val volumeId = initialJump.first
+            if (volumeId != null) {
+                ReaderJumpSheet(
+                    viewModel = viewModel,
+                    initialVolumeId = volumeId,
+                    initialPageIndex = initialJump.second,
+                    onDismiss = { showPageJump = false },
+                )
+            }
+        }
+    }
+
     if (showQuotaPaywall) {
         QuotaPaywallSheet(
             purchases = app.purchases,
@@ -385,6 +408,7 @@ private fun ReadingView(
     preferences: ReaderPreferences,
     onOpenContents: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenPageJump: () -> Unit,
     onShowPaywall: () -> Unit,
     onClose: () -> Unit,
     onOpenSaved: () -> Unit,
@@ -683,7 +707,8 @@ private fun ReadingView(
         }
 
         ReaderProgressHUD(pageScroll, state.pageIndex, totalPages, unfocusedVolumeNumber, volumeFraction,
-            state.chromeVisible, reduceMotion, onHeaderHeight = { progressHeaderHeight = maxOf(progressHeaderHeight, it + 12.dp) })
+            state.chromeVisible, reduceMotion, onHeaderHeight = { progressHeaderHeight = maxOf(progressHeaderHeight, it + 12.dp) },
+            onOpenJump = if (currentPage != null) onOpenPageJump else null)
 
         AnimatedVisibility(
             visible = state.chromeVisible,
@@ -874,6 +899,7 @@ internal fun ReaderProgressHUD(
     chromeVisible: Boolean,
     reduceMotion: Boolean,
     onHeaderHeight: (androidx.compose.ui.unit.Dp) -> Unit = {},
+    onOpenJump: (() -> Unit)? = null,
 ) {
     val density = LocalDensity.current
     val focused = !chromeVisible
@@ -941,6 +967,7 @@ internal fun ReaderProgressHUD(
                     fraction = unfocusedPageFill.toDouble(),
                     testTag = "reader.unfocusedPageBar",
                     reduceMotion = reduceMotion,
+                    onClick = onOpenJump,
                 )
                 if (unfocusedVolumeNumber != null) {
                     ReaderProgressPill(
@@ -950,6 +977,7 @@ internal fun ReaderProgressHUD(
                         fraction = unfocusedVolumeFill,
                         testTag = "reader.unfocusedVolumeBar",
                         reduceMotion = reduceMotion,
+                        onClick = onOpenJump,
                     )
                 }
             }
@@ -2010,6 +2038,7 @@ private fun ReaderProgressPill(
     testTag: String,
     modifier: Modifier = Modifier,
     reduceMotion: Boolean = false,
+    onClick: (() -> Unit)? = null,
 ) {
     val colors = LocalHadithlyColors.current
     // Round 7: the fill animates to its new fraction on page switch
@@ -2023,13 +2052,14 @@ private fun ReaderProgressPill(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .width(IntrinsicSize.Max)
-            .heightIn(min = 32.dp)
+            .heightIn(min = if (onClick != null) 44.dp else 32.dp)
             .clip(RoundedCornerShape(50))
             .background(colors.surface.copy(alpha = 0.84f))
             .border(
                 androidx.compose.foundation.BorderStroke(0.5.dp, colors.divider.copy(alpha = 0.62f)),
                 RoundedCornerShape(50),
             )
+            .then(if (onClick != null) Modifier.clickable(enabled = true, onClick = onClick) else Modifier)
             .testTag(testTag)
             .semantics(mergeDescendants = true) { contentDescription = accessibilityLabel },
     ) {

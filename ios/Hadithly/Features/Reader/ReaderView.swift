@@ -45,6 +45,7 @@ struct ReaderView: View {
 
     @State private var model: ReaderModel?
     @State private var showIndex = false
+    @State private var showPageJump = false
     @State private var showSettings = false
     @State private var showReaderMenu = false
     @State private var showSearch = false
@@ -200,6 +201,15 @@ struct ReaderView: View {
             readerSheet {
                 if let model {
                     ReaderSettingsSheet(onLanguage: model.setLanguage)
+                }
+            }
+        }
+        .sheet(isPresented: $showPageJump) {
+            readerSheet {
+                if let model, let volume = model.selectedVolumeId {
+                    ReaderJumpSheet(model: model, volumeId: volume, pageIndex: model.pageIndex)
+                        .presentationDetents([.medium, .large])
+                        .presentationDragIndicator(.hidden)
                 }
             }
         }
@@ -406,7 +416,7 @@ struct ReaderView: View {
         .overlay {
             WindowSwipeRecognizer(
                 pageDirection: pagingPolicy.pageDirection,
-                isEnabled: { !showIndex && !showSettings && !showSearch && !showSavedShortcut && !showBookmarkPlacement },
+                isEnabled: { !showIndex && !showPageJump && !showSettings && !showSearch && !showSavedShortcut && !showBookmarkPlacement },
                 onTurn: { _ in },
                 onProgress: { dragProgress(model, offset: $0) },
                 onRelease: { turn in
@@ -734,7 +744,8 @@ struct ReaderView: View {
                 totalPages: model.totalPages,
                 volumeNumber: ReaderProgressBars.volumePosition(selectedVolumeId: model.selectedVolumeId, volumes: model.volumes),
                 volumeCount: model.volumes.count,
-                palette: palette
+                palette: palette,
+                onOpen: model.pages.indices.contains(model.pageIndex) && !model.pages[model.pageIndex].isPlaceholder ? { showPageJump = true } : nil
             )
             .background(GeometryReader { proxy in
                 Color.clear.preference(key: ReaderProgressHeaderHeightKey.self, value: [progressLayoutID: proxy.size.height])
@@ -831,12 +842,13 @@ private struct ReaderProgressPillsObserver: View {
     let volumeNumber: Int?
     let volumeCount: Int
     let palette: ReaderPalette
+    let onOpen: (() -> Void)?
     var body: some View {
         ReaderUnfocusedProgressPills(pageNumber: pageIndex + 1,
             pageFill: ReaderProgressBars.pagePillFillFraction(progress.fraction),
             volumeNumber: volumeNumber, volumeCount: volumeCount,
             volumeFill: ReaderProgressBars.volumePillFillFraction(pageIndex: pageIndex, totalPages: totalPages, intraPageFraction: progress.fraction),
-            palette: palette)
+            palette: palette, onOpen: onOpen)
     }
 }
 
@@ -1145,6 +1157,7 @@ private struct ReaderUnfocusedProgressPills: View {
     /// Page fraction within the volume behind the Volume pill.
     let volumeFill: Double?
     let palette: ReaderPalette
+    var onOpen: (() -> Void)? = nil
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -1155,19 +1168,32 @@ private struct ReaderUnfocusedProgressPills: View {
         }
         .padding(.horizontal, 20)
         .frame(maxWidth: .infinity, alignment: .center)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(accessibilityText)
         .accessibilityIdentifier("reader.unfocusedProgress")
     }
 
     @ViewBuilder private var pills: some View {
-        progressPill(number: pageNumber.formatted(.number.locale(locale)), suffix: AppLocalization.string("page", locale: locale), fill: pageFill)
+        progressPill(number: pageNumber.formatted(.number.locale(locale)), suffix: AppLocalization.string("page", locale: locale), fill: pageFill,
+                     label: AppLocalization.format("Page %1$@", locale: locale, pageNumber.formatted(.number.locale(locale))), identifier: "reader.jump.openPage")
         if let volumeNumber {
-            progressPill(number: volumeNumber.formatted(.number.locale(locale)), suffix: AppLocalization.string("volume", locale: locale), fill: volumeFill ?? 0)
+            progressPill(number: volumeNumber.formatted(.number.locale(locale)), suffix: AppLocalization.string("volume", locale: locale), fill: volumeFill ?? 0,
+                         label: AppLocalization.format("Volume %1$@ of %2$@", locale: locale, volumeNumber.formatted(.number.locale(locale)), volumeCount.formatted(.number.locale(locale))), identifier: "reader.jump.openVolume")
         }
     }
 
-    private func progressPill(number: String, suffix: String, fill: Double) -> some View {
+    @ViewBuilder private func progressPill(number: String, suffix: String, fill: Double, label: String, identifier: String) -> some View {
+        if let onOpen {
+            Button(action: onOpen) { pillContent(number: number, suffix: suffix, fill: fill) }
+                .buttonStyle(.plain)
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
+                .accessibilityLabel(label)
+                .accessibilityIdentifier(identifier)
+        } else {
+            pillContent(number: number, suffix: suffix, fill: fill).accessibilityHidden(true)
+        }
+    }
+
+    private func pillContent(number: String, suffix: String, fill: Double) -> some View {
         let clamped = min(1, max(0, fill))
         return HStack(spacing: 4) {
             Text(number).font(.caption.weight(.bold)).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
@@ -1185,15 +1211,6 @@ private struct ReaderUnfocusedProgressPills: View {
         })
         .clipShape(Capsule())
         .readerControlSurface(in: Capsule())
-        .accessibilityHidden(true)
-    }
-
-    private var accessibilityText: String {
-        var parts = [AppLocalization.format("Page %1$@", locale: locale, pageNumber.formatted(.number.locale(locale)))]
-        if let volumeNumber, volumeCount > 0 {
-            parts.append(AppLocalization.format("Volume %1$@ of %2$@", locale: locale, volumeNumber.formatted(.number.locale(locale)), volumeCount.formatted(.number.locale(locale))))
-        }
-        return parts.joined(separator: ", ")
     }
 }
 

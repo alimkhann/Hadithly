@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.delay
 
 /** Per-hadith AI translation state, keyed by the hadith's internal id. */
@@ -139,9 +140,17 @@ class ReaderViewModel(
     private val _state = MutableStateFlow(ReaderState(language = app.preferences.preferences.value.translationLocale))
     val state: StateFlow<ReaderState> = _state
 
+    sealed interface JumpPageSource {
+        data class Live(val contentVersion: String?, val paginationVersion: Double?) : JumpPageSource
+        data class Offline(val contentVersion: String) : JumpPageSource
+    }
+    data class JumpPageCount(val count: Int, val source: JumpPageSource)
+    data class JumpDestination(val volumeId: String, val pageIndex: Int, val pageCount: JumpPageCount)
+
     sealed interface TurnTarget {
         data class Page(val volume: String, val index: Int) : TurnTarget
         data class VolumeEdge(val volume: String, val edge: ReaderViewModel.VolumeEdge) : TurnTarget
+        data class Jump(val destination: JumpDestination) : TurnTarget
     }
     enum class TurnStatus { LOADING, FAILED }
     data class PendingTurn(val id: Int, val target: TurnTarget, val status: TurnStatus)
@@ -220,6 +229,62 @@ class ReaderViewModel(
     private var turnGeneration = 0
     private var turnJob: Job? = null
 
+    fun knownPageCountForJump(volumeId: String): JumpPageCount? {
+        val current = _state.value
+        if (current.volumes.none { it.volumeId == volumeId }) return null
+        val currentPage = current.pages.getOrNull(current.pageIndex)
+        if (currentPage != null && !currentPage.isPlaceholder && currentPage.isLegacyPage()) {
+            return null
+        }
+        val page = if (current.selectedVolumeId == volumeId && currentPage?.isPlaceholder == false) {
+            currentPage
+        } else {
+            pageStore.peek(collectionSlug, volumeId, 0) ?: pageStore.peekLast(collectionSlug, volumeId)
+        }
+        if (page == null || page.isLegacyPage() || !pageStore.isCompatible(page, collectionSlug)) return null
+        return livePageCountForJump(page)
+    }
+
+    suspend fun pageCountForJump(volumeId: String): JumpPageCount {
+        knownPageCountForJump(volumeId)?.let { return it }
+        val current = _state.value
+        require(current.volumes.any { it.volumeId == volumeId })
+        val revision = turnGeneration
+        val currentPage = current.pages.getOrNull(current.pageIndex)
+        if (currentPage != null && !currentPage.isPlaceholder && currentPage.isLegacyPage()) {
+            return offlinePageCountForJump(volumeId) ?: throw java.io.IOException("Offline page unavailable")
+        }
+        return try {
+            val page = withTimeoutOrNull(FETCH_TIMEOUT_MS) { fetchPage(volumeId, 0) }
+                ?: throw java.io.IOException("Page count timed out")
+            if (revision != turnGeneration) throw CancellationException()
+            livePageCountForJump(page) ?: throw java.io.IOException("Page count unavailable")
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            if (revision != turnGeneration) throw CancellationException()
+            offlinePageCountForJump(volumeId) ?: throw error
+        }
+    }
+
+    private fun livePageCountForJump(page: ReaderPageResult): JumpPageCount? {
+        if (page.items.isEmpty() || page.pageNumber < 1 || page.pageNumber > page.totalPagesInt || page.isLegacyPage()) return null
+        return JumpPageCount(page.totalPagesInt, JumpPageSource.Live(page.contentVersion, page.paginationVersion))
+    }
+
+    private fun offlinePageCountForJump(volumeId: String): JumpPageCount? {
+        val version = offlineStore.recordFor(collectionSlug).activeBase ?: return null
+        val page = offlineStore.offlinePage(collectionSlug, volumeId, 0, _state.value.language) ?: return null
+        if (page.items.isEmpty() || page.totalPagesInt <= 0) return null
+        return JumpPageCount(page.totalPagesInt, JumpPageSource.Offline(version))
+    }
+
+    fun jumpToPage(destination: JumpDestination) {
+        val current = _state.value
+        if (destination.volumeId == current.selectedVolumeId && destination.pageIndex == current.pageIndex) return
+        requestTurn(TurnTarget.Jump(destination))
+    }
+
     fun cancelPendingTurn() {
         turnGeneration++
         turnJob?.cancel()
@@ -228,8 +293,42 @@ class ReaderViewModel(
     }
 
     fun retryPendingTurn() {
-        val target = _state.value.pendingTurn?.target ?: return
+        val pending = _state.value.pendingTurn ?: return
+        val target = pending.target
+        if (target is TurnTarget.Jump) {
+            val id = pending.id
+            _state.update { it.copy(pendingTurn = pending.copy(status = TurnStatus.LOADING)) }
+            turnJob = viewModelScope.launch {
+                try {
+                    val refreshed = withTimeout(FETCH_TIMEOUT_MS) { refreshedJumpDestination(target.destination) }
+                    if (id == turnGeneration) requestTurn(TurnTarget.Jump(refreshed))
+                } catch (_: CancellationException) {
+                    if (id == turnGeneration && currentCoroutineContext().isActive) {
+                        _state.update { it.copy(pendingTurn = pending.copy(status = TurnStatus.FAILED)) }
+                    }
+                } catch (_: Exception) {
+                    if (id == turnGeneration) _state.update { it.copy(pendingTurn = pending.copy(status = TurnStatus.FAILED)) }
+                }
+            }
+            return
+        }
         requestTurn(target)
+    }
+
+    private suspend fun refreshedJumpDestination(destination: JumpDestination): JumpDestination {
+        val count = when (destination.pageCount.source) {
+            is JumpPageSource.Live -> {
+                val page = fetchPage(destination.volumeId, destination.pageIndex)
+                if (page.pageNumber != destination.pageIndex + 1) throw java.io.IOException("Page unavailable")
+                livePageCountForJump(page) ?: throw java.io.IOException("Page unavailable")
+            }
+            is JumpPageSource.Offline -> {
+                val refreshed = offlinePageCountForJump(destination.volumeId) ?: throw java.io.IOException("Offline page unavailable")
+                if (destination.pageIndex >= refreshed.count) throw java.io.IOException("Page unavailable")
+                refreshed
+            }
+        }
+        return destination.copy(pageCount = count)
     }
 
     fun requestTurn(target: TurnTarget) {
@@ -240,7 +339,14 @@ class ReaderViewModel(
             try {
                 val resolved = withTimeout(FETCH_TIMEOUT_MS) { resolveTurn(target) }
                 if (id != turnGeneration) return@launch
-                commitTurn(resolved)
+                if (target is TurnTarget.Jump) {
+                    val landing = ReaderVerticalLandingRequest(++nextVerticalLandingToken,
+                        ReaderVerticalLandingPage(resolved.volume, resolved.index), ReaderVerticalLanding.Header)
+                    recentPositions.removeAll { it.volumeId == resolved.volume && it.pageIndex == resolved.index }
+                    commitTurn(resolved, landing)
+                } else {
+                    commitTurn(resolved)
+                }
             } catch (_: CancellationException) {
                 if (id == turnGeneration && currentCoroutineContext().isActive) {
                     _state.update { it.copy(pendingTurn = PendingTurn(id, target, TurnStatus.FAILED)) }
@@ -275,6 +381,27 @@ class ReaderViewModel(
             catch (error: Exception) {
                 resolveOfflineEdge(target) ?: throw error
             }
+        }
+        is TurnTarget.Jump -> {
+            val destination = target.destination
+            require(_state.value.volumes.any { it.volumeId == destination.volumeId })
+            require(destination.pageIndex >= 0 && destination.pageIndex < destination.pageCount.count)
+            val page = when (val source = destination.pageCount.source) {
+                is JumpPageSource.Live -> {
+                    val loaded = fetchPage(destination.volumeId, destination.pageIndex)
+                    if (livePageCountForJump(loaded) != destination.pageCount) throw java.io.IOException("Page changed")
+                    loaded
+                }
+                is JumpPageSource.Offline -> {
+                    if (offlineStore.recordFor(collectionSlug).activeBase != source.contentVersion) throw java.io.IOException("Offline file changed")
+                    val loaded = offlineStore.offlinePage(collectionSlug, destination.volumeId, destination.pageIndex, _state.value.language)
+                        ?: throw java.io.IOException("Offline page unavailable")
+                    if (loaded.totalPagesInt != destination.pageCount.count) throw java.io.IOException("Page changed")
+                    loaded
+                }
+            }
+            if (page.pageNumber != destination.pageIndex + 1 || page.items.isEmpty()) throw java.io.IOException("Page unavailable")
+            ResolvedTurn(destination.volumeId, destination.pageIndex, page)
         }
     }
 

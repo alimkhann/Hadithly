@@ -1,5 +1,202 @@
 import SwiftUI
 
+private struct ReaderJumpPosition: Hashable {
+    let volumeId: String
+    let pageIndex: Int
+}
+
+private enum ReaderJumpWheelRow: Hashable {
+    case page(ReaderJumpPosition)
+    case previous(String)
+    case next(String)
+}
+
+struct ReaderJumpSheet: View {
+    @Environment(\.readerPalette) private var palette
+    @Environment(\.locale) private var locale
+    @Environment(\.dismiss) private var dismiss
+    let model: ReaderModel
+    @State private var selection: ReaderJumpPosition
+    @State private var counts: [String: ReaderModel.JumpPageCount] = [:]
+    @State private var loadTask: Task<Void, Never>?
+    @State private var pending = false
+    @State private var failed = false
+    @State private var retryVolume: String?
+    @State private var retryLast = false
+
+    init(model: ReaderModel, volumeId: String, pageIndex: Int) {
+        self.model = model
+        _selection = State(initialValue: ReaderJumpPosition(volumeId: volumeId, pageIndex: pageIndex))
+    }
+
+    private var volumeIndex: Int? {
+        model.volumes.firstIndex { $0.volumeId == selection.volumeId }
+    }
+
+    private var rows: [ReaderJumpWheelRow] {
+        guard let volumeIndex, let count = counts[selection.volumeId]?.count, count > 0 else { return [] }
+        var result: [ReaderJumpWheelRow] = []
+        if volumeIndex > 0 {
+            result.append(.previous(model.volumes[volumeIndex - 1].volumeId))
+        }
+        result.append(contentsOf: (0..<count).map { .page(.init(volumeId: selection.volumeId, pageIndex: $0)) })
+        if volumeIndex + 1 < model.volumes.count {
+            result.append(.next(model.volumes[volumeIndex + 1].volumeId))
+        }
+        return result
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            HStack {
+                Spacer()
+                Button(action: { dismiss() }) {
+                    Image(systemName: "xmark")
+                        .font(.headline)
+                        .frame(width: 44, height: 44)
+                        .readerControlSurface(in: Circle())
+                }
+                .foregroundStyle(palette.textPrimary)
+                .accessibilityLabel(AppLocalization.string("Close", locale: locale))
+                .accessibilityIdentifier("reader.jump.close")
+            }
+            HStack {
+                Text(AppLocalization.string("volume", locale: locale)).frame(maxWidth: .infinity)
+                Text(AppLocalization.string("page", locale: locale)).frame(maxWidth: .infinity)
+            }
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(palette.textSecondary)
+            .textCase(.uppercase)
+            .frame(maxWidth: .infinity)
+            GeometryReader { geometry in
+                HStack(spacing: 0) {
+                    Picker(AppLocalization.string("volume", locale: locale), selection: Binding(
+                        get: { selection.volumeId },
+                        set: { chooseVolume($0, last: false) }
+                    )) {
+                        ForEach(Array(model.volumes.enumerated()), id: \.element.volumeId) { index, volume in
+                            Text((index + 1).formatted(.number.locale(locale))).tag(volume.volumeId)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    .frame(width: geometry.size.width / 2)
+                    .clipped()
+                    .accessibilityIdentifier("reader.jump.volume")
+                    Picker(AppLocalization.string("page", locale: locale), selection: Binding(
+                        get: { ReaderJumpWheelRow.page(selection) },
+                        set: chooseRow
+                    )) {
+                        ForEach(rows, id: \.self) { row in
+                            Text(label(for: row)).tag(row)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    .frame(width: geometry.size.width / 2)
+                    .clipped()
+                    .disabled(pending || failed || rows.isEmpty)
+                    .accessibilityIdentifier("reader.jump.page")
+                }
+            }
+            .frame(height: 216)
+            if pending {
+                ProgressView().accessibilityIdentifier("reader.jump.loading")
+            } else if failed {
+                Button(AppLocalization.string("Retry", locale: locale)) {
+                    if let retryVolume { chooseVolume(retryVolume, last: retryLast) }
+                }
+                .accessibilityIdentifier("reader.jump.retry")
+            }
+            goButton
+                .disabled(pending || failed || counts[selection.volumeId] == nil)
+                .accessibilityIdentifier("reader.jump.go")
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 16)
+        .padding(.bottom, 20)
+        .frame(maxWidth: .infinity)
+        .background(palette.background)
+        .task { loadInitialCount() }
+        .onDisappear { loadTask?.cancel() }
+    }
+
+    private var goButton: some View {
+        Button {
+                guard let count = counts[selection.volumeId], !pending, !failed,
+                      selection.pageIndex >= 0, selection.pageIndex < count.count else { return }
+                dismiss()
+                model.jumpToPage(.init(volumeId: selection.volumeId, pageIndex: selection.pageIndex, pageCount: count))
+            } label: {
+                Text(AppLocalization.string("Go", locale: locale)).font(.headline).frame(maxWidth: .infinity).padding(.vertical, 14)
+            }
+            .modifier(ReaderJumpButtonStyle())
+            .tint(palette.interactive)
+            .clipShape(Capsule())
+    }
+
+    private func label(for row: ReaderJumpWheelRow) -> String {
+        switch row {
+        case let .page(position): return (position.pageIndex + 1).formatted(.number.locale(locale))
+        case let .previous(volumeId):
+            guard let count = counts[volumeId]?.count ?? model.knownPageCountForJump(volumeId: volumeId)?.count else { return "…" }
+            return count.formatted(.number.locale(locale))
+        case .next: return 1.formatted(.number.locale(locale))
+        }
+    }
+
+    private func loadInitialCount() {
+        for volume in model.volumes {
+            if let count = model.knownPageCountForJump(volumeId: volume.volumeId) { counts[volume.volumeId] = count }
+        }
+        if counts[selection.volumeId] == nil { chooseVolume(selection.volumeId, last: false, initial: true) }
+    }
+
+    private func chooseRow(_ row: ReaderJumpWheelRow) {
+        switch row {
+        case let .page(position): selection = position
+        case let .previous(volumeId): chooseVolume(volumeId, last: true)
+        case let .next(volumeId): chooseVolume(volumeId, last: false)
+        }
+    }
+
+    private func chooseVolume(_ volumeId: String, last: Bool, initial: Bool = false) {
+        loadTask?.cancel()
+        failed = false
+        retryVolume = volumeId
+        retryLast = last
+        if let count = counts[volumeId] ?? model.knownPageCountForJump(volumeId: volumeId) {
+            counts[volumeId] = count
+            selection = .init(volumeId: volumeId, pageIndex: initial ? min(selection.pageIndex, count.count - 1) : (last ? count.count - 1 : 0))
+            pending = false
+            return
+        }
+        pending = true
+        loadTask = Task { @MainActor in
+            do {
+                let count = try await model.pageCountForJump(volumeId: volumeId)
+                try Task.checkCancellation()
+                counts[volumeId] = count
+                selection = .init(volumeId: volumeId, pageIndex: initial ? min(selection.pageIndex, count.count - 1) : (last ? count.count - 1 : 0))
+                pending = false
+            } catch is CancellationError {
+            } catch {
+                guard !Task.isCancelled else { return }
+                pending = false
+                failed = true
+            }
+        }
+    }
+}
+
+private struct ReaderJumpButtonStyle: ViewModifier {
+    @ViewBuilder func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.buttonStyle(.glassProminent)
+        } else {
+            content.buttonStyle(.borderedProminent)
+        }
+    }
+}
+
 /// Opens the Saved tab. Posted by the reader shortcut sheet's EDIT
 /// affordance after dismissing the reader; the tab view selects Saved.
 extension Notification.Name {
