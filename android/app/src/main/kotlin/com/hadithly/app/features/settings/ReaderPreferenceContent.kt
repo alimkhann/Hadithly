@@ -39,6 +39,7 @@ internal fun ReaderPreferenceContent(
     onArabicFont: (ArabicFont) -> Unit,
     onVisibility: (Boolean?, Boolean?) -> Unit,
     onDismiss: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
     extraContent: @Composable () -> Unit = {},
 ) {
     val colors = LocalHadithlyColors.current
@@ -47,7 +48,7 @@ internal fun ReaderPreferenceContent(
     var panel by remember { mutableStateOf<String?>(null) }
     BackHandler(enabled = panel != null) { panel = null }
     val scrollState = key(panel) { rememberScrollState() }
-    Column(Modifier.testTag("$prefix.settings.sheet").fillMaxWidth()) {
+    Column(modifier.testTag("$prefix.settings.sheet").fillMaxWidth()) {
         if (onDismiss != null || panel != null) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
                 if (panel != null) {

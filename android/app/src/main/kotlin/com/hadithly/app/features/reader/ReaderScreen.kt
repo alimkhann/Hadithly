@@ -44,6 +44,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
@@ -121,6 +124,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -154,8 +158,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.activity.ComponentActivity
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.ClipData
 import android.content.Intent
+import android.view.ViewTreeObserver
+import android.view.accessibility.AccessibilityManager
 import com.hadithly.app.R
 import com.hadithly.app.core.data.EnglishSearchResult
 import com.hadithly.app.core.data.HadithRef
@@ -276,6 +283,7 @@ fun ReaderScreen(
                     state = state,
                     arabicFontSize = preferences.arabicFontSize,
                     preferences = preferences,
+                    modalVisible = showContents || showSettings || showPageJump || showQuotaPaywall,
                     onOpenContents = { showContents = true },
                     onOpenSettings = { showSettings = true },
                     onOpenPageJump = { showPageJump = true },
@@ -315,7 +323,7 @@ fun ReaderScreen(
 
     if (showSettings) {
         val settingsSheetState = androidx.compose.material3.rememberModalBottomSheetState(
-            skipPartiallyExpanded = true,
+            skipPartiallyExpanded = false,
         )
         ModalBottomSheet(
             onDismissRequest = { showSettings = false },
@@ -323,6 +331,7 @@ fun ReaderScreen(
             containerColor = colors.background,
         ) {
             SettingsSheet(
+                modifier = Modifier.fillMaxHeight(),
                 preferences = preferences,
                 language = state.language,
                 onLanguage = { viewModel.setLanguage(it) },
@@ -415,6 +424,7 @@ private fun ReadingView(
     state: ReaderViewModel.ReaderState,
     arabicFontSize: Float,
     preferences: ReaderPreferences,
+    modalVisible: Boolean,
     onOpenContents: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenPageJump: () -> Unit,
@@ -441,20 +451,9 @@ private fun ReadingView(
     val coroutine = rememberCoroutineScope()
     val pagingPolicy = remember(preferences) { ReaderPagingPolicy(preferences) }
 
-    /**
-     * R6 round 3: any scroll lands focused with no haptic and closes the
-     * reader menu — the menu never survives a focus change. Only the
-     * tap-once toggle below plays the haptic.
-     */
-    fun collapseToFocusedAndCloseMenu() {
-        readerMenuExpanded = false
-        viewModel.collapseToFocused()
-    }
-
-    // Volume selects, chapter jumps, reference jumps, search and Saved
-    // navigation all reset the page index: the menu never survives them.
-    LaunchedEffect(state.pageIndex, state.selectedVolumeId) {
-        readerMenuExpanded = false
+    fun toggleChrome() {
+        if (!state.chromeVisible) readerMenuExpanded = false
+        viewModel.toggleChrome()
     }
 
     val currentPage = viewModel.preparedCurrent()
@@ -511,6 +510,36 @@ private fun ReadingView(
     // status bar with focused mode. Reader controls animate independently.
     // Page content never moves or re-composes layout.
     val focused = !state.chromeVisible
+    val accessibility = context.getSystemService(AccessibilityManager::class.java)
+    fun accessibilityInUse() =
+        accessibility.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK).isNotEmpty()
+    var accessibilityActive by remember(accessibility) { mutableStateOf(accessibilityInUse()) }
+    var windowFocused by remember(androidView) { mutableStateOf(androidView.hasWindowFocus()) }
+    DisposableEffect(androidView, accessibility) {
+        val windowListener = ViewTreeObserver.OnWindowFocusChangeListener { hasFocus ->
+            windowFocused = hasFocus
+            if (hasFocus) accessibilityActive = accessibilityInUse()
+        }
+        val accessibilityListener = AccessibilityManager.AccessibilityStateChangeListener {
+            accessibilityActive = accessibilityInUse()
+        }
+        androidView.viewTreeObserver.addOnWindowFocusChangeListener(windowListener)
+        accessibility.addAccessibilityStateChangeListener(accessibilityListener)
+        onDispose {
+            androidView.viewTreeObserver.removeOnWindowFocusChangeListener(windowListener)
+            accessibility.removeAccessibilityStateChangeListener(accessibilityListener)
+        }
+    }
+    var touching by remember { mutableStateOf(false) }
+    var lastInteraction by remember { androidx.compose.runtime.mutableIntStateOf(0) }
+    val idleEligible = !focused && windowFocused && !accessibilityActive && !touching &&
+        !modalVisible && !showSearch && !showReaderSaved && !showBookmarkPlacement
+    LaunchedEffect(idleEligible, lastInteraction) {
+        if (idleEligible) {
+            delay(8_000)
+            viewModel.collapseToFocused()
+        }
+    }
     val activity = remember(androidView) {
         generateSequence(androidView.context) { context ->
             (context as? android.content.ContextWrapper)?.baseContext
@@ -538,12 +567,12 @@ private fun ReadingView(
         if (reduceMotion) snap() else tween(200)
     // Unfocused chrome (pills row, bottom chrome, corner label): visible in
     // unfocused mode — shrinks while fading out, grows while fading in.
-    val chromeAlpha by animateFloatAsState(
+    val chromeAlpha = animateFloatAsState(
         targetValue = if (state.chromeVisible) 1f else 0f,
         animationSpec = chromeAnim,
         label = "readerChromeAlpha",
     )
-    val chromeScale by animateFloatAsState(
+    val chromeScale = animateFloatAsState(
         targetValue = if (state.chromeVisible) 1f else 0.96f,
         animationSpec = chromeAnim,
         label = "readerChromeScale",
@@ -571,7 +600,7 @@ private fun ReadingView(
             CustomAccessibilityAction(
                 controlsAction,
                 action = {
-                    viewModel.toggleChrome()
+                    toggleChrome()
                     true
                 },
             ),
@@ -612,6 +641,21 @@ private fun ReadingView(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .onPreviewKeyEvent { lastInteraction++; false }
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                    touching = true
+                    try {
+                        do {
+                            val event = awaitPointerEvent(PointerEventPass.Final)
+                        } while (event.changes.any { it.pressed })
+                    } finally {
+                        touching = false
+                        lastInteraction++
+                    }
+                }
+            }
             .semantics { customActions = accessibilityActions },
     ) {
         DirectionAwareHorizontalPager(
@@ -631,7 +675,7 @@ private fun ReadingView(
             onUserDragStart = {
                 if (frozenSlots == null) frozenSlots = slots
                 viewModel.cancelPendingTurn()
-                collapseToFocusedAndCloseMenu()
+                viewModel.collapseToFocused()
             },
             modifier = Modifier.fillMaxSize(),
         ) { slot ->
@@ -671,10 +715,10 @@ private fun ReadingView(
                     onTap = {
                         if (active) {
                             ReaderHaptics.perform(androidView, ReaderHapticKind.TAP_TOGGLE)
-                            viewModel.toggleChrome()
+                            toggleChrome()
                         }
                     },
-                    onUserScroll = { if (active) collapseToFocusedAndCloseMenu() },
+                    onUserScroll = { if (active) viewModel.collapseToFocused() },
                     onPageScrollFraction = { page, fraction -> if (active) pageScroll.value = page to fraction },
                     onShowPaywall = { if (active) onShowPaywall() },
                 )
@@ -707,7 +751,7 @@ private fun ReadingView(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                if (!readerMenuExpanded) ReaderActionHint(experience, Modifier.fillMaxWidth())
+                if (!state.chromeVisible || !readerMenuExpanded) ReaderActionHint(experience, Modifier.fillMaxWidth())
                 com.hadithly.app.features.saved.SavedUndoBanner(
                     testTag = "reader.undoBanner",
                     controller = viewModel.library.undo,
@@ -899,6 +943,7 @@ internal fun ReaderChromeCircle(icon: androidx.compose.ui.graphics.vector.ImageV
 
 /** Observe per-frame scroll only in the HUD, outside the pager's composition scope. */
 @Composable
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 internal fun ReaderProgressHUD(
     pageScroll: State<Pair<Int, Float>>,
     pageIndex: Int,
@@ -967,7 +1012,8 @@ internal fun ReaderProgressHUD(
                 maxItemsInEachRow = 2,
                 modifier = Modifier.fillMaxWidth()
                     .onSizeChanged { onHeaderHeight(with(density) { it.height.toDp() }) }
-                    .statusBarsPadding().padding(start = 20.dp, end = 20.dp, top = 6.dp),
+                    .windowInsetsPadding(WindowInsets.statusBarsIgnoringVisibility)
+                    .padding(start = 20.dp, end = 20.dp, top = 6.dp),
             ) {
                 ReaderProgressPill(
                     number = java.text.NumberFormat.getIntegerInstance(LocalConfiguration.current.locales[0]).format(pageIndex + 1),
@@ -977,6 +1023,7 @@ internal fun ReaderProgressHUD(
                     testTag = "reader.unfocusedPageBar",
                     reduceMotion = reduceMotion,
                     onClick = onOpenJump,
+                    interactive = chromeVisible,
                 )
                 if (unfocusedVolumeNumber != null) {
                     ReaderProgressPill(
@@ -987,6 +1034,7 @@ internal fun ReaderProgressHUD(
                         testTag = "reader.unfocusedVolumeBar",
                         reduceMotion = reduceMotion,
                         onClick = onOpenJump,
+                        interactive = chromeVisible,
                     )
                 }
             }
@@ -1332,8 +1380,8 @@ private fun ReaderPage(
     // Round 7: the animated chrome fade+scale driven in ReadingView. The
     // inline corner label rides these through graphicsLayer — always
     // composed, so page layout never moves.
-    chromeAlpha: Float = 1f,
-    chromeScale: Float = 1f,
+    chromeAlpha: State<Float>,
+    chromeScale: State<Float>,
     onFollowPill: (ReaderPagePills.Pill) -> Unit,
     onTap: () -> Unit,
     onUserScroll: () -> Unit,
@@ -1431,18 +1479,10 @@ private fun ReaderPage(
         ?.let(::volumeHeaderNumber)
         ?.let(localizedVolumeName)
 
-    // R6 round 3: a user vertical drag collapses to focused (no haptic)
-    // and closes the menu. The DragInteraction gate keeps programmatic
-    // restoration scrolls from collapsing; tap-chrome is untouched.
     LaunchedEffect(listState, isActivePage) {
-        var userDragging = false
-        launch {
-            listState.interactionSource.interactions.collect { interaction ->
-                userDragging = interaction is DragInteraction.Start
-            }
-        }
-        snapshotFlow { listState.isScrollInProgress }.collect { scrolling ->
-            if (scrolling && userDragging && isActivePage) onUserScroll()
+        if (!isActivePage) return@LaunchedEffect
+        listState.interactionSource.interactions.collect { interaction ->
+            if (interaction is DragInteraction.Start) onUserScroll()
         }
     }
 
@@ -1636,9 +1676,9 @@ private fun ReaderPage(
                             range = cornerRange,
                             placeholder = cornerTitle == null,
                             modifier = Modifier.graphicsLayer {
-                                alpha = chromeAlpha
-                                scaleX = chromeScale
-                                scaleY = chromeScale
+                                alpha = chromeAlpha.value
+                                scaleX = chromeScale.value
+                                scaleY = chromeScale.value
                             },
                         )
                     }
@@ -2048,6 +2088,7 @@ private fun ReaderProgressPill(
     modifier: Modifier = Modifier,
     reduceMotion: Boolean = false,
     onClick: (() -> Unit)? = null,
+    interactive: Boolean = true,
 ) {
     val colors = LocalHadithlyColors.current
     // Round 7: the fill animates to its new fraction on page switch
@@ -2068,7 +2109,7 @@ private fun ReaderProgressPill(
                 androidx.compose.foundation.BorderStroke(0.5.dp, colors.divider.copy(alpha = 0.62f)),
                 RoundedCornerShape(50),
             )
-            .then(if (onClick != null) Modifier.clickable(enabled = true, onClick = onClick) else Modifier)
+            .then(if (onClick != null && interactive) Modifier.clickable(onClick = onClick) else Modifier)
             .testTag(testTag)
             .semantics(mergeDescendants = true) { contentDescription = accessibilityLabel },
     ) {
@@ -3350,9 +3391,11 @@ internal fun SettingsSheet(
     onVisibility: (arabic: Boolean?, translation: Boolean?) -> Boolean,
     onDismiss: () -> Unit = {},
     onTranslationFontSize: (Float) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val view = LocalView.current
     com.hadithly.app.features.settings.ReaderPreferenceContent(
+        modifier = modifier,
         preferences = preferences.copy(translationLocale = language),
         prefix = "reader",
         onLanguage = onLanguage,

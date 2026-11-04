@@ -36,7 +36,15 @@ class ContentsNavigationTest {
 
     @Test fun guestSavingNoteUndoAndSavedReaderReturn() = journey("en", false, checkSaved = true)
 
-    private fun journey(locale: String, large: Boolean, checkControls: Boolean = true, checkSaved: Boolean = false) {
+    @Test fun idleFocusAndSettingsKeepReaderPosition() = journey("en", false, checkIdleAndSheet = true)
+
+    private fun journey(
+        locale: String,
+        large: Boolean,
+        checkControls: Boolean = true,
+        checkSaved: Boolean = false,
+        checkIdleAndSheet: Boolean = false,
+    ) {
         val app = ApplicationProvider.getApplicationContext<HadithlyApplication>()
         assertNull("Guest-only controlled journey", com.clerk.api.Clerk.user)
         val directory = java.io.File(app.cacheDir, "a5-library-" + System.nanoTime()).apply { mkdirs() }
@@ -109,7 +117,10 @@ class ContentsNavigationTest {
                 assertTrue("Old cancellation must not release the target's loading state", model.state.value.isLoadingPage)
                 assertTrue(model.state.value.pages.isEmpty())
             }
-            targetPage.complete(page("57"))
+            val destination = page("57")
+            targetPage.complete(if (checkIdleAndSheet) destination.copy(items = destination.items.map {
+                it.copy(arabicText = it.arabicText.repeat(100))
+            }) else destination)
             compose.waitUntil(10000) { !model.state.value.isLoadingPage }
             assertEquals("Go dismissed but lost target; requests=$requests", "57", model.currentPageHadiths().firstOrNull()?.providerHadithId)
             compose.waitUntil(10000) {
@@ -137,8 +148,10 @@ class ContentsNavigationTest {
                 val transfer = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand("cp ${file.absolutePath} /data/local/tmp/a5-controls-$locale.png")
                 java.io.FileInputStream(transfer.fileDescriptor).use { it.readBytes() }; transfer.close()
                 assertTrue("Reader viewport must extend behind floating controls: $viewport / $pagePill", viewport.top < minOf(pagePill.top, volumePill.top))
-                for (corner in corners.map { it.boundsInRoot }.filter { it.height > 0 }) {
-                    assertTrue("Visible source overlaps progress: $corner", corner.top >= maxOf(pagePill.bottom, volumePill.bottom))
+                if (!checkIdleAndSheet) {
+                    for (corner in corners.map { it.boundsInRoot }.filter { it.height > 0 }) {
+                        assertTrue("Visible source overlaps progress: $corner", corner.top >= maxOf(pagePill.bottom, volumePill.bottom))
+                    }
                 }
                 for (tag in listOf("reader.unfocusedPageBar", "reader.unfocusedVolumeBar")) {
                     val texts = compose.onAllNodes(hasAnyAncestor(hasTestTag(tag)) and SemanticsMatcher.keyIsDefined(androidx.compose.ui.semantics.SemanticsActions.GetTextLayoutResult), useUnmergedTree = true)
@@ -169,7 +182,44 @@ class ContentsNavigationTest {
                 visibleArabic().performTouchInput { click(center) }
                 compose.waitForIdle()
                 compose.runOnIdle { assertTrue(model.state.value.chromeVisible) }
-                compose.onNodeWithTag("reader.unfocusedPageBar").performTouchInput { click(center) }
+                if (checkIdleAndSheet) {
+                    compose.mainClock.advanceTimeBy(4_000)
+                    compose.onNodeWithContentDescription(menuLabel).performTouchInput { click(center) }
+                    compose.mainClock.advanceTimeBy(4_500)
+                    compose.onNodeWithTag("reader.menu.settings").assertIsDisplayed().performClick()
+                    compose.mainClock.advanceTimeBy(8_500)
+                    compose.runOnIdle { assertTrue("Settings must suspend idle focus", model.state.value.chromeVisible) }
+
+                    val settings = compose.onNodeWithTag("reader.settings.sheet")
+                    fun checkSubpageHeight() {
+                        val originalTop = settings.fetchSemanticsNode().boundsInRoot.top
+                        compose.onNodeWithTag("reader.settings.appearance").performClick()
+                        assertEquals(originalTop, settings.fetchSemanticsNode().boundsInRoot.top, 1f)
+                        compose.onNodeWithTag("reader.settings.back").performClick()
+                        assertEquals(originalTop, settings.fetchSemanticsNode().boundsInRoot.top, 1f)
+                    }
+                    checkSubpageHeight()
+                    val partialTop = settings.fetchSemanticsNode().boundsInRoot.top
+                    val expand = androidx.compose.ui.semantics.SemanticsActions.Expand
+                    compose.onNode(SemanticsMatcher.keyIsDefined(expand)).performSemanticsAction(expand) { it() }
+                    assertTrue(settings.fetchSemanticsNode().boundsInRoot.top < partialTop)
+                    checkSubpageHeight()
+                    compose.onNodeWithTag("reader.settings.close").performClick()
+                    compose.waitUntil(3_000) { compose.onAllNodes(isRoot()).fetchSemanticsNodes().size == 1 }
+                    compose.mainClock.advanceTimeBy(8_500)
+                    compose.waitUntil(2_000) { !model.state.value.chromeVisible }
+                    compose.onNodeWithTag("reader.focusedPageBar").assertIsDisplayed()
+                    val idleHeader = compose.onNode(hasTestTag("reader.hadithLabel") and hasContentDescription("Bukhari – 57", substring = true)).fetchSemanticsNode().boundsInRoot
+                    assertEquals("Idle focus must not move the reading anchor", header.top, idleHeader.top, 1f)
+                    visibleArabic().performTouchInput { click(center) }
+                    compose.runOnIdle { assertTrue(model.state.value.chromeVisible) }
+                    visibleArabic().performTouchInput { swipeUp(durationMillis = 500) }
+                    compose.waitUntil(2_000) { !model.state.value.chromeVisible }
+                    compose.onNodeWithTag("reader.focusedPageBar").assertIsDisplayed()
+                } else {
+                    compose.onNodeWithTag("reader.unfocusedPageBar").performTouchInput { click(center) }
+                    compose.onNodeWithTag("reader.jump.close").performClick()
+                }
                 compose.runOnIdle { assertEquals("57", model.currentPageHadiths().first().providerHadithId) }
             }
             if (checkSaved) {
