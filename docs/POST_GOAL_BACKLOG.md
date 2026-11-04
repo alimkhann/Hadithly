@@ -38,12 +38,45 @@ the overlap. Avoid duplicate work or using overlap to authorize a broad redesign
 An external gate that cannot yet pass remains open; it does not make the original
 objective complete or authorize skipping ahead to this backlog.
 
+## November 4 reader polish
+
+The November 4 requests form five sessions, each covering iOS and Android. Start
+with Saved and dark switches, then reader controls, navigation and recovery,
+translation feedback, and collection opening motion. See the [session goals and
+checks](SESSION_PROMPTS.md#reader-polish-sessions).
+
+### Offline reading regression
+
+The owner reports that reading without internet is broken. The current
+failure has not been reproduced. Earlier Android airplane-mode, iOS
+stalled-network, and offline paging checks covered different conditions.
+
+The owner wants installed collections in the selected reading language and
+recent reads that can continue into unread pages after a cold offline launch.
+Deliver and verify this in two steps.
+
+- Start with a collection shown as downloaded. Enable airplane mode, fully
+  relaunch, and open it from Library and Continue on each platform. Verify
+  the saved landing, readable Arabic and any English included in the download,
+  and a page turn across a volume boundary. Check a connection that stalls as
+  well as a disconnected device. Trace the first failure and check that a
+  missing or corrupt download reaches collection recovery.
+- Make a bounded set of recent Continue targets and unread pages available
+  after process death, including for recent collections without a full
+  download. Prototype two pages ahead across a volume boundary and measure
+  request and storage cost before choosing a default. Verify the selected
+  language for installed collections and recent reads. Surface when the
+  selected translation is unavailable. Preserve account and publication
+  boundaries. Translation packs remain subject to the
+  [O2 rights and attribution gate](OPEN_GATES.md).
+
+Use the [offline session goals](SESSION_PROMPTS.md#separate-backlog-goal-offline-reading).
+
 ## Owner's November 2 continuation
 
-Only the feature/saving audit is being completed now. Do not implement the
-following new requests together. The owner wants separate verifiable sessions,
-with page/volume swiping next. Preserve all original product gates and the
-completed Convex cost reductions.
+The owner ordered the feature and saving audit before page and volume swiping.
+The entries below retain that record and the remaining adjacent work. Preserve
+all original product gates and the completed Convex cost reductions.
 
 ### Current closeout: preserve features and explain adjacent work
 
@@ -68,17 +101,15 @@ Carry these reliability findings forward rather than claiming perfection:
   save-failure visibility and account changes as focused follow-ups. Do not
   delete necessary publication/privacy checks to reduce work.
 
-### Next session: page and volume swiping
+### Completed: page and volume swiping
 
 The November 2 interview and matched physical-iPhone discovery are complete.
 [PAGE_TRANSITION_PLAN.md](PAGE_TRANSITION_PLAN.md) is the implementation sequence;
 [PAGE_TRANSITION_BASELINE.md](PAGE_TRANSITION_BASELINE.md) records the direct
-reposition/loader evidence and remaining cases. Product repairs have not started.
-The owner chose temporary recent-page restoration, retained direction settings
-and current-text-visible waiting. Reuse/deduplication comes before wider prefetch.
-The next bounded unit is recent-page restoration on both apps. The later request
-for chosen-language offline translations remains explicit; v1 packs are blocked
-and need a separate rights/publication-aware contract rather than reactivation.
+reposition and loader evidence. All four units were implemented and verified on
+both apps. [The paging closeout](PAGE_TRANSITION_MOTION_VERIFICATION.md) records
+recent-page restoration, bounded reuse, pending content, and native swipe motion.
+The discovery brief below is historical.
 
 The owner reports jitters, jumps, frequent loaders and incorrect gesture cases,
 including with offline collections installed. The agent should derive the
@@ -102,18 +133,17 @@ interaction matrix rather than require the owner to enumerate every bug.
   source actions, privacy and cost controls. Do not mask an incorrect state
   transition with animation or assume Sajda's internal renderer.
 
-### Following session: fast collection/page opening and fetching
+### Fast collection/page opening and fetching
 
 The owner wants opening books, fetching pages and moving through downloaded
 collections to feel immediate, with a considered layout transition.
 
 - Measure tap-to-first-readable-content and ready-to-interact latency for cold,
   warm and offline openings, separately from animation duration.
-- The current iOS path normally requests Convex first when reachable; offline
-  dumps are fallback rather than a universal local-first path. Adjacent-volume
-  warming discards returned payloads and primarily warms server data. Investigate
-  reusable bounded client content caches, in-flight request deduplication and
-  verified offline-first reads instead of merely adding more prefetch calls.
+- Reuse the bounded [page store](PAGE_TRANSITION_REUSE_VERIFICATION.md) that now
+  shares results across entry warming, adjacent warming, and foreground reading.
+  Verified offline dumps remain a separate source and need the offline repair
+  checks above. Measure entry behavior before changing which targets warm.
 - Preserve current Convex notification/outline/read reductions, Convex as the sole
   mobile API/control plane, content identities, exact locale and publication/
   rights invalidation. Do not reverse cost improvements to hide latency. Keep
@@ -213,7 +243,7 @@ architecture rewrite is needed before a measured gap justifies it.
 | 2 | Reader translation font size does not work. | A5 repair freshly verified on both apps November 1. Actual 14→22 rendered text growth and both settings entry points pass; see PRIORITY2_VERIFICATION.md. |
 | 2 | Switching Arabic → English and returning to Settings leaves it RTL/upside down. | A5 repair freshly verified on both apps November 1. Same-process root Settings return and reopening checks pass; see PRIORITY2_VERIFICATION.md for exact scopes. |
 | 3 | Reader scrolling is laggy on iOS; Android performance is unknown. | Retained optimized large-type run is 1.34 ms/s. Owner accepted the restored installed build; feature/saving audit completes this round. The stricter below-1 target was not achieved. See READER_FEATURE_PRESERVATION_AUDIT.md. Android physical/release performance remains open. |
-| 3, next | Page swipes have loading jerks and insufficient caching. | Follow the November 2 Sajda/video comparison and transition matrix above. Treat collection/page opening latency as the following separate session. |
+| 3 | Page swipes have loading jerks and insufficient caching. | All four paging units completed in their recorded scopes. Collection opening and the newly reported offline regression have separate checks. |
 | 4 | Free-account AI translations have a low success rate and fail inconsistently. | Classify failures by quota, attestation/auth, provider, exact-locale content and cache, without unapproved paid probes. |
 | 4 | Make switching free/pro behavior easy for testing paid features and limits. | Design the explicit development-only test contract above; never create a production quota bypass. |
 | 5 | Android UI/UX looks poor, possibly because it copies iOS rather than fitting Android. | Review one reading journey against Android conventions; preserve capability, meaning and privacy while allowing different layouts. |

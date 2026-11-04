@@ -4,6 +4,22 @@ This file is the source of truth for sequencing and product decisions. Read it
 before any Hadithly session. Then open the matching standalone prompt in
 `docs/SESSION_PROMPTS.md`.
 
+## Reader polish planning checkpoint, November 4
+
+The owner requested Saved reading preferences, dark switch contrast, and
+changes to reader controls, navigation, translation feedback, and collection
+opening. [Reader polish sessions](SESSION_PROMPTS.md#reader-polish-sessions)
+records five bounded native goals. Next is Saved and dark switches only.
+The translation feedback session includes native recordings for review.
+
+[POST_GOAL_BACKLOG.md](POST_GOAL_BACKLOG.md#offline-reading-regression) records
+the owner's report that offline reading is broken. Reproduce cold airplane-mode
+entry with an installed collection on both apps. Prior offline checks cover
+different conditions. The owner wants installed collections, the selected
+translation language, and recent Continue positions with unread pages ahead.
+Verify base downloads first, then verify offline continuation and translation
+availability. The O2 rights and original program gates remain open.
+
 ## Reader volume/page jump checkpoint, November 4
 
 The owner asked for interactive progress pills on the reader: either revealed

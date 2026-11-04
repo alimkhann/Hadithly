@@ -1,3 +1,13 @@
+# Next goal. Saved reading preferences and dark switches
+
+Read the November 4 checkpoint in `PLAN.md` and run only [session 1 in Reader
+polish sessions](SESSION_PROMPTS.md#1-saved-reading-preferences-and-dark-switches).
+Verify Saved previews and dark switches on both native apps, record evidence,
+and commit the scoped change. The later reader goals and the reported offline
+reading regression are listed separately in `POST_GOAL_BACKLOG.md`.
+
+---
+
 # Reader jump sheet closeout
 
 The November 4 reader picker uses volume-relative page numbers. Page loops

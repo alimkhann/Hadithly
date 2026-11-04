@@ -4,6 +4,112 @@ Paste one prompt into a fresh task. Use the named model and effort when it is
 available. Each prompt is self-contained and authorizes only its named session.
 Never use Relay.
 
+## Reader polish sessions
+
+Run one goal per chat. Read the repository checkpoint and reproduce each report
+on the named surface before changing it. Use the retained iPhone 18 Pro simulator
+and the guarded `emulator-5554` runner. Keep physical-device, language and release
+gates separate. Preserve incoming work, record what passed on each platform,
+and commit the completed unit without pushing. Stop before the next goal.
+
+### 1. Saved reading preferences and dark switches
+
+> Goal. Make expanded Saved hadith previews honor the reader's selected
+> translation, Arabic and translation visibility, Arabic typeface, and both
+> text sizes. Keep Saved on the app palette even when the reader uses a
+> separate theme. Use the reader's existing locale and rendering rules where
+> applicable. Verify an existing Saved item with a non-English translation,
+> both single-language settings, and contrasting app and reader themes.
+> Use Reading & Type as the dark switch reference. Audit all native switch
+> call sites and apply the correct palette to affected ones. Verify on, off,
+> and disabled states and that the accessible switch role still works.
+> Skills. `diagnosing-bugs`, `hadithly-native-review`.
+
+### 2. Reader focus, settings sheet, and orientation
+
+> Goal. Make controls leave focused-view entry as smoothly as they appear
+> on exit. Use the same hide behavior after about eight seconds without
+> interaction in unfocused reading. Reset on interaction and suspend while
+> a sheet, text selection, or accessibility interaction needs the controls.
+> Verify manual focus, a scroll and a page turn, idle focus, Reduce Motion,
+> and stable text position. Preserve the reader Settings sheet's current
+> height when pushing or popping a subpage, with manual expansion available.
+> Add an orientation lock next to Bookmark and briefly expose the same
+> control in a corner on rotation. Hold the current orientation until the
+> reader exits or the user unlocks it. Restore normal app behavior on exit.
+> iOS currently declares portrait only. Verify entry, rotation, lock, unlock,
+> and exit on both platforms, with the current hadith position retained.
+> Checkpoint after focus and sheet if rotation needs a separate native run.
+> Skills. `how`, `hadithly-native-review`, `principle-prove-it-works`.
+
+### 3. Reader Contents, search highlights, and opening recovery
+
+> Goal. Left-align volume and nested chapter labels in Contents, preserving
+> script direction and hierarchy. Highlight literal matching words or
+> phrases in the English search results without changing which rows match
+> or where they open. Use the query that produced the displayed results.
+> Verify mixed-direction and long labels, repeated and case-varied matches,
+> theme contrast, and exact landing on both apps. Give the initial collection
+> error screen explicit Retry and Close actions. Retry replays the original
+> collection, page or hadith target, and position. Close returns to the source.
+> Reproduce outline and first-page failures, then verify Retry after recovery
+> and Close while disconnected. Existing in-reader page-turn recovery has
+> its own tests.
+> Skills. `diagnosing-bugs`, `hadithly-native-review`.
+
+### 4. Translation feedback and recorded previews
+
+> Goal. Prototype two short feedback treatments, choose one, then implement
+> it in the real translation slot on both apps. Start with a reading margin
+> accent that moves gently beside a brief status and settles into a divider
+> when the complete translation appears. Compare it with a small page-fold
+> motif. Keep the original text readable when enabled. Reveal the actual
+> translation when ready, with no artificial wait, spinner, or skeleton.
+> Use a related resting state for a retryable error, a temporary rate limit,
+> and an allowance limit. Each state needs its own clear next action and
+> real timing when available. Preserve existing retry, sign-in, and quota
+> behavior. Verify quiet static feedback with Reduce Motion and accessible
+> status announcements. Use deterministic states instead of paid requests
+> and deliver a local native recording per platform covering wait, success,
+> error, rate limit, and usage limit.
+> Skills. `prototype`, `hadithly-native-review`,
+> `principle-exhaust-the-design-space`, `principle-prove-it-works`.
+
+### 5. Collection opening motion
+
+> Goal. Expand the tapped collection card or cover into the reader from
+> Library, Today, and other entry points that have a visible source element.
+> Use a short transition for entries without a source and respect Reduce
+> Motion. Keep collection identity visible during a cold open until readable
+> text or the collection recovery state arrives. Build on session 3's Retry
+> and Close. Reuse the existing bounded page store and shared requests. Measure
+> tap-to-readable before and after for warm and cold opens on both platforms,
+> separately from the motion duration. Check stalled entry, rapid open/close,
+> Continue's saved landing, and offline behavior within the available proof.
+> Record native warm and cold opens. If offline entry still fails, carry the
+> evidence into the separate offline regression instead of claiming it passed.
+> Skills. `how`, `hadithly-native-review`, `principle-prove-it-works`.
+
+### Separate backlog goal. Offline reading
+
+> Goal A. Restore airplane-mode reading of downloaded base collections on iOS
+> and Android. Fully relaunch with the network disabled, and reproduce from
+> Library and Continue. Trace and repair the failing boundary. Verify the saved
+> landing, downloaded text, a cross-volume turn, stalled connectivity, and
+> recovery from a missing or corrupt download. Preserve source validation and
+> semantic positions. Commit at the verified base journey.
+> Skills. `diagnosing-bugs`, `principle-fix-root-causes`,
+> `principle-prove-it-works`.
+
+> Goal B. After Goal A, make the selected language available offline where
+> rights permit. Retain a bounded set of recent Continue targets with unread
+> pages ahead, including recent reads without a full download. Test a candidate
+> window of two unread pages and measure requests and storage before selecting
+> the default. Verify cold airplane-mode Continue, an unread cross-volume turn,
+> a language change, and an account change. Keep pack export behind O2 and
+> record which language coverage the gate still blocks.
+> Skills. `how`, `hadithly-convex-cost`, `principle-prove-it-works`.
+
 ## Optimized iPhone reader smoothness
 
 The owner accepted the restored installed build on November 2 and stopped
